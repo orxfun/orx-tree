@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
-use orx_selfref_col::{RefsArray, RefsSingle, Variant};
+use orx_selfref_col::{RefsSingle, RefsVec, Variant};
 
-/// A d-ary tree where each of the nodes might have 0, 1, .., D-1 or D child nodes.
+/// A dynamic tree where each of the nodes might have any number of nodes.
 ///
 /// The [`Dary`] trees and [`Dyn`] trees differ by the following:
 /// * Children of [`Dary`] trees are stored as a fixed capacity array.
@@ -17,16 +17,16 @@ use orx_selfref_col::{RefsArray, RefsSingle, Variant};
 ///
 /// [`Dary`]: crate::Dary
 /// [`Dyn`]: crate::Dyn
-pub struct Dary<const D: usize, T> {
+pub struct Dyn<T> {
     p: PhantomData<T>,
 }
 
-impl<const D: usize, T> Variant for Dary<D, T> {
+impl<T> Variant for Dyn<T> {
     type Item = T;
 
     type Prev = RefsSingle<Self>;
 
-    type Next = RefsArray<D, Self>;
+    type Next = RefsVec<Self>;
 
     type Ends = RefsSingle<Self>;
 }
