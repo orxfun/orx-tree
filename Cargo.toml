@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-orx-selfref-col = "1.0"
-orx-split-vec = "2.0"
+orx-selfref-col = "2.1"
+
+[features]
+default = ["std"]
+std = []
