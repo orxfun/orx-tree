@@ -64,9 +64,9 @@ where
     /// Returns a mutable reference to data of the root node.
     #[inline(always)]
     pub fn data_mut(&mut self) -> &mut V::Item {
-        unsafe { &mut *self.node_ptr.ptr_mut() }
+        self.node_mut()
             .data_mut()
-            .expect("node holding a tree reference cannot be closed")
+            .expect("node holding a tree reference must be active")
     }
 
     /// Pushes the node with the given `value` as a children of the root of this tree.
@@ -83,5 +83,11 @@ where
         parent.next_mut().push(child_ptr);
 
         child_idx
+    }
+
+    // helpers
+
+    fn node_mut(&self) -> &mut N<V> {
+        unsafe { &mut *self.node_ptr().ptr_mut() }
     }
 }

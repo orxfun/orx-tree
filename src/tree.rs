@@ -245,6 +245,8 @@ where
     }
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
+    ///
+    ///
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
         self.0.get_ptr(node_idx).map(|p| self.ptr_to_tree_node(p))
     }
