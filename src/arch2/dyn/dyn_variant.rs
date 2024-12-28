@@ -1,5 +1,7 @@
+use crate::tree_variant::SealedVariant;
 use core::marker::PhantomData;
-use orx_selfref_col::{RefsSingle, RefsVec, Variant};
+use orx_pinned_vec::PinnedVec;
+use orx_selfref_col::{Node, NodePtr, RefsSingle, RefsVec, Variant};
 
 /// A dynamic tree where each of the nodes might have any number of nodes.
 ///
@@ -29,4 +31,13 @@ impl<T> Variant for Dyn<T> {
     type Next = RefsVec<Self>;
 
     type Ends = RefsSingle<Self>;
+}
+
+impl<T> SealedVariant for Dyn<T> {
+    fn occupied_ptr_iter<P>(&self) -> impl Iterator<Item = NodePtr<Self>>
+    where
+        P: PinnedVec<Node<Self>>,
+    {
+        core::iter::empty()
+    }
 }

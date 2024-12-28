@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-orx-selfref-col = "2.1"
+orx-pinned-vec = "3.11"
+orx-split-vec = "3.11"
+orx-selfref-col = { path = "../orx-selfref-col" }
 
 [features]
 default = ["std"]
