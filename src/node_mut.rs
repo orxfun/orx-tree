@@ -69,7 +69,9 @@ where
             .expect("node holding a tree reference must be active")
     }
 
-    /// Pushes the node with the given `value` as a children of the root of this tree.
+    /// Pushes the node with the given `value` as a child of this node.
+    ///
+    /// Returns the index of the created child node.
     pub fn push(&mut self, value: V::Item) -> NodeIdx<V> {
         let parent_ptr = self.node_ptr.clone();
 
@@ -83,6 +85,20 @@ where
         parent.next_mut().push(child_ptr);
 
         child_idx
+    }
+
+    /// Pushes the node with the given `values` as children of this node.
+    ///
+    /// Returns the indices of the created child nodes.
+    pub fn extend<'b, I>(
+        &'b mut self,
+        values: I,
+    ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P>
+    where
+        I: IntoIterator<Item = V::Item>,
+        I::IntoIter: 'b,
+    {
+        values.into_iter().map(|x| self.push(x))
     }
 
     // helpers
