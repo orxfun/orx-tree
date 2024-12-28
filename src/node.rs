@@ -19,7 +19,7 @@ where
     pub(crate) node_ptr: NodePtr<V>,
 }
 
-impl<'a, V, M, P> TreeColCore<V, M, P> for Node<'a, V, M, P>
+impl<V, M, P> TreeColCore<V, M, P> for Node<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -31,7 +31,7 @@ where
     }
 }
 
-impl<'a, V, M, P> NodeRefCore<V, M, P> for Node<'a, V, M, P>
+impl<V, M, P> NodeRefCore<V, M, P> for Node<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,

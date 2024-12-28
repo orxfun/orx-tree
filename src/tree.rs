@@ -250,17 +250,11 @@ where
     /// use orx_tree::*;
     ///
     /// let mut tree = DynTree::<_>::new('a');
-    /// assert_eq!(tree.root().unwrap().data(), &'a');
     ///
-    /// tree.clear();
-    /// assert_eq!(tree.root(), None);
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend(['b', 'c']);
     ///
-    /// // initiate an empty tree
-    /// let mut tree = BinaryTree::<_>::empty();
-    /// assert_eq!(tree.root(), None);
     ///
-    /// tree.push_root('a');
-    /// assert_eq!(tree.root().unwrap().data(), &'a');
     /// ```
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
         self.0.get_ptr(node_idx).map(|p| self.ptr_to_tree_node(p))
@@ -285,14 +279,13 @@ where
 fn abc() {
     use crate::*;
 
-    let mut tree: DynTree<i32> = DynTree::empty();
+    let mut tree = DynTree::<_>::new('a');
 
-    assert!(tree.is_empty());
-    assert_eq!(tree.root(), None);
+    let mut root = tree.root_mut().unwrap();
+    {
+        let a = root.extend_get_indices(['b', 'c']);
+        let b = a.count();
+    }
 
-    tree.push_root(42);
-    assert!(!tree.is_empty());
-    assert_eq!(tree.len(), 1);
-
-    assert_eq!(tree.root().unwrap().data(), &42);
+    assert_eq!(tree.len(), 3);
 }

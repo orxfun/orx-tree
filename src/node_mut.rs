@@ -20,7 +20,7 @@ where
     pub(crate) node_ptr: NodePtr<V>,
 }
 
-impl<'a, V, M, P> TreeColCore<V, M, P> for NodeMut<'a, V, M, P>
+impl<V, M, P> TreeColCore<V, M, P> for NodeMut<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -32,7 +32,7 @@ where
     }
 }
 
-impl<'a, V, M, P> TreeColMutCore<V, M, P> for NodeMut<'a, V, M, P>
+impl<V, M, P> TreeColMutCore<V, M, P> for NodeMut<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -44,7 +44,7 @@ where
     }
 }
 
-impl<'a, V, M, P> NodeRefCore<V, M, P> for NodeMut<'a, V, M, P>
+impl<V, M, P> NodeRefCore<V, M, P> for NodeMut<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -63,6 +63,7 @@ where
 {
     /// Returns a mutable reference to data of the root node.
     #[inline(always)]
+    #[allow(clippy::missing_panics_doc)]
     pub fn data_mut(&mut self) -> &mut V::Item {
         self.node_mut()
             .data_mut()
@@ -87,10 +88,23 @@ where
         child_idx
     }
 
-    /// Pushes the node with the given `values` as children of this node.
+    /// Pushes nodes with given `values` as children of this node.
+    pub fn extend<I>(&mut self, values: I)
+    where
+        I: IntoIterator<Item = V::Item>,
+    {
+        for x in values.into_iter() {
+            _ = self.push(x);
+        }
+    }
+
+    /// Pushes nodes with the given `values` as children of this node.
     ///
     /// Returns the indices of the created child nodes.
-    pub fn extend<'b, I>(
+    ///
+    /// Note that this method returns a lazy iterator.
+    /// Unless the iterator is consumed, the nodes will not be pushed to the tree.
+    pub fn extend_get_indices<'b, I>(
         &'b mut self,
         values: I,
     ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P>
@@ -103,7 +117,7 @@ where
 
     // helpers
 
-    fn node_mut(&self) -> &mut N<V> {
+    fn node_mut(&mut self) -> &mut N<V> {
         unsafe { &mut *self.node_ptr().ptr_mut() }
     }
 }

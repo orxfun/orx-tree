@@ -3,7 +3,7 @@ use core::fmt::Debug;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
-impl<'a, V, M, P> Debug for Node<'a, V, M, P>
+impl<V, M, P> Debug for Node<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -17,7 +17,7 @@ where
     }
 }
 
-impl<'a, V, M, P> Debug for NodeMut<'a, V, M, P>
+impl<V, M, P> Debug for NodeMut<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,

@@ -32,6 +32,8 @@ where
     P: PinnedVec<N<V>>,
 {
     /// Returns a reference to the data of the node.
+    #[inline(always)]
+    #[allow(clippy::missing_panics_doc)]
     fn data<'a>(&'a self) -> &'a V::Item
     where
         V: 'a,

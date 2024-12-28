@@ -48,13 +48,12 @@ where
 {
     // occupied.parent.child => vacant
     if let Some(parent) = (unsafe { &*occupied }).prev().get() {
-        let parent = col.node_mut(&parent);
+        let parent = col.node_mut(parent);
         let children = parent.next_mut();
 
         let child = children
             .iter_mut()
-            .filter(|x| x.ptr() == occupied)
-            .next()
+            .find(|x| x.ptr() == occupied)
             .expect("valid tree state ensures this");
 
         *child = NodePtr::new(vacant);
