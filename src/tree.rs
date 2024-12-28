@@ -218,6 +218,26 @@ where
     }
 
     /// Returns the root as a mutable node of the tree; None if the tree is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<_>::new('a');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    ///
+    /// assert_eq!(root.data(), &'a');
+    /// *root.data_mut() = 'x';
+    /// assert_eq!(root.data(), &'x');
+    ///
+    /// root.push('b');
+    /// let idx = root.push('c');
+    ///
+    /// tree.clear();
+    /// assert_eq!(tree.root_mut(), None);
+    /// ```
     pub fn root_mut(&mut self) -> Option<NodeMut<V, M, P>> {
         self.root_ptr()
             .cloned()
