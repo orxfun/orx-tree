@@ -6,12 +6,12 @@ pub trait AsTreeNode<V>
 where
     V: TreeVariant,
 {
-    fn as_node<'a, M, P>(&'a self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
+    fn as_node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
     where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>;
 
-    fn as_node_mut<'a, M, P>(&'a mut self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
+    fn as_node_mut<'a, M, P>(&mut self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
     where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>;
@@ -21,7 +21,7 @@ impl<V> AsTreeNode<V> for NodeIdx<V>
 where
     V: TreeVariant,
 {
-    fn as_node<'a, M, P>(&'a self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
+    fn as_node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
     where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>,
@@ -32,7 +32,7 @@ where
         }
     }
 
-    fn as_node_mut<'a, M, P>(&'a mut self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
+    fn as_node_mut<'a, M, P>(&mut self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
     where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>,

@@ -53,6 +53,10 @@ where
 {
     /// Creates an empty tree.
     ///
+    /// You may call [`push_root`] to instantiate the empty tree.
+    ///
+    /// [`push_root`]: Self::push_root
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -70,7 +74,7 @@ where
         Self(SelfRefCol::new())
     }
 
-    /// Creates a new tree with the given `root`.
+    /// Creates a new tree including the root node with the given `root_value`.
     ///
     /// # Examples
     ///
@@ -82,12 +86,12 @@ where
     /// assert_eq!(tree.len(), 1);
     /// assert_eq!(tree.root().unwrap().data(), &42);
     /// ```
-    pub fn new(root: V::Item) -> Self
+    pub fn new(root_value: V::Item) -> Self
     where
         P: Default,
     {
         let mut col = SelfRefCol::<V, M, P>::new();
-        let root_ptr = col.push(root);
+        let root_ptr = col.push(root_value);
         let root_mut: &mut RefsSingle<V> = col.ends_mut();
         root_mut.set_some(root_ptr);
 
@@ -105,12 +109,12 @@ where
     /// assert_eq!(tree.len(), 1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// let _ = root.push_child(4);
-    /// let idx = root.push_child(2);
+    /// let _ = root.push(4);
+    /// let idx = root.push(2);
     /// assert_eq!(tree.len(), 3);
     ///
     /// let mut node = tree.node_mut(&idx).unwrap();
-    /// node.push_child(7);
+    /// node.push(7);
     /// assert_eq!(tree.len(), 4);
     /// ```
     #[inline(always)]
@@ -156,6 +160,34 @@ where
         root_mut.set_some(root_idx.node_ptr());
 
         root_idx
+    }
+
+    /// Removes all the nodes including the root of the tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree: BinaryTree<i32> = BinaryTree::new(42);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.push(4);
+    /// let idx = root.push(2);
+    ///
+    /// let mut node = tree.node_mut(&idx).unwrap();
+    /// node.push(7);
+    ///
+    /// assert_eq!(tree.len(), 4);
+    /// assert_eq!(tree.root().unwrap().data(), &42);
+    ///
+    /// tree.clear();
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.root(), None);
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+        self.0.ends_mut().set_none();
     }
 
     // get nodes

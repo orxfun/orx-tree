@@ -70,8 +70,9 @@ where
     }
 
     /// Pushes the node with the given `value` as a children of the root of this tree.
-    pub fn push_child(&mut self, value: V::Item) -> NodeIdx<V> {
+    pub fn push(&mut self, value: V::Item) -> NodeIdx<V> {
         let parent_ptr = self.node_ptr.clone();
+
         let child_idx = self.col_mut().push_get_idx(value);
         let child_ptr = child_idx.node_ptr();
 
