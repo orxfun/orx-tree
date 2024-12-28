@@ -59,6 +59,27 @@ where
     }
 
     /// Returns the number of child nodes of this node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<i32>::new(0);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// assert_eq!(root.num_children(), 0);
+    ///
+    /// let a = root.push(1);
+    /// let b = root.push(2);
+    /// assert_eq!(root.num_children(), 2);
+    ///
+    /// let mut node = tree.node_mut(&a).unwrap();
+    /// node.extend([3, 4, 5, 6]);
+    /// assert_eq!(node.num_children(), 4);
+    ///
+    /// assert_eq!(tree.node(&b).unwrap().num_children(), 0);
+    /// ```
     fn num_children(&self) -> usize {
         self.node().next().num_children()
     }
