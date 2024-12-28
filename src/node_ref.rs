@@ -32,6 +32,21 @@ where
     P: PinnedVec<N<V>>,
 {
     /// Returns a reference to the data of the node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<i32>::new(0);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// assert_eq!(root.data(), &0);
+    ///
+    /// let a = root.push(1);
+    /// let node = tree.node(&a).unwrap();
+    /// assert_eq!(node.data(), &1);
+    /// ```
     #[inline(always)]
     #[allow(clippy::missing_panics_doc)]
     fn data<'a>(&'a self) -> &'a V::Item
