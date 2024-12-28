@@ -249,18 +249,28 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// let mut tree = DynTree::<_>::new('a');
+    /// let mut tree = BinaryTree::<_>::new('a');
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend(['b', 'c']);
+    /// let b = root.push('b');
+    /// let c = root.push('c');
     ///
+    /// assert_eq!(tree.node(&b).map(|x| *x.data()), Some('b'));
     ///
+    /// let node = tree.node(&c).unwrap();
+    /// assert_eq!(node.data(), &'c');
+    ///
+    /// tree.clear();
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.node(&b), None);
+    /// assert_eq!(tree.node(&c), None);
     /// ```
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
         self.0.get_ptr(node_idx).map(|p| self.ptr_to_tree_node(p))
     }
 
     /// Returns the mutable node with the given `node_idx`; returns None if the index is invalid.
+    ///
     pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<V, M, P>> {
         self.0
             .get_ptr(node_idx)
@@ -282,10 +292,9 @@ fn abc() {
     let mut tree = DynTree::<_>::new('a');
 
     let mut root = tree.root_mut().unwrap();
-    {
-        let a = root.extend_get_indices(['b', 'c']);
-        let b = a.count();
-    }
 
-    assert_eq!(tree.len(), 3);
+    let b = root.push('b');
+    let c = root.push('c');
+
+    assert_eq!(tree.node(&b).map(|x| *x.data()), Some('b'));
 }
