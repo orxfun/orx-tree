@@ -62,6 +62,23 @@ where
     P: PinnedVec<N<V>>,
 {
     /// Returns a mutable reference to data of the root node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<i32>::new(0);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// *root.data_mut() = 10;
+    /// assert_eq!(root.data(), &10);
+    ///
+    /// let a = root.push(1);
+    /// let mut node = tree.node_mut(&a).unwrap();
+    /// *node.data_mut() += 10;
+    /// assert_eq!(node.data(), &11);
+    /// ```
     #[inline(always)]
     #[allow(clippy::missing_panics_doc)]
     pub fn data_mut(&mut self) -> &mut V::Item {
