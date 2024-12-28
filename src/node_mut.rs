@@ -126,6 +126,20 @@ where
     }
 
     /// Pushes nodes with given `values` as children of this node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<char>::new('a');
+    ///
+    /// let mut node = tree.root_mut().unwrap();
+    /// let b = node.push('b'); // b is the index of the node
+    /// node.extend(['c', 'd', 'e']);
+    ///
+    /// assert_eq!(node.num_children(), 4);
+    /// ```
     pub fn extend<I>(&mut self, values: I)
     where
         I: IntoIterator<Item = V::Item>,
