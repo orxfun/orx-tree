@@ -90,6 +90,26 @@ where
     /// Pushes the node with the given `value` as a child of this node.
     ///
     /// Returns the index of the created child node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<char>::new('a');
+    ///
+    /// let mut node = tree.root_mut().unwrap();
+    /// let b = node.push('b'); // b is the index of the node
+    /// let c = node.push('c');
+    ///
+    /// let node_b = tree.node(&b).unwrap(); // access the node via idx
+    /// assert_eq!(node_b.data(), &'b');
+    ///
+    /// let mut node_c = tree.node_mut(&c).unwrap();
+    /// let d = node_c.push('d');
+    /// node_c.extend(['e', 'f']);
+    /// assert_eq!(node_c.num_children(), 3);
+    /// ```
     pub fn push(&mut self, value: V::Item) -> NodeIdx<V> {
         let parent_ptr = self.node_ptr.clone();
 
