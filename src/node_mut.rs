@@ -155,6 +155,23 @@ where
     ///
     /// Note that this method returns a lazy iterator.
     /// Unless the iterator is consumed, the nodes will not be pushed to the tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<char>::new('a');
+    ///
+    /// let mut node = tree.root_mut().unwrap();
+    /// let b = node.push('b'); // b is the index of the node
+    /// let cde = node.extend_get_indices(['c', 'd', 'e']).collect::<Vec<_>>();
+    ///
+    /// assert_eq!(node.num_children(), 4);
+    ///
+    /// let node_d = tree.node(&cde[1]).unwrap();
+    /// assert_eq!(node_d.data(), &'d');
+    /// ```
     pub fn extend_get_indices<'b, I>(
         &'b mut self,
         values: I,
