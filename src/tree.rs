@@ -193,6 +193,26 @@ where
     // get nodes
 
     /// Returns the root node of the tree; None if the tree is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // initiate a rooted tree
+    /// let mut tree = DynTree::<_>::new('a');
+    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    ///
+    /// tree.clear();
+    /// assert_eq!(tree.root(), None);
+    ///
+    /// // initiate an empty tree
+    /// let mut tree = BinaryTree::<_>::empty();
+    /// assert_eq!(tree.root(), None);
+    ///
+    /// tree.push_root('a');
+    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    /// ```
     pub fn root(&self) -> Option<Node<V, M, P>> {
         self.root_ptr().cloned().map(|p| self.ptr_to_tree_node(p))
     }
