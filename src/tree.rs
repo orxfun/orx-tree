@@ -246,6 +246,8 @@ where
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
     ///
+    /// # Examples
+    ///
     /// ```
     /// use orx_tree::*;
     ///
@@ -271,6 +273,26 @@ where
 
     /// Returns the mutable node with the given `node_idx`; returns None if the index is invalid.
     ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<_>::new('a');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let b = root.push('b');
+    /// let c = root.push('c');
+    ///
+    /// let mut node = tree.node_mut(&b).unwrap();
+    /// node.extend(['d', 'e', 'f']);
+    ///
+    /// assert_eq!(node.num_children(), 3);
+    ///
+    /// tree.clear();
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.node_mut(&b), None);
+    /// ```
     pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<V, M, P>> {
         self.0
             .get_ptr(node_idx)
