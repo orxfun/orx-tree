@@ -172,12 +172,13 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the tree:
+    /// // build the following tree using child_mut and parent_mut:
     /// // r
     /// // |-- a
     /// //     |-- c, d, e
     /// // |-- b
     /// //     |-- f, g
+    /// //            |-- h, i, j
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
@@ -186,28 +187,99 @@ where
     /// let mut a = root.child_mut(0).unwrap();
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
     /// b.extend(['f', 'g']);
     ///
-    /// // use child to access lower level nodes
+    /// let mut g = b.child_mut(1).unwrap();
+    /// g.extend(['h', 'i', 'j']);
+    ///
+    /// // check data - breadth first
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let data: Vec<_> = root.children().map(|x| *x.data()).collect();
-    /// assert_eq!(data, ['a', 'b']);
+    /// let mut data = vec![*root.data()]; // depth 0
     ///
-    /// let a = root.child(0).unwrap();
-    /// let data: Vec<_> = a.children().map(|x| *x.data()).collect();
-    /// assert_eq!(data, ['c', 'd', 'e']);
+    /// data.extend(root.children().map(|x| *x.data())); // depth 1
     ///
-    /// let b = root.child(1).unwrap();
-    /// let data: Vec<_> = b.children().map(|x| *x.data()).collect();
-    /// assert_eq!(data, ['f', 'g']);
+    /// for node in root.children() {
+    ///     data.extend(node.children().map(|x| *x.data())); // depth 2
+    /// }
+    ///
+    /// for node in root.children() {
+    ///     for node in node.children() {
+    ///         data.extend(node.children().map(|x| *x.data())); // depth 3
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(
+    ///     data,
+    ///     ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+    /// )
     /// ```
     pub fn child_mut(self, child_index: usize) -> Option<NodeMut<'a, V, M, P>> {
         self.node()
             .next()
             .get_ptr(child_index)
+            .cloned()
+            .map(|p| NodeMut::new(self.col, p))
+    }
+
+    /// Consumes this mutable node and returns the mutable node of its parent,
+    /// returns None if this is the root node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // build the following tree using child_mut and parent_mut:
+    /// // r
+    /// // |-- a
+    /// //     |-- c, d, e
+    /// // |-- b
+    /// //     |-- f, g
+    /// //            |-- h, i, j
+    /// let mut tree = DynTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend(['a', 'b']);
+    ///
+    /// let mut a = root.child_mut(0).unwrap();
+    /// a.extend(['c', 'd', 'e']);
+    ///
+    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
+    /// b.extend(['f', 'g']);
+    ///
+    /// let mut g = b.child_mut(1).unwrap();
+    /// g.extend(['h', 'i', 'j']);
+    ///
+    /// // check data - breadth first
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let mut data = vec![*root.data()]; // depth 0
+    ///
+    /// data.extend(root.children().map(|x| *x.data())); // depth 1
+    ///
+    /// for node in root.children() {
+    ///     data.extend(node.children().map(|x| *x.data())); // depth 2
+    /// }
+    ///
+    /// for node in root.children() {
+    ///     for node in node.children() {
+    ///         data.extend(node.children().map(|x| *x.data())); // depth 3
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(
+    ///     data,
+    ///     ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+    /// )
+    /// ```
+    pub fn parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
+        self.node()
+            .prev()
+            .get()
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
