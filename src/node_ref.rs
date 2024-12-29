@@ -103,8 +103,8 @@ where
     /// let a = root.push('a');
     /// root.push('b');
     ///
-    /// let mut node_b = tree.node_mut(&a).unwrap();
-    /// node_b.extend(['c', 'd', 'e']);
+    /// let mut node_a = tree.node_mut(&a).unwrap();
+    /// node_a.extend(['c', 'd', 'e']);
     ///
     /// // iterate over children of nodes
     ///
@@ -137,6 +137,45 @@ where
         self.node()
             .next()
             .children_ptr()
+            .map(|ptr| self.ptr_to_tree_node(ptr.clone()))
+    }
+
+    /// Returns the `child-index`-th child of the node; returns None if out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // build the tree:
+    /// // r
+    /// // |-- a
+    /// //     |-- c, d, e
+    /// // |-- b
+    /// let mut tree = DynTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let a = root.push('a');
+    /// root.push('b');
+    ///
+    /// let mut node_a = tree.node_mut(&a).unwrap();
+    /// node_a.extend(['c', 'd', 'e']);
+    ///
+    /// // use child to access lower level nodes
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let a = root.child(0).unwrap();
+    /// assert_eq!(a.data(), &'a');
+    /// assert_eq!(a.num_children(), 3);
+    ///
+    /// assert_eq!(a.child(1).unwrap().data(), &'d');
+    /// assert_eq!(a.child(3), None);
+    /// ```
+    fn child(&self, child_index: usize) -> Option<Node<V, M, P>> {
+        self.node()
+            .next()
+            .get_ptr(child_index)
             .map(|ptr| self.ptr_to_tree_node(ptr.clone()))
     }
 }
