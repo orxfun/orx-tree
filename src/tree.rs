@@ -53,6 +53,10 @@ where
 {
     /// Creates an empty tree.
     ///
+    /// You may call [`push_root`] to instantiate the empty tree.
+    ///
+    /// [`push_root`]: Self::push_root
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -70,7 +74,7 @@ where
         Self(SelfRefCol::new())
     }
 
-    /// Creates a new tree with the given `root`.
+    /// Creates a new tree including the root node with the given `root_value`.
     ///
     /// # Examples
     ///
@@ -82,12 +86,12 @@ where
     /// assert_eq!(tree.len(), 1);
     /// assert_eq!(tree.root().unwrap().data(), &42);
     /// ```
-    pub fn new(root: V::Item) -> Self
+    pub fn new(root_value: V::Item) -> Self
     where
         P: Default,
     {
         let mut col = SelfRefCol::<V, M, P>::new();
-        let root_ptr = col.push(root);
+        let root_ptr = col.push(root_value);
         let root_mut: &mut RefsSingle<V> = col.ends_mut();
         root_mut.set_some(root_ptr);
 
@@ -105,12 +109,12 @@ where
     /// assert_eq!(tree.len(), 1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// let _ = root.push_child(4);
-    /// let idx = root.push_child(2);
+    /// let _ = root.push(4);
+    /// let idx = root.push(2);
     /// assert_eq!(tree.len(), 3);
     ///
     /// let mut node = tree.node_mut(&idx).unwrap();
-    /// node.push_child(7);
+    /// node.push(7);
     /// assert_eq!(tree.len(), 4);
     /// ```
     #[inline(always)]
@@ -158,14 +162,82 @@ where
         root_idx
     }
 
+    /// Removes all the nodes including the root of the tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree: BinaryTree<i32> = BinaryTree::new(42);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.push(4);
+    /// let idx = root.push(2);
+    ///
+    /// let mut node = tree.node_mut(&idx).unwrap();
+    /// node.push(7);
+    ///
+    /// assert_eq!(tree.len(), 4);
+    /// assert_eq!(tree.root().unwrap().data(), &42);
+    ///
+    /// tree.clear();
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.root(), None);
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+        self.0.ends_mut().set_none();
+    }
+
     // get nodes
 
     /// Returns the root node of the tree; None if the tree is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // initiate a rooted tree
+    /// let mut tree = DynTree::<_>::new('a');
+    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    ///
+    /// tree.clear();
+    /// assert_eq!(tree.root(), None);
+    ///
+    /// // initiate an empty tree
+    /// let mut tree = BinaryTree::<_>::empty();
+    /// assert_eq!(tree.root(), None);
+    ///
+    /// tree.push_root('a');
+    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    /// ```
     pub fn root(&self) -> Option<Node<V, M, P>> {
         self.root_ptr().cloned().map(|p| self.ptr_to_tree_node(p))
     }
 
     /// Returns the root as a mutable node of the tree; None if the tree is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<_>::new('a');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    ///
+    /// assert_eq!(root.data(), &'a');
+    /// *root.data_mut() = 'x';
+    /// assert_eq!(root.data(), &'x');
+    ///
+    /// root.push('b');
+    /// let idx = root.push('c');
+    ///
+    /// tree.clear();
+    /// assert_eq!(tree.root_mut(), None);
+    /// ```
     pub fn root_mut(&mut self) -> Option<NodeMut<V, M, P>> {
         self.root_ptr()
             .cloned()
@@ -173,11 +245,54 @@ where
     }
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = BinaryTree::<_>::new('a');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let b = root.push('b');
+    /// let c = root.push('c');
+    ///
+    /// assert_eq!(tree.node(&b).map(|x| *x.data()), Some('b'));
+    ///
+    /// let node = tree.node(&c).unwrap();
+    /// assert_eq!(node.data(), &'c');
+    ///
+    /// tree.clear();
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.node(&b), None);
+    /// assert_eq!(tree.node(&c), None);
+    /// ```
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
         self.0.get_ptr(node_idx).map(|p| self.ptr_to_tree_node(p))
     }
 
     /// Returns the mutable node with the given `node_idx`; returns None if the index is invalid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<_>::new('a');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let b = root.push('b');
+    /// let c = root.push('c');
+    ///
+    /// let mut node = tree.node_mut(&b).unwrap();
+    /// node.extend(['d', 'e', 'f']);
+    ///
+    /// assert_eq!(node.num_children(), 3);
+    ///
+    /// tree.clear();
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.node_mut(&b), None);
+    /// ```
     pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<V, M, P>> {
         self.0
             .get_ptr(node_idx)
@@ -196,14 +311,12 @@ where
 fn abc() {
     use crate::*;
 
-    let mut tree: DynTree<i32> = DynTree::empty();
+    let mut tree = DynTree::<_>::new('a');
 
-    assert!(tree.is_empty());
-    assert_eq!(tree.root(), None);
+    let mut root = tree.root_mut().unwrap();
 
-    tree.push_root(42);
-    assert!(!tree.is_empty());
-    assert_eq!(tree.len(), 1);
+    let b = root.push('b');
+    let c = root.push('c');
 
-    assert_eq!(tree.root().unwrap().data(), &42);
+    assert_eq!(tree.node(&b).map(|x| *x.data()), Some('b'));
 }

@@ -14,16 +14,38 @@ pub trait TreeVariant:
 // children
 
 pub trait RefsChildren<V: Variant> {
+    fn num_children(&self) -> usize;
+
+    fn children_ptr(&self) -> impl ExactSizeIterator<Item = NodePtr<V>>;
+
+    // mut
+
     fn push(&mut self, node_ptr: NodePtr<V>);
 }
 
 impl<V: Variant> RefsChildren<V> for RefsVec<V> {
+    fn num_children(&self) -> usize {
+        self.len()
+    }
+
+    fn children_ptr(&self) -> impl ExactSizeIterator<Item = NodePtr<V>> {
+        self.iter().cloned()
+    }
+
     fn push(&mut self, node_ptr: NodePtr<V>) {
         self.push(node_ptr);
     }
 }
 
 impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
+    fn num_children(&self) -> usize {
+        self.len()
+    }
+
+    fn children_ptr(&self) -> impl ExactSizeIterator<Item = NodePtr<V>> {
+        self.iter().cloned()
+    }
+
     fn push(&mut self, node_ptr: NodePtr<V>) {
         self.push(node_ptr);
     }

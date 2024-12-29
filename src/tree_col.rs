@@ -12,15 +12,6 @@ where
 
     // provided
 
-    /// Returns the collection node at the given `ptr`.
-    fn ptr_to_node<'a>(&'a self, ptr: NodePtr<V>) -> &'a N<V>
-    where
-        M: 'a,
-        P: 'a,
-    {
-        self.col().node(&ptr)
-    }
-
     /// Returns the Node rooted at the node with the given `ptr`.
     fn ptr_to_tree_node(&self, ptr: NodePtr<V>) -> Node<V, M, P> {
         Node {
