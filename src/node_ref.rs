@@ -34,6 +34,29 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
+    /// Returns true if this is the root node; equivalently, if its [`parent`] is none.
+    ///
+    /// [`parent`]: NodeRef::parent
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = BinaryTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// assert!(root.is_root());
+    ///
+    /// root.extend(['a', 'b']);
+    /// for node in root.children() {
+    ///     assert!(!node.is_root());
+    /// }
+    /// ```
+    fn is_root(&self) -> bool {
+        self.node().prev().get().is_none()
+    }
+
     /// Returns a reference to the data of the node.
     ///
     /// # Examples
@@ -178,6 +201,30 @@ where
         self.node()
             .next()
             .get_ptr(child_index)
+            .map(|ptr| Node::new(self.col(), ptr.clone()))
+    }
+
+    /// Returns the parent of this node; returns None if this is the root node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = BinaryTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// assert_eq!(root.parent(), None);
+    ///
+    /// root.extend(['a', 'b']);
+    /// for node in root.children() {
+    ///     assert_eq!(node.parent().unwrap(), root);
+    /// }
+    /// ```
+    fn parent(&self) -> Option<Node<V, M, P>> {
+        self.node()
+            .prev()
+            .get()
             .map(|ptr| Node::new(self.col(), ptr.clone()))
     }
 }
