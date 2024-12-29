@@ -137,6 +137,6 @@ where
         self.node()
             .next()
             .children_ptr()
-            .map(|ptr| self.ptr_to_tree_node(ptr))
+            .map(|ptr| self.ptr_to_tree_node(ptr.clone()))
     }
 }
