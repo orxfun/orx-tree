@@ -164,7 +164,8 @@ where
         values.into_iter().map(|x| self.push(x))
     }
 
-    /// Returns the `child-index`-th child of the node; returns None if out of bounds.
+    /// Consumes this mutable node and returns the mutable node of the `child-index`-th child;
+    /// returns None if the child index is out of bounds.
     ///
     /// # Examples
     ///
@@ -176,34 +177,39 @@ where
     /// // |-- a
     /// //     |-- c, d, e
     /// // |-- b
+    /// //     |-- f, g
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// let a = root.push('a');
-    /// root.push('b');
+    /// root.extend(['a', 'b']);
     ///
-    /// let mut node_a = tree.node_mut(&a).unwrap();
-    /// node_a.extend(['c', 'd', 'e']);
+    /// let mut a = root.child_mut(0).unwrap();
+    /// a.extend(['c', 'd', 'e']);
+    ///
+    /// let mut b = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// b.extend(['f', 'g']);
     ///
     /// // use child to access lower level nodes
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let a = root.child(0).unwrap();
-    /// assert_eq!(a.data(), &'a');
-    /// assert_eq!(a.num_children(), 3);
+    /// let data: Vec<_> = root.children().map(|x| *x.data()).collect();
+    /// assert_eq!(data, ['a', 'b']);
     ///
-    /// assert_eq!(a.child(1).unwrap().data(), &'d');
-    /// assert_eq!(a.child(3), None);
+    /// let a = root.child(0).unwrap();
+    /// let data: Vec<_> = a.children().map(|x| *x.data()).collect();
+    /// assert_eq!(data, ['c', 'd', 'e']);
+    ///
+    /// let b = root.child(1).unwrap();
+    /// let data: Vec<_> = b.children().map(|x| *x.data()).collect();
+    /// assert_eq!(data, ['f', 'g']);
     /// ```
-    fn child_mut(self, child_index: usize) -> Option<NodeMut<'a, V, M, P>> {
-        let (col, node_ptr) = (self.col, self.node_ptr);
-
-        Some(NodeMut { col, node_ptr })
-        // self.node()
-        //     .next()
-        //     .get_ptr(child_index)
-        //     .map(|ptr| self.ptr_to_tree_node_mut(ptr.clone()))
+    pub fn child_mut(self, child_index: usize) -> Option<NodeMut<'a, V, M, P>> {
+        self.node()
+            .next()
+            .get_ptr(child_index)
+            .cloned()
+            .map(|p| NodeMut::new(self.col, p))
     }
 
     // helpers
