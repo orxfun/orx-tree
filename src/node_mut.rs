@@ -50,6 +50,7 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
+    #[inline(always)]
     fn node_ptr(&self) -> &NodePtr<V> {
         &self.node_ptr
     }

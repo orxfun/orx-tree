@@ -16,7 +16,11 @@ pub trait TreeVariant:
 pub trait RefsChildren<V: Variant> {
     fn num_children(&self) -> usize;
 
-    fn children_ptr(&self) -> impl ExactSizeIterator<Item = NodePtr<V>>;
+    fn children_ptr<'a>(&'a self) -> impl ExactSizeIterator<Item = &'a NodePtr<V>>
+    where
+        V: 'a;
+
+    fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>>;
 
     // mut
 
@@ -28,8 +32,15 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
         self.len()
     }
 
-    fn children_ptr(&self) -> impl ExactSizeIterator<Item = NodePtr<V>> {
-        self.iter().cloned()
+    fn children_ptr<'a>(&'a self) -> impl ExactSizeIterator<Item = &'a NodePtr<V>>
+    where
+        V: 'a,
+    {
+        self.iter()
+    }
+
+    fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>> {
+        self.get(i)
     }
 
     fn push(&mut self, node_ptr: NodePtr<V>) {
@@ -42,8 +53,15 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
         self.len()
     }
 
-    fn children_ptr(&self) -> impl ExactSizeIterator<Item = NodePtr<V>> {
-        self.iter().cloned()
+    fn children_ptr<'a>(&'a self) -> impl ExactSizeIterator<Item = &'a NodePtr<V>>
+    where
+        V: 'a,
+    {
+        self.iter()
+    }
+
+    fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>> {
+        self.get(i)
     }
 
     fn push(&mut self, node_ptr: NodePtr<V>) {
