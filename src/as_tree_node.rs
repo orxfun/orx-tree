@@ -26,10 +26,7 @@ where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>,
     {
-        Node {
-            col: &tree.0,
-            node_ptr: self.node_ptr(),
-        }
+        Node::new(&tree.0, self.node_ptr())
     }
 
     fn as_node_mut<'a, M, P>(&mut self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
@@ -37,9 +34,6 @@ where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>,
     {
-        NodeMut {
-            col: &mut tree.0,
-            node_ptr: self.node_ptr(),
-        }
+        NodeMut::new(&mut tree.0, self.node_ptr())
     }
 }
