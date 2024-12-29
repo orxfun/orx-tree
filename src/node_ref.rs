@@ -1,13 +1,15 @@
-use crate::{helpers::N, tree_col::TreeColCore, tree_variant::RefsChildren, Node, TreeVariant};
+use crate::{helpers::N, tree_variant::RefsChildren, Node, TreeVariant};
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr};
+use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-pub trait NodeRefCore<V, M, P>: TreeColCore<V, M, P>
+pub trait NodeRefCore<V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
+    fn col(&self) -> &SelfRefCol<V, M, P>;
+
     fn node_ptr(&self) -> &NodePtr<V>;
 
     #[inline(always)]
@@ -137,7 +139,7 @@ where
         self.node()
             .next()
             .children_ptr()
-            .map(|ptr| self.ptr_to_tree_node(ptr.clone()))
+            .map(|ptr| Node::new(self.col(), ptr.clone()))
     }
 
     /// Returns the `child-index`-th child of the node; returns None if out of bounds.
@@ -176,6 +178,6 @@ where
         self.node()
             .next()
             .get_ptr(child_index)
-            .map(|ptr| self.ptr_to_tree_node(ptr.clone()))
+            .map(|ptr| Node::new(self.col(), ptr.clone()))
     }
 }

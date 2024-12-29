@@ -2,7 +2,6 @@ use crate::{
     helpers::N,
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
-    tree_col::{TreeColCore, TreeColMutCore},
     tree_variant::RefsChildren,
     TreeVariant,
 };
@@ -16,11 +15,11 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
-    pub(crate) col: &'a mut SelfRefCol<V, M, P>,
-    pub(crate) node_ptr: NodePtr<V>,
+    col: &'a mut SelfRefCol<V, M, P>,
+    node_ptr: NodePtr<V>,
 }
 
-impl<V, M, P> TreeColCore<V, M, P> for NodeMut<'_, V, M, P>
+impl<V, M, P> NodeRefCore<V, M, P> for NodeMut<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -30,26 +29,7 @@ where
     fn col(&self) -> &SelfRefCol<V, M, P> {
         self.col
     }
-}
 
-impl<V, M, P> TreeColMutCore<V, M, P> for NodeMut<'_, V, M, P>
-where
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-{
-    #[inline(always)]
-    fn col_mut(&mut self) -> &mut SelfRefCol<V, M, P> {
-        self.col
-    }
-}
-
-impl<V, M, P> NodeRefCore<V, M, P> for NodeMut<'_, V, M, P>
-where
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-{
     #[inline(always)]
     fn node_ptr(&self) -> &NodePtr<V> {
         &self.node_ptr
@@ -114,13 +94,13 @@ where
     pub fn push(&mut self, value: V::Item) -> NodeIdx<V> {
         let parent_ptr = self.node_ptr.clone();
 
-        let child_idx = self.col_mut().push_get_idx(value);
+        let child_idx = self.col.push_get_idx(value);
         let child_ptr = child_idx.node_ptr();
 
-        let child = self.ptr_to_node_mut(child_ptr.clone());
+        let child = self.col.node_mut(&child_ptr);
         child.prev_mut().set_some(parent_ptr.clone());
 
-        let parent = self.ptr_to_node_mut(parent_ptr);
+        let parent = self.col.node_mut(&parent_ptr);
         parent.next_mut().push(child_ptr);
 
         child_idx
@@ -184,7 +164,53 @@ where
         values.into_iter().map(|x| self.push(x))
     }
 
+    /// Returns the `child-index`-th child of the node; returns None if out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // build the tree:
+    /// // r
+    /// // |-- a
+    /// //     |-- c, d, e
+    /// // |-- b
+    /// let mut tree = DynTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let a = root.push('a');
+    /// root.push('b');
+    ///
+    /// let mut node_a = tree.node_mut(&a).unwrap();
+    /// node_a.extend(['c', 'd', 'e']);
+    ///
+    /// // use child to access lower level nodes
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let a = root.child(0).unwrap();
+    /// assert_eq!(a.data(), &'a');
+    /// assert_eq!(a.num_children(), 3);
+    ///
+    /// assert_eq!(a.child(1).unwrap().data(), &'d');
+    /// assert_eq!(a.child(3), None);
+    /// ```
+    fn child_mut(self, child_index: usize) -> Option<NodeMut<'a, V, M, P>> {
+        let (col, node_ptr) = (self.col, self.node_ptr);
+
+        Some(NodeMut { col, node_ptr })
+        // self.node()
+        //     .next()
+        //     .get_ptr(child_index)
+        //     .map(|ptr| self.ptr_to_tree_node_mut(ptr.clone()))
+    }
+
     // helpers
+
+    pub(crate) fn new(col: &'a mut SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+        Self { col, node_ptr }
+    }
 
     fn node_mut(&mut self) -> &mut N<V> {
         unsafe { &mut *self.node_ptr().ptr_mut() }

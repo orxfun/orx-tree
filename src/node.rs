@@ -2,7 +2,6 @@ use crate::{
     helpers::N,
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
-    tree_col::TreeColCore,
     TreeVariant,
 };
 use orx_pinned_vec::PinnedVec;
@@ -15,19 +14,20 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
-    pub(crate) col: &'a SelfRefCol<V, M, P>,
-    pub(crate) node_ptr: NodePtr<V>,
+    col: &'a SelfRefCol<V, M, P>,
+    node_ptr: NodePtr<V>,
 }
 
-impl<V, M, P> TreeColCore<V, M, P> for Node<'_, V, M, P>
+impl<'a, V, M, P> Node<'a, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
-    #[inline(always)]
-    fn col(&self) -> &SelfRefCol<V, M, P> {
-        self.col
+    // helpers
+
+    pub(crate) fn new(col: &'a SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+        Self { col, node_ptr }
     }
 }
 
@@ -37,6 +37,12 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
+    #[inline(always)]
+    fn col(&self) -> &SelfRefCol<V, M, P> {
+        self.col
+    }
+
+    #[inline(always)]
     fn node_ptr(&self) -> &NodePtr<V> {
         &self.node_ptr
     }

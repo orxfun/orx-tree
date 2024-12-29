@@ -11,9 +11,7 @@ where
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         // TODO
-        f.debug_struct("Node")
-            .field("node_ptr", &self.node_ptr)
-            .finish()
+        f.debug_struct("Node").finish()
     }
 }
 
@@ -25,8 +23,6 @@ where
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         // TODO
-        f.debug_struct("NodeMut")
-            .field("node_ptr", &self.node_ptr)
-            .finish()
+        f.debug_struct("NodeMut").finish()
     }
 }

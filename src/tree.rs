@@ -1,8 +1,4 @@
-use crate::{
-    helpers::N,
-    tree_col::{TreeColCore, TreeColMutCore},
-    Node, NodeMut, TreeVariant,
-};
+use crate::{helpers::N, Node, NodeMut, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{
     MemoryPolicy, MemoryReclaimOnThreshold, NodeIdx, NodePtr, RefsSingle, SelfRefCol,
@@ -20,30 +16,6 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>;
-
-impl<V, M, P> TreeColCore<V, M, P> for Tree<V, M, P>
-where
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-{
-    #[inline(always)]
-    fn col(&self) -> &SelfRefCol<V, M, P> {
-        &self.0
-    }
-}
-
-impl<V, M, P> TreeColMutCore<V, M, P> for Tree<V, M, P>
-where
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-{
-    #[inline(always)]
-    fn col_mut(&mut self) -> &mut SelfRefCol<V, M, P> {
-        &mut self.0
-    }
-}
 
 impl<V, M, P> Tree<V, M, P>
 where
@@ -214,7 +186,7 @@ where
     /// assert_eq!(tree.root().unwrap().data(), &'a');
     /// ```
     pub fn root(&self) -> Option<Node<V, M, P>> {
-        self.root_ptr().cloned().map(|p| self.ptr_to_tree_node(p))
+        self.root_ptr().cloned().map(|p| Node::new(&self.0, p))
     }
 
     /// Returns the root as a mutable node of the tree; None if the tree is empty.
@@ -241,7 +213,7 @@ where
     pub fn root_mut(&mut self) -> Option<NodeMut<V, M, P>> {
         self.root_ptr()
             .cloned()
-            .map(|p| self.ptr_to_tree_node_mut(p))
+            .map(|p| NodeMut::new(&mut self.0, p))
     }
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
@@ -268,7 +240,7 @@ where
     /// assert_eq!(tree.node(&c), None);
     /// ```
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
-        self.0.get_ptr(node_idx).map(|p| self.ptr_to_tree_node(p))
+        self.0.get_ptr(node_idx).map(|p| Node::new(&self.0, p))
     }
 
     /// Returns the mutable node with the given `node_idx`; returns None if the index is invalid.
@@ -296,7 +268,7 @@ where
     pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<V, M, P>> {
         self.0
             .get_ptr(node_idx)
-            .map(|p| self.ptr_to_tree_node_mut(p))
+            .map(|p| NodeMut::new(&mut self.0, p))
     }
 
     // helpers
@@ -305,18 +277,4 @@ where
     fn root_ptr(&self) -> Option<&NodePtr<V>> {
         self.0.ends().get()
     }
-}
-
-#[test]
-fn abc() {
-    use crate::*;
-
-    let mut tree = DynTree::<_>::new('a');
-
-    let mut root = tree.root_mut().unwrap();
-
-    let b = root.push('b');
-    let c = root.push('c');
-
-    assert_eq!(tree.node(&b).map(|x| *x.data()), Some('b'));
 }

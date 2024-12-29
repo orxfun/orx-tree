@@ -22,13 +22,10 @@ mod common_traits;
 mod dary;
 mod r#dyn;
 mod helpers;
-mod index;
-mod iter;
 mod node;
 mod node_mut;
 mod node_ref;
 mod tree;
-mod tree_col;
 mod tree_variant;
 
 pub use as_tree_node::AsTreeNode;
