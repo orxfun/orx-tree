@@ -1,4 +1,9 @@
-use crate::{helpers::N, tree_variant::RefsChildren, Node, TreeVariant};
+use crate::{
+    helpers::N,
+    iter::{DataFromNode, Dfs, NodeVal},
+    tree_variant::RefsChildren,
+    Node, TreeVariant,
+};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
@@ -241,11 +246,12 @@ where
     ///
     /// // build the following tree using child_mut and parent_mut:
     /// // r
-    /// // |-- a
-    /// //     |-- c, d, e
-    /// // |-- b
-    /// //     |-- f, g
-    /// //            |-- h, i, j
+    /// // +-- a
+    /// // |   +-- c, d, e
+    /// // |
+    /// // +-- b
+    /// //     +-- f, g
+    /// //            +-- h, i, j
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
@@ -282,5 +288,56 @@ where
             let mut children = parent.next().children_ptr();
             children.position(|x| x == ptr).expect("this node exists")
         })
+    }
+
+    // dfs
+
+    /// Creates a depth first search iterator over the data of the nodes;
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+    ///
+    /// Return value is an `Iterator` which yields [`data()`] of each traversed node.
+    ///
+    /// [`data()`]: crate::NodeRef::data
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// let mut n2 = root.child_mut(0).unwrap();
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// n4.push(8);
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// n3.extend([6, 7]);
+    ///
+    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// n6.push(9);
+    ///
+    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// n7.extend([10, 11]);
+    ///
+    /// // depth-first-search (dfs) from the root
+    ///
+    /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    /// ```
+    fn dfs(&self) -> Dfs<NodeVal<DataFromNode>, V, M, P> {
+        Dfs::new(self.col(), self.node_ptr().clone())
     }
 }
