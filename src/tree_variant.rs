@@ -17,7 +17,7 @@ pub trait TreeVariant:
 // children
 
 pub trait RefsChildren<V: Variant> {
-    type ChildrenPtrIter<'a>: ExactSizeIterator<Item = &'a NodePtr<V>>
+    type ChildrenPtrIter<'a>: ExactSizeIterator<Item = &'a NodePtr<V>> + Default
     where
         V: 'a,
         Self: 'a;
