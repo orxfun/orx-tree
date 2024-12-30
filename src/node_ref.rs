@@ -227,4 +227,60 @@ where
             .get()
             .map(|ptr| Node::new(self.col(), ptr.clone()))
     }
+
+    /// Returns the position of this node in the children collection of its parent;
+    /// returns None if this is the root node.
+    ///
+    /// **O(S)** where S is the number of siblings; i.e.,
+    /// requires linear search over the children of the parent of this node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // build the following tree using child_mut and parent_mut:
+    /// // r
+    /// // |-- a
+    /// //     |-- c, d, e
+    /// // |-- b
+    /// //     |-- f, g
+    /// //            |-- h, i, j
+    /// let mut tree = DynTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend(['a', 'b']);
+    ///
+    /// let mut a = root.child_mut(0).unwrap();
+    /// a.extend(['c', 'd', 'e']);
+    ///
+    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
+    /// b.extend(['f', 'g']);
+    ///
+    /// let mut g = b.child_mut(1).unwrap();
+    /// g.extend(['h', 'i', 'j']);
+    ///
+    /// // check data - breadth first
+    ///
+    /// let root = tree.root().unwrap();
+    /// assert_eq!(root.sibling_position(), None);
+    ///
+    /// let b = root.child(1).unwrap();
+    /// assert_eq!(b.sibling_position(), Some(1));
+    ///
+    /// let g = b.child(1).unwrap();
+    /// assert_eq!(g.sibling_position(), Some(1));
+    ///
+    /// let j = g.child(2).unwrap();
+    /// assert_eq!(j.sibling_position(), Some(2));
+    /// ```
+    fn sibling_position(&self) -> Option<usize> {
+        let parent = self.node().prev().get().map(|ptr| unsafe { ptr.node() });
+
+        parent.map(|parent| {
+            let ptr = self.node_ptr();
+            let mut children = parent.next().children_ptr();
+            children.position(|x| x == ptr).expect("this node exists")
+        })
+    }
 }
