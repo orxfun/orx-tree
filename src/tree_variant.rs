@@ -1,4 +1,7 @@
-use orx_selfref_col::{MemoryReclaimer, NodePtr, RefsArrayLeftMost, RefsSingle, RefsVec, Variant};
+use orx_selfref_col::{
+    references::iter::ArrayLeftMostPtrIter, MemoryReclaimer, NodePtr, RefsArrayLeftMost,
+    RefsSingle, RefsVec, Variant,
+};
 
 /// Variant of a tree.
 pub trait TreeVariant:
@@ -14,11 +17,14 @@ pub trait TreeVariant:
 // children
 
 pub trait RefsChildren<V: Variant> {
+    type ChildrenPtrIter<'a>: ExactSizeIterator<Item = &'a NodePtr<V>>
+    where
+        V: 'a,
+        Self: 'a;
+
     fn num_children(&self) -> usize;
 
-    fn children_ptr<'a>(&'a self) -> impl ExactSizeIterator<Item = &'a NodePtr<V>>
-    where
-        V: 'a;
+    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_>;
 
     fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>>;
 
@@ -28,14 +34,17 @@ pub trait RefsChildren<V: Variant> {
 }
 
 impl<V: Variant> RefsChildren<V> for RefsVec<V> {
+    type ChildrenPtrIter<'a>
+        = core::slice::Iter<'a, NodePtr<V>>
+    where
+        V: 'a,
+        Self: 'a;
+
     fn num_children(&self) -> usize {
         self.len()
     }
 
-    fn children_ptr<'a>(&'a self) -> impl ExactSizeIterator<Item = &'a NodePtr<V>>
-    where
-        V: 'a,
-    {
+    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
         self.iter()
     }
 
@@ -49,14 +58,17 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
 }
 
 impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
+    type ChildrenPtrIter<'a>
+        = ArrayLeftMostPtrIter<'a, V>
+    where
+        V: 'a,
+        Self: 'a;
+
     fn num_children(&self) -> usize {
         self.len()
     }
 
-    fn children_ptr<'a>(&'a self) -> impl ExactSizeIterator<Item = &'a NodePtr<V>>
-    where
-        V: 'a,
-    {
+    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
         self.iter()
     }
 
