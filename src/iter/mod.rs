@@ -1,4 +1,5 @@
+mod dfs;
 mod dfs2;
-mod element;
+mod kind;
 
 pub use dfs2::DfsNodes;

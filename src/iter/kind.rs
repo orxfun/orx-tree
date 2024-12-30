@@ -1,9 +1,9 @@
-use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
+use crate::{helpers::N, tree_variant::RefsChildren, Node, TreeVariant};
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr};
+use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-pub trait IterElement<'a, V, M, P>
+pub trait IterKind<'a, V, M, P>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -11,38 +11,46 @@ where
 {
     type StackElement: HasPtr<V>;
 
-    type ValueFromNode: ValueFromNode<'a, V>;
+    type ValueFromNode: ValueFromNode<'a, V, M, P>;
 
     type YieldElement;
 
-    fn children(parent: &'a Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a;
+    fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a;
 
-    fn element(stack_element: &Self::StackElement) -> Self::YieldElement;
+    fn element(
+        col: &'a SelfRefCol<V, M, P>,
+        stack_element: &Self::StackElement,
+    ) -> Self::YieldElement;
 }
 
 // data
 
 pub struct NodeVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> IterElement<'a, V, M, P> for NodeVal<D>
+impl<'a, V, M, P, D> IterKind<'a, V, M, P> for NodeVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
-    D: ValueFromNode<'a, V>,
+    D: ValueFromNode<'a, V, M, P>,
 {
     type StackElement = NodePtr<V>;
 
     type ValueFromNode = D;
 
-    type YieldElement = <Self::ValueFromNode as ValueFromNode<'a, V>>::Value;
+    type YieldElement = <Self::ValueFromNode as ValueFromNode<'a, V, M, P>>::Value;
 
-    fn children(parent: &'a Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
+    #[inline(always)]
+    fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
         node(parent.node_ptr()).next().children_ptr().cloned()
     }
 
-    fn element(stack_element: &Self::StackElement) -> Self::YieldElement {
-        D::value(node(&stack_element))
+    #[inline(always)]
+    fn element(
+        col: &'a SelfRefCol<V, M, P>,
+        stack_element: &Self::StackElement,
+    ) -> Self::YieldElement {
+        D::value(col, node(&stack_element))
     }
 }
 
@@ -50,20 +58,24 @@ where
 
 pub struct NodeDepthVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> IterElement<'a, V, M, P> for NodeDepthVal<D>
+impl<'a, V, M, P, D> IterKind<'a, V, M, P> for NodeDepthVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
-    D: ValueFromNode<'a, V>,
+    D: ValueFromNode<'a, V, M, P>,
 {
     type StackElement = (usize, NodePtr<V>);
 
     type ValueFromNode = D;
 
-    type YieldElement = (usize, <Self::ValueFromNode as ValueFromNode<'a, V>>::Value);
+    type YieldElement = (
+        usize,
+        <Self::ValueFromNode as ValueFromNode<'a, V, M, P>>::Value,
+    );
 
-    fn children(parent: &'a Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
+    #[inline(always)]
+    fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
         let depth = parent.0 + 1;
         node(parent.node_ptr())
             .next()
@@ -71,8 +83,12 @@ where
             .map(move |ptr| (depth, ptr.clone()))
     }
 
-    fn element(stack_element: &Self::StackElement) -> Self::YieldElement {
-        (stack_element.0, D::value(node(&stack_element.1)))
+    #[inline(always)]
+    fn element(
+        col: &'a SelfRefCol<V, M, P>,
+        stack_element: &Self::StackElement,
+    ) -> Self::YieldElement {
+        (stack_element.0, D::value(col, node(&stack_element.1)))
     }
 }
 
@@ -80,12 +96,12 @@ where
 
 pub struct NodeDepthSiblingVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> IterElement<'a, V, M, P> for NodeDepthSiblingVal<D>
+impl<'a, V, M, P, D> IterKind<'a, V, M, P> for NodeDepthSiblingVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
-    D: ValueFromNode<'a, V>,
+    D: ValueFromNode<'a, V, M, P>,
 {
     type StackElement = (usize, usize, NodePtr<V>);
 
@@ -94,10 +110,11 @@ where
     type YieldElement = (
         usize,
         usize,
-        <Self::ValueFromNode as ValueFromNode<'a, V>>::Value,
+        <Self::ValueFromNode as ValueFromNode<'a, V, M, P>>::Value,
     );
 
-    fn children(parent: &'a Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
+    #[inline(always)]
+    fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
         let depth = parent.0 + 1;
         node(parent.node_ptr())
             .next()
@@ -106,11 +123,15 @@ where
             .map(move |(i, ptr)| (depth, i, ptr.clone()))
     }
 
-    fn element(stack_element: &Self::StackElement) -> Self::YieldElement {
+    #[inline(always)]
+    fn element(
+        col: &'a SelfRefCol<V, M, P>,
+        stack_element: &Self::StackElement,
+    ) -> Self::YieldElement {
         (
             stack_element.0,
             stack_element.1,
-            D::value(node(&stack_element.2)),
+            D::value(col, node(&stack_element.2)),
         )
     }
 }
@@ -156,33 +177,45 @@ impl<T, U, V: TreeVariant> HasPtr<V> for (T, U, NodePtr<V>) {
     }
 }
 
-pub trait ValueFromNode<'a, V>
+pub trait ValueFromNode<'a, V, M, P>
 where
-    V: TreeVariant,
+    V: TreeVariant + 'a,
+    M: MemoryPolicy<V> + 'a,
+    P: PinnedVec<N<V>> + 'a,
 {
     type Value;
 
-    fn value(node: &'a N<V>) -> Self::Value;
+    fn value(col: &'a SelfRefCol<V, M, P>, node: &'a N<V>) -> Self::Value;
 }
 
 pub struct NodeFromNode;
 
-impl<'a, V: TreeVariant + 'a> ValueFromNode<'a, V> for NodeFromNode {
-    type Value = &'a N<V>;
+impl<'a, V, M, P> ValueFromNode<'a, V, M, P> for NodeFromNode
+where
+    V: TreeVariant + 'a,
+    M: MemoryPolicy<V> + 'a,
+    P: PinnedVec<N<V>> + 'a,
+{
+    type Value = Node<'a, V, M, P>;
 
     #[inline(always)]
-    fn value(node: &'a N<V>) -> Self::Value {
-        node
+    fn value(col: &'a SelfRefCol<V, M, P>, node: &'a N<V>) -> Self::Value {
+        Node::new(col, NodePtr::new(node as *const N<V>))
     }
 }
 
 pub struct DataFromNode;
 
-impl<'a, V: TreeVariant + 'a> ValueFromNode<'a, V> for DataFromNode {
+impl<'a, V, M, P> ValueFromNode<'a, V, M, P> for DataFromNode
+where
+    V: TreeVariant + 'a,
+    M: MemoryPolicy<V> + 'a,
+    P: PinnedVec<N<V>> + 'a,
+{
     type Value = &'a V::Item;
 
     #[inline(always)]
-    fn value(node: &'a N<V>) -> Self::Value {
+    fn value(_: &'a SelfRefCol<V, M, P>, node: &'a N<V>) -> Self::Value {
         node.data().expect("active tree node cannot be closed")
     }
 }
