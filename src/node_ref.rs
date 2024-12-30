@@ -7,11 +7,11 @@ use crate::{
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-pub trait NodeRefCore<V, M, P>
+pub trait NodeRefCore<'a, V, M, P>
 where
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
+    V: TreeVariant + 'a,
+    M: MemoryPolicy<V> + 'a,
+    P: PinnedVec<N<V>> + 'a,
 {
     fn col(&self) -> &SelfRefCol<V, M, P>;
 
@@ -23,21 +23,21 @@ where
     }
 }
 
-impl<V, M, P, X> NodeRef<V, M, P> for X
+impl<'a, V, M, P, X> NodeRef<'a, V, M, P> for X
 where
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-    X: NodeRefCore<V, M, P>,
+    V: TreeVariant + 'a,
+    M: MemoryPolicy<V> + 'a,
+    P: PinnedVec<N<V>> + 'a,
+    X: NodeRefCore<'a, V, M, P>,
 {
 }
 
 /// Reference to a tree node.
-pub trait NodeRef<V, M, P>: NodeRefCore<V, M, P>
+pub trait NodeRef<'a, V, M, P>: NodeRefCore<'a, V, M, P>
 where
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
+    V: TreeVariant + 'a,
+    M: MemoryPolicy<V> + 'a,
+    P: PinnedVec<N<V>> + 'a,
 {
     /// Returns true if this is the root node; equivalently, if its [`parent`] is none.
     ///
@@ -80,9 +80,9 @@ where
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_panics_doc)]
-    fn data<'a>(&'a self) -> &'a V::Item
+    fn data<'b>(&'b self) -> &'b V::Item
     where
-        V: 'a,
+        'a: 'b,
     {
         self.node()
             .data()
@@ -158,12 +158,7 @@ where
     ///
     /// assert_eq!(data, ['a', 'c', 'd', 'e', 'b']);
     /// ```
-    fn children<'a>(&'a self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>>
-    where
-        V: 'a,
-        M: 'a,
-        P: 'a,
-    {
+    fn children(&'a self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> {
         self.node()
             .next()
             .children_ptr()
@@ -324,7 +319,7 @@ where
     /// n4.push(8);
     ///
     /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
+    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
     ///
     /// let mut n6 = n3.child_mut(0).unwrap();
     /// n6.push(9);
@@ -336,6 +331,18 @@ where
     ///
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    ///
+    /// // dfs from any node
+    ///
+    /// let root = tree.root().unwrap();
+    /// let n3 = root.child(1).unwrap();
+    /// let values: Vec<_> = n3.dfs().copied().collect();
+    /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
+    ///
+    /// let idx6 = &n3_children_idx[0];
+    /// let n6 = tree.node(idx6).unwrap();
+    /// let values: Vec<_> = n6.dfs().copied().collect();
+    /// assert_eq!(values, [6, 9]);
     /// ```
     fn dfs(&self) -> Dfs<NodeVal<DataFromNode>, V, M, P> {
         Dfs::new(self.col(), self.node_ptr().clone())
