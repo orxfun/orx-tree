@@ -31,7 +31,7 @@ where
     }
 }
 
-impl<V, M, P> NodeRefCore<V, M, P> for Node<'_, V, M, P>
+impl<'a, V, M, P> NodeRefCore<'a, V, M, P> for Node<'a, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
