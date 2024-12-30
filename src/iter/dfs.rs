@@ -51,7 +51,7 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
-    pub(crate) fn new(
+    pub(crate) fn new_with_stack(
         col: &'a SelfRefCol<V, M, P>,
         root_ptr: NodePtr<V>,
         stack: &'a mut Vec<K::StackElement>,

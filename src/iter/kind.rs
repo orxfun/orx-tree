@@ -42,7 +42,7 @@ where
 
     #[inline(always)]
     fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
-        node(parent.node_ptr()).next().children_ptr().cloned()
+        node(parent.node_ptr()).next().children_ptr().rev().cloned()
     }
 
     #[inline(always)]
@@ -80,6 +80,7 @@ where
         node(parent.node_ptr())
             .next()
             .children_ptr()
+            .rev()
             .map(move |ptr| (depth, ptr.clone()))
     }
 
@@ -119,6 +120,7 @@ where
         node(parent.node_ptr())
             .next()
             .children_ptr()
+            .rev()
             .enumerate()
             .map(move |(i, ptr)| (depth, i, ptr.clone()))
     }
