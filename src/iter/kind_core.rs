@@ -3,7 +3,7 @@ use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-pub trait IterKind<'a, V, M, P>
+pub trait IterKindCore<'a, V, M, P>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -13,7 +13,7 @@ where
 
     type ValueFromNode: ValueFromNode<'a, V, M, P>;
 
-    type YieldElement;
+    type YieldElement: Clone;
 
     fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a;
 
@@ -27,7 +27,7 @@ where
 
 pub struct NodeVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> IterKind<'a, V, M, P> for NodeVal<D>
+impl<'a, V, M, P, D> IterKindCore<'a, V, M, P> for NodeVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -58,7 +58,7 @@ where
 
 pub struct NodeDepthVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> IterKind<'a, V, M, P> for NodeDepthVal<D>
+impl<'a, V, M, P, D> IterKindCore<'a, V, M, P> for NodeDepthVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -97,7 +97,7 @@ where
 
 pub struct NodeDepthSiblingVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> IterKind<'a, V, M, P> for NodeDepthSiblingVal<D>
+impl<'a, V, M, P, D> IterKindCore<'a, V, M, P> for NodeDepthSiblingVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -120,8 +120,8 @@ where
         node(parent.node_ptr())
             .next()
             .children_ptr()
-            .rev()
             .enumerate()
+            .rev()
             .map(move |(i, ptr)| (depth, i, ptr.clone()))
     }
 
@@ -202,7 +202,7 @@ where
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
 {
-    type Value;
+    type Value: Clone;
 
     fn value(col: &'a SelfRefCol<V, M, P>, node: &'a N<V>) -> Self::Value;
 }

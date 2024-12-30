@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{DataFromNode, Dfs, NodeVal},
+    iter::{DataFromNode, Dfs, IterOver, NodeVal},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -290,9 +290,12 @@ where
     /// Creates a depth first search iterator over the data of the nodes;
     /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
     ///
-    /// Return value is an `Iterator` which yields [`data()`] of each traversed node.
+    /// Return value is an `Iterator` which yields [`data`] of each traversed node.
     ///
-    /// [`data()`]: crate::NodeRef::data
+    /// See also [`dfs_over`] for variants yielding different values for each traversed node.
+    ///
+    /// [`data`]: crate::NodeRef::data
+    /// [`dfs_over`]: crate::NodeRef::dfs_over
     ///
     /// # Examples
     ///
@@ -345,6 +348,140 @@ where
     /// assert_eq!(values, [6, 9]);
     /// ```
     fn dfs(&self) -> Dfs<NodeVal<DataFromNode>, V, M, P> {
+        Dfs::new(self.col(), self.node_ptr().clone())
+    }
+
+    /// Creates a depth first search iterator over different values of nodes;
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+    ///
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
+    ///
+    /// * [`OverData`] yields [`data`] of nodes (therefore, node.dfs_over::&lt;Data&gt;() is equivalent to node.dfs())
+    /// * [`OverDepthData`] yields (depth, ['data']) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, ['data']) tuples where the second element is a usize representing the index of the node among its siblings
+    /// * [`OverNode`] yields directly the nodes ([`Node`])
+    /// * [`OverDepthNode`] yields (depth, node) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingNode`] yields (depth, sibling_idx, node) tuples where the second element is a usize representing the index of the node among its siblings
+    ///
+    /// [`data`]: crate::NodeRef::data
+    /// [`OverData`]: crate::iter::OverData
+    /// [`OverDepthData`]: crate::iter::OverDepthData
+    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    /// [`OverNode`]: crate::iter::OverNode
+    /// [`OverDepthNode`]: crate::iter::OverDepthNode
+    /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
+    ///
+    /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::iter::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// let mut n2 = root.child_mut(0).unwrap();
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// n4.push(8);
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// n3.extend([6, 7]);
+    ///
+    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// n6.push(9);
+    ///
+    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// n7.extend([10, 11]);
+    ///
+    /// // dfs over data
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let values: Vec<i32> = root.dfs_over::<OverData>().copied().collect(); // or simply dfs()
+    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    ///
+    /// // dfs over (depth, data)
+    ///
+    /// let mut iter = root.dfs_over::<OverDepthData>();
+    /// assert_eq!(iter.next(), Some((0, &1)));
+    /// assert_eq!(iter.next(), Some((1, &2)));
+    /// assert_eq!(iter.next(), Some((2, &4)));
+    /// assert_eq!(iter.next(), Some((3, &8)));
+    /// assert_eq!(iter.next(), Some((2, &5))); // ...
+    ///
+    /// let all: Vec<(usize, &i32)> = root.dfs_over::<OverDepthData>().collect();
+    ///
+    /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
+    /// assert_eq!(depths, [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]);
+    ///
+    /// let values: Vec<i32> = all.iter().map(|x| *x.1).collect();
+    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    ///
+    /// // dfs over (depth, sibling index, data)
+    ///
+    /// let mut iter = root.dfs_over::<OverDepthSiblingData>();
+    /// assert_eq!(iter.next(), Some((0, 0, &1))); // (depth, sibling idx, data)
+    /// assert_eq!(iter.next(), Some((1, 0, &2)));
+    /// assert_eq!(iter.next(), Some((2, 0, &4)));
+    /// assert_eq!(iter.next(), Some((3, 0, &8)));
+    /// assert_eq!(iter.next(), Some((2, 1, &5)));
+    /// assert_eq!(iter.next(), Some((1, 1, &3))); // ...
+    ///
+    /// let all: Vec<(usize, usize, &i32)> = root.dfs_over::<OverDepthSiblingData>().collect();
+    ///
+    /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
+    /// assert_eq!(depths, [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]);
+    ///
+    /// let sibling_indices: Vec<usize> = all.iter().map(|x| x.1).collect();
+    /// assert_eq!(sibling_indices, [0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1]);
+    ///
+    /// let values: Vec<i32> = all.iter().map(|x| *x.2).collect();
+    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    ///
+    /// // dfs over nodes OR (depth, node) pairs OR (depth, sibling index, node) tuples
+    ///
+    /// let nodes: Vec<Node<_>> = root.dfs_over::<OverNode>().collect();
+    /// for (node, expected_value) in nodes.iter().zip(&values) {
+    ///     assert_eq!(node.data(), expected_value);
+    ///     assert!(node.num_children() <= 2);
+    /// }
+    ///
+    /// let nodes: Vec<(usize, Node<_>)> = root.dfs_over::<OverDepthNode>().collect();
+    /// for ((depth, node), (expected_depth, expected_value)) in
+    ///     nodes.iter().zip(depths.iter().zip(&values))
+    /// {
+    ///     assert_eq!(depth, expected_depth);
+    ///     assert_eq!(node.data(), expected_value);
+    ///     assert!(node.num_children() <= 2);
+    /// }
+    ///
+    /// let nodes: Vec<(usize, usize, Node<_>)> = root.dfs_over::<OverDepthSiblingNode>().collect();
+    /// for ((depth, sibling_idx, node), (expected_depth, (expected_sibling_idx, expected_value))) in
+    ///     nodes
+    ///         .iter()
+    ///         .zip(depths.iter().zip(sibling_indices.iter().zip(&values)))
+    /// {
+    ///     assert_eq!(depth, expected_depth);
+    ///     assert_eq!(sibling_idx, expected_sibling_idx);
+    ///     assert_eq!(node.data(), expected_value);
+    ///     assert!(node.num_children() <= 2);
+    /// }
+    /// ```
+    fn dfs_over<K: IterOver>(&'a self) -> Dfs<'a, K::IterKind<'a, V, M, P>, V, M, P> {
         Dfs::new(self.col(), self.node_ptr().clone())
     }
 }

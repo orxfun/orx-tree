@@ -18,6 +18,20 @@ where
     node_ptr: NodePtr<V>,
 }
 
+impl<'a, V, M, P> Clone for Node<'a, V, M, P>
+where
+    V: TreeVariant,
+    M: MemoryPolicy<V>,
+    P: PinnedVec<N<V>>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            col: self.col,
+            node_ptr: self.node_ptr.clone(),
+        }
+    }
+}
+
 impl<'a, V, M, P> Node<'a, V, M, P>
 where
     V: TreeVariant,
