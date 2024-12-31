@@ -29,6 +29,11 @@ where
 
     #[inline(always)]
     fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
+        node(parent.node_ptr()).next().children_ptr().cloned()
+    }
+
+    #[inline(always)]
+    fn children_rev(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
         node(parent.node_ptr()).next().children_ptr().rev().cloned()
     }
 

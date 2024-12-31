@@ -25,6 +25,9 @@ where
     /// Creates children from the current parent.
     fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a;
 
+    /// Creates children from the current parent in reverse order.
+    fn children_rev(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a;
+
     /// Creates the element to be yield, or the iterator item, from the queue element.
     fn element(
         col: &'a SelfRefCol<V, M, P>,

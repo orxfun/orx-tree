@@ -10,7 +10,7 @@ use orx_self_or::SoM;
 use orx_selfref_col::MemoryPolicy;
 
 /// A mutable depth first search iterator.
-/// This traversal also known as "pre-order" ([wiki](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+/// This traversal also known as "pre-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
 pub struct DfsMut<
     'a,
     K,
@@ -52,9 +52,9 @@ where
     type Item = K::YieldElementMut;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.dfs.stack.get_mut().pop().map(|parent| {
-            let children = K::children(&parent);
-            self.dfs.stack.get_mut().extend(children);
+        self.dfs.queue.get_mut().pop().map(|parent| {
+            let children = K::children_rev(&parent);
+            self.dfs.queue.get_mut().extend(children);
             K::element_mut(self.dfs.col, &parent)
         })
     }

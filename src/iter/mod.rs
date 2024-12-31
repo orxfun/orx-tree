@@ -1,7 +1,9 @@
+mod bfs;
 mod dfs;
 mod dfs_mut;
 mod iter_kinds;
 
+pub use bfs::Bfs;
 pub use dfs::Dfs;
 pub use dfs_mut::DfsMut;
 pub use iter_kinds::{

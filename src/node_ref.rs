@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{Dfs, IterOver, NodeVal, NodeValueData},
+    iter::{Bfs, Dfs, IterOver, NodeVal, NodeValueData},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -288,7 +288,7 @@ where
     // dfs
 
     /// Creates a depth first search iterator over the data of the nodes;
-    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
     ///
     /// Return value is an `Iterator` which yields [`data`] of each traversed node.
     ///
@@ -352,7 +352,7 @@ where
     }
 
     /// Creates a depth first search iterator over different values of nodes;
-    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
     ///
     /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
     ///
@@ -483,5 +483,71 @@ where
     /// ```
     fn dfs_over<K: IterOver>(&'a self) -> Dfs<'a, K::IterKind<'a, V, M, P>, V, M, P> {
         Dfs::new(self.col(), self.node_ptr().clone())
+    }
+
+    // bfs
+
+    /// Creates a depth first search iterator over the data of the nodes;
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
+    ///
+    /// Return value is an `Iterator` which yields [`data`] of each traversed node.
+    ///
+    /// See also [`dfs_over`] for variants yielding different values for each traversed node.
+    ///
+    /// [`data`]: crate::NodeRef::data
+    /// [`dfs_over`]: crate::NodeRef::dfs_over
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// let mut n2 = root.child_mut(0).unwrap();
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// n4.push(8);
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
+    ///
+    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// n6.push(9);
+    ///
+    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// n7.extend([10, 11]);
+    ///
+    /// // breadth-first-search (bfs) from the root
+    ///
+    /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
+    /// assert_eq!(values, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// // bfs from any node
+    ///
+    /// let root = tree.root().unwrap();
+    /// let n3 = root.child(1).unwrap();
+    /// let values: Vec<_> = n3.bfs().copied().collect();
+    /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
+    ///
+    /// let idx6 = &n3_children_idx[0];
+    /// let n6 = tree.node(idx6).unwrap();
+    /// let values: Vec<_> = n6.bfs().copied().collect();
+    /// assert_eq!(values, [6, 9]);
+    /// ```
+    fn bfs(&self) -> Bfs<NodeVal<NodeValueData>, V, M, P> {
+        Bfs::new(self.col(), self.node_ptr().clone())
     }
 }

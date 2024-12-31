@@ -39,6 +39,15 @@ where
         node(parent.node_ptr())
             .next()
             .children_ptr()
+            .map(move |ptr| (depth, ptr.clone()))
+    }
+
+    #[inline(always)]
+    fn children_rev(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
+        let depth = parent.0 + 1;
+        node(parent.node_ptr())
+            .next()
+            .children_ptr()
             .rev()
             .map(move |ptr| (depth, ptr.clone()))
     }
