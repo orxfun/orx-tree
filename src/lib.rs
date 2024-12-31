@@ -33,6 +33,7 @@ mod tree_variant;
 
 pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
+pub use iter::Dfs;
 pub use node::Node;
 pub use node_mut::NodeMut;
 pub use node_ref::NodeRef;
