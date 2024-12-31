@@ -182,7 +182,7 @@ where
     ///
     /// let [mut _n10, mut _n11] = n7.extend_split([10, 11]);
     ///
-    /// // check the tree
+    /// // validate the tree
     ///
     /// let root = tree.root().unwrap();
     ///
@@ -208,16 +208,81 @@ where
         })
     }
 
-    pub fn extend_split_iter<I>(
-        &'a mut self,
+    /// Extends the tree by pushing `values` as children of this node.
+    ///
+    /// Returns an iterator of mutable children nodes.
+    ///
+    /// This is convenient especially while building trees as demonstrated in the example.
+    ///
+    /// # Safety
+    ///
+    /// Returned mutable children nodes have a mutation orientation of `NodeMutDown`;
+    /// unlike the default orientation of `NodeMutUpAndDown`.
+    /// Mutable nodes with `NodeMutDown` orientation do not have the `parent_mut` method.
+    /// In other words, they can only proceed down in the tree.
+    ///
+    /// Due to the structural properties of trees, this is sufficient to guarantee that
+    /// we can never have more than once mutable reference to the same node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    ///
+    /// let values = vec![2, 3];
+    /// let mut n1_children: Vec<_> = root.extend_split_iter(values).collect();
+    ///
+    /// let n2 = &mut n1_children[0];
+    /// let values = [4, 5];
+    /// let mut n2_children: Vec<_> = n2.extend_split_iter(values).collect();
+    ///
+    /// let n4 = &mut n2_children[0];
+    /// n4.push(8);
+    ///
+    /// let n3 = &mut n1_children[1];
+    /// let values = vec![6, 7];
+    /// let mut n3_children: Vec<_> = n3.extend_split_iter(values.iter().copied()).collect();
+    ///
+    /// let n6 = &mut n3_children[0];
+    /// n6.push(9);
+    ///
+    /// let n7 = &mut n3_children[1];
+    /// n7.extend([10, 11]);
+    ///
+    /// // validate the tree
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    /// ```
+    pub fn extend_split_iter<'b, I>(
+        &'b mut self,
         values: I,
-    ) -> impl Iterator<Item = NodeMut<'a, V, M, P, NodeMutDown>>
+    ) -> impl Iterator<Item = NodeMut<'a, V, M, P, NodeMutDown>> + 'b
     where
-        I: IntoIterator<Item = V::Item>,
+        I: IntoIterator<Item = V::Item> + 'b,
     {
         values.into_iter().map(|value| {
             let child_ptr = self.push_get_ptr(value);
 
+            // SAFETY: please refer to the safety section above.
             let col_mut = unsafe {
                 &mut *(self.col as *const SelfRefCol<V, M, P> as *mut SelfRefCol<V, M, P>)
             };
@@ -853,23 +918,32 @@ fn abc() {
     // 4   5 6   7
     // |     |  ╱ ╲
     // 8     9 10  11
+
     let mut tree = DynTree::<_>::new(1);
 
     let mut root = tree.root_mut().unwrap();
 
-    let [mut n2, mut n3] = root.extend_split([2, 3]);
+    let values = vec![2, 3];
+    let mut n1_children: Vec<_> = root.extend_split_iter(values).collect();
 
-    let [mut n4, mut _n5] = n2.extend_split([4, 5]);
+    let n2 = &mut n1_children[0];
+    let values = [4, 5];
+    let mut n2_children: Vec<_> = n2.extend_split_iter(values).collect();
 
-    let [_n8] = n4.extend_split([8]);
+    let n4 = &mut n2_children[0];
+    n4.push(8);
 
-    let [mut n6, mut n7] = n3.extend_split([6, 7]);
+    let n3 = &mut n1_children[1];
+    let values = vec![6, 7];
+    let mut n3_children: Vec<_> = n3.extend_split_iter(values.iter().copied()).collect();
 
-    let [_n9] = n6.extend_split([9]);
+    let n6 = &mut n3_children[0];
+    n6.push(9);
 
-    let [mut _n10, mut _n11] = n7.extend_split([10, 11]);
+    let n7 = &mut n3_children[1];
+    n7.extend([10, 11]);
 
-    // check the tree
+    // validate the tree
 
     let root = tree.root().unwrap();
 
