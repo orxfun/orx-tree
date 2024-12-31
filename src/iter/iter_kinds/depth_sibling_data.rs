@@ -1,6 +1,6 @@
 use super::{
-    kind_traits::node, NodeValueData, IterKindCore, IterOver, NodeValueNode, QueueElement,
-    NodeValue,
+    kind_traits::{node, node_mut},
+    IterKindCore, IterOver, NodeValue, NodeValueData, NodeValueNode, QueueElement,
 };
 use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
 use core::marker::PhantomData;
@@ -29,6 +29,12 @@ where
         <Self::ValueFromNode as NodeValue<'a, V, M, P>>::Value,
     );
 
+    type YieldElementMut = (
+        usize,
+        usize,
+        <Self::ValueFromNode as NodeValue<'a, V, M, P>>::ValueMut,
+    );
+
     #[inline(always)]
     fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
         let depth = parent.0 + 1;
@@ -49,6 +55,17 @@ where
             queue_element.0,
             queue_element.1,
             D::value(col, node(&queue_element.2)),
+        )
+    }
+
+    fn element_mut(
+        col: &'a SelfRefCol<V, M, P>,
+        queue_element: &Self::QueueElement,
+    ) -> Self::YieldElementMut {
+        (
+            queue_element.0,
+            queue_element.1,
+            D::value_mut(col, node_mut(&queue_element.2)),
         )
     }
 }

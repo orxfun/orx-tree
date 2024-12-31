@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{NodeValueData, Dfs, IterOver, NodeVal},
+    iter::{Dfs, IterOver, NodeVal, NodeValueData},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
