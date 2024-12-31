@@ -1,13 +1,16 @@
 use crate::TreeVariant;
 use orx_selfref_col::NodePtr;
 
-pub trait StackElement<V: TreeVariant> {
+/// Intermediate element of the tree iteration which are enqueued and dequeued during the iteration.
+pub trait QueueElement<V: TreeVariant> {
+    /// Creates the queue element for the root node.
     fn from_root_ptr(root_ptr: NodePtr<V>) -> Self;
 
+    /// Gets the node pointer of the queue element.
     fn node_ptr(&self) -> &NodePtr<V>;
 }
 
-impl<V: TreeVariant> StackElement<V> for NodePtr<V> {
+impl<V: TreeVariant> QueueElement<V> for NodePtr<V> {
     #[inline(always)]
     fn from_root_ptr(root_ptr: NodePtr<V>) -> Self {
         root_ptr
@@ -19,7 +22,7 @@ impl<V: TreeVariant> StackElement<V> for NodePtr<V> {
     }
 }
 
-impl<V: TreeVariant> StackElement<V> for (usize, NodePtr<V>) {
+impl<V: TreeVariant> QueueElement<V> for (usize, NodePtr<V>) {
     #[inline(always)]
     fn from_root_ptr(root_ptr: NodePtr<V>) -> Self {
         (0, root_ptr)
@@ -31,7 +34,7 @@ impl<V: TreeVariant> StackElement<V> for (usize, NodePtr<V>) {
     }
 }
 
-impl<V: TreeVariant> StackElement<V> for (usize, usize, NodePtr<V>) {
+impl<V: TreeVariant> QueueElement<V> for (usize, usize, NodePtr<V>) {
     #[inline(always)]
     fn from_root_ptr(root_ptr: NodePtr<V>) -> Self {
         (0, 0, root_ptr)

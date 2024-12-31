@@ -1,29 +1,37 @@
-use super::{StackElement, ValueFromNode};
+use super::{QueueElement, ValueFromNode};
 use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
+/// Core iterator return type kind.
 pub trait IterKindCore<'a, V, M, P>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
 {
-    type StackElement: StackElement<V>;
+    /// Intermediate element that is enqueued & dequeued throughout the iteration.
+    type QueueElement: QueueElement<V>;
 
+    /// Part of the return value that is extracted from the node.
     type ValueFromNode: ValueFromNode<'a, V, M, P>;
 
-    type YieldElement: Clone;
+    /// Element type of the iterator; i.e., `Iterator::Item`.
+    type YieldElement;
 
-    fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a;
+    /// Creates children from the current parent.
+    fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a;
 
+    /// Creates the element to be yield, or the iterator item, from the queue element.
     fn element(
         col: &'a SelfRefCol<V, M, P>,
-        stack_element: &Self::StackElement,
+        queue_element: &Self::QueueElement,
     ) -> Self::YieldElement;
 }
 
+/// Defines the return element or item of the iterator over the tree.
 pub trait IterOver {
+    /// Core iteration kind.
     type IterKind<'a, V, M, P>: IterKindCore<'a, V, M, P>
     where
         V: TreeVariant + 'a,

@@ -1,4 +1,4 @@
-use super::{IterKindCore, StackElement};
+use super::{IterKindCore, QueueElement};
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},
@@ -17,13 +17,13 @@ pub struct Dfs<
     V,
     M = DefaultMemory<V>,
     P = DefaultPinVec<V>,
-    S = Vec<<K as IterKindCore<'a, V, M, P>>::StackElement>,
+    S = Vec<<K as IterKindCore<'a, V, M, P>>::QueueElement>,
 > where
     K: IterKindCore<'a, V, M, P>,
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    S: SoM<Vec<K::StackElement>>,
+    S: SoM<Vec<K::QueueElement>>,
 {
     col: &'a SelfRefCol<V, M, P>,
     stack: S,
@@ -36,14 +36,14 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    S: SoM<Vec<K::StackElement>>,
+    S: SoM<Vec<K::QueueElement>>,
 {
     fn from(value: Dfs<'a, K, V, M, P, S>) -> Self {
         (value.col, value.stack)
     }
 }
 
-impl<'a, K, V, M, P> Dfs<'a, K, V, M, P, Vec<K::StackElement>>
+impl<'a, K, V, M, P> Dfs<'a, K, V, M, P, Vec<K::QueueElement>>
 where
     K: IterKindCore<'a, V, M, P>,
     V: TreeVariant,
@@ -52,7 +52,7 @@ where
 {
     pub(crate) fn new(col: &'a SelfRefCol<V, M, P>, root_ptr: NodePtr<V>) -> Self {
         let mut stack = Vec::new();
-        stack.push(<K::StackElement as StackElement<V>>::from_root_ptr(
+        stack.push(<K::QueueElement as QueueElement<V>>::from_root_ptr(
             root_ptr,
         ));
         Self {
@@ -63,7 +63,7 @@ where
     }
 }
 
-impl<'a, K, V, M, P> Dfs<'a, K, V, M, P, &'a mut Vec<K::StackElement>>
+impl<'a, K, V, M, P> Dfs<'a, K, V, M, P, &'a mut Vec<K::QueueElement>>
 where
     K: IterKindCore<'a, V, M, P>,
     V: TreeVariant,
@@ -73,10 +73,10 @@ where
     pub(crate) fn new_with_stack(
         col: &'a SelfRefCol<V, M, P>,
         root_ptr: NodePtr<V>,
-        stack: &'a mut Vec<K::StackElement>,
+        stack: &'a mut Vec<K::QueueElement>,
     ) -> Self {
         stack.get_mut().clear();
-        stack.push(<K::StackElement as StackElement<V>>::from_root_ptr(
+        stack.push(<K::QueueElement as QueueElement<V>>::from_root_ptr(
             root_ptr,
         ));
         Self {
@@ -93,7 +93,7 @@ where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
-    S: SoM<Vec<K::StackElement>>,
+    S: SoM<Vec<K::QueueElement>>,
 {
     type Item = K::YieldElement;
 

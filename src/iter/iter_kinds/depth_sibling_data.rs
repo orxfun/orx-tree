@@ -1,5 +1,5 @@
 use super::{
-    kind_traits::node, DataFromNode, IterKindCore, IterOver, NodeFromNode, StackElement,
+    kind_traits::node, DataFromNode, IterKindCore, IterOver, NodeFromNode, QueueElement,
     ValueFromNode,
 };
 use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
@@ -19,7 +19,7 @@ where
     P: PinnedVec<N<V>> + 'a,
     D: ValueFromNode<'a, V, M, P>,
 {
-    type StackElement = (usize, usize, NodePtr<V>);
+    type QueueElement = (usize, usize, NodePtr<V>);
 
     type ValueFromNode = D;
 
@@ -30,7 +30,7 @@ where
     );
 
     #[inline(always)]
-    fn children(parent: &Self::StackElement) -> impl Iterator<Item = Self::StackElement> + 'a {
+    fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
         let depth = parent.0 + 1;
         node(parent.node_ptr())
             .next()
@@ -43,12 +43,12 @@ where
     #[inline(always)]
     fn element(
         col: &'a SelfRefCol<V, M, P>,
-        stack_element: &Self::StackElement,
+        queue_element: &Self::QueueElement,
     ) -> Self::YieldElement {
         (
-            stack_element.0,
-            stack_element.1,
-            D::value(col, node(&stack_element.2)),
+            queue_element.0,
+            queue_element.1,
+            D::value(col, node(&queue_element.2)),
         )
     }
 }
