@@ -4,6 +4,7 @@ use crate::{
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
+use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
@@ -736,6 +737,90 @@ where
         Bfs::new(self.col(), self.node_ptr().clone())
     }
 
+    /// Creates a breadth first search iterator over the data of the nodes.
+    /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
+    ///
+    /// Return value is an `Iterator` which yields [`data`] of each traversed node.
+    ///
+    /// See also [`bfs_over_using`] for variants yielding different values for each traversed node.
+    ///
+    /// # bfs & bfs_using
+    ///
+    /// `bfs_using` differs from [`bfs`] in the following:
+    /// * Depth first search requires a queue (VecDeque) to be allocated.
+    /// * Every time `node.bfs()` is called, a new queue is allocated, and it is dropped once the iterator is consumed.
+    /// * `node.bfs_using`, on the other hand, requires a mutable reference to a queue to be used throughout the iteration.
+    ///   Therefore, it does not require to allocate any intermediate data.
+    ///   This fits best to situations where:
+    ///   * we want to allocate as little as possible, and
+    ///   * we repeatedly traverse over the tree, and hence, we re-use the same queue over and over without new allocations.
+    ///
+    /// [`bfs`]: crate::NodeRef::bfs
+    /// [`data`]: crate::NodeRef::data
+    /// [`bfs_over_using`]: crate::NodeRef::bfs_over_using
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use std::collections::VecDeque;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// let mut n2 = root.child_mut(0).unwrap();
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// n4.push(8);
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
+    ///
+    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// n6.push(9);
+    ///
+    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// n7.extend([10, 11]);
+    ///
+    /// // allocate the queue once
+    ///
+    /// let mut queue = VecDeque::new();
+    ///
+    /// // breadth-first-search (dfs) from the root
+    ///
+    /// let values: Vec<_> = tree.root().unwrap().bfs_using(&mut queue).copied().collect();
+    /// assert_eq!(values, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// // bfs from any node
+    ///
+    /// let root = tree.root().unwrap();
+    /// let n3 = root.child(1).unwrap();
+    /// let values: Vec<_> = n3.bfs_using(&mut queue).copied().collect();
+    /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
+    ///
+    /// let idx6 = &n3_children_idx[0];
+    /// let n6 = tree.node(idx6).unwrap();
+    /// let values: Vec<_> = n6.bfs_using(&mut queue).copied().collect();
+    /// assert_eq!(values, [6, 9]);
+    /// ```
+    fn bfs_using(
+        &'a self,
+        queue: &'a mut VecDeque<NodePtr<V>>,
+    ) -> Bfs<'a, NodeVal<NodeValueData>, V, M, P, &'a mut VecDeque<NodePtr<V>>> {
+        Bfs::new_with_queue(self.col(), self.node_ptr().clone(), queue)
+    }
+
     /// Creates a breadth first search iterator over different values of nodes.
     /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
     ///
@@ -869,5 +954,109 @@ where
     /// ```
     fn bfs_over<K: IterOver>(&'a self) -> Bfs<'a, K::IterKind<'a, V, M, P>, V, M, P> {
         Bfs::new(self.col(), self.node_ptr().clone())
+    }
+
+    /// Creates a breadth first search iterator over different values of nodes.
+    /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
+    ///
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
+    ///
+    /// * [`OverData`] yields [`data`] of nodes (therefore, node.bfs_over_using::&lt;Data&gt;() is equivalent to node.bfs_using())
+    /// * [`OverDepthData`] yields (depth, ['data']) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, ['data']) tuples where the second element is a usize representing the index of the node among its siblings
+    /// * [`OverNode`] yields directly the nodes ([`Node`])
+    /// * [`OverDepthNode`] yields (depth, node) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingNode`] yields (depth, sibling_idx, node) tuples where the second element is a usize representing the index of the node among its siblings
+    ///
+    /// # bfs_over & bfs_over_using
+    ///
+    /// `bfs_over_using` differs from [`bfs_over`] in the following:
+    /// * Depth first search requires a queue (VecDeque) to be allocated.
+    /// * Every time `node.bfs_over()` is called, a new queue is allocated, and it is dropped once the iterator is consumed.
+    /// * `node.bfs_over_using`, on the other hand, requires a mutable reference to a queue to be used throughout the iteration.
+    ///   Therefore, it does not require to allocate any intermediate data.
+    ///   This fits best to situations where:
+    ///   * we want to allocate as little as possible, and
+    ///   * we repeatedly traverse over the tree, and hence, we re-use the same queue over and over without new allocations.
+    ///
+    /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// [`data`]: crate::NodeRef::data
+    /// [`OverData`]: crate::iter::OverData
+    /// [`OverDepthData`]: crate::iter::OverDepthData
+    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    /// [`OverNode`]: crate::iter::OverNode
+    /// [`OverDepthNode`]: crate::iter::OverDepthNode
+    /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
+    /// [`bfs_over`]: crate::NodeRef::bfs_over
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::iter::*;
+    /// use std::collections::VecDeque;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// let mut n2 = root.child_mut(0).unwrap();
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// n4.push(8);
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// n3.extend([6, 7]);
+    ///
+    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// n6.push(9);
+    ///
+    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// n7.extend([10, 11]);
+    ///
+    /// // dfs over (depth, data)
+    ///
+    /// let mut queue = VecDeque::new(); // allocate queue only once
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let mut iter = root.bfs_over_using::<OverDepthData>(&mut queue);
+    /// assert_eq!(iter.next(), Some((0, &1)));
+    /// assert_eq!(iter.next(), Some((1, &2)));
+    /// assert_eq!(iter.next(), Some((1, &3)));
+    /// assert_eq!(iter.next(), Some((2, &4)));
+    /// assert_eq!(iter.next(), Some((2, &5))); // ...
+    ///
+    /// let depths: Vec<usize> = root.bfs_over_using::<OverDepthData>(&mut queue).map(|x| x.0).collect();
+    /// assert_eq!(depths, [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]);
+    ///
+    /// let values: Vec<i32> = root.bfs_over_using::<OverDepthData>(&mut queue).map(|x| *x.1).collect();
+    /// assert_eq!(values, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    /// ```
+    fn bfs_over_using<K: IterOver>(
+        &'a self,
+        queue: &'a mut VecDeque<
+            <K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement,
+        >,
+    ) -> Bfs<
+        'a,
+        K::IterKind<'a, V, M, P>,
+        V,
+        M,
+        P,
+        &'a mut VecDeque<<K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement>,
+    > {
+        Bfs::new_with_queue(self.col(), self.node_ptr().clone(), queue)
     }
 }
