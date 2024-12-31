@@ -26,8 +26,8 @@ pub struct Dfs<
     P: PinnedVec<N<V>>,
     S: SoM<Vec<K::QueueElement>>,
 {
-    col: &'a SelfRefCol<V, M, P>,
-    stack: S,
+    pub(super) col: &'a SelfRefCol<V, M, P>,
+    pub(super) stack: S,
     phantom: PhantomData<K>,
 }
 
