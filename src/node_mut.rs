@@ -540,6 +540,109 @@ where
         Bfs::new(self.col(), self.node_ptr().clone()).into()
     }
 
+    /// Creates a mutable breadth first search iterator over different values of nodes.
+    /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
+    ///
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
+    ///
+    /// * [`OverData`] yields data_mut of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
+    /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
+    ///
+    /// [`data_mut`]: crate::NodeRef::data_mut
+    /// [`OverData`]: crate::iter::OverData
+    /// [`OverDepthData`]: crate::iter::OverDepthData
+    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    ///
+    /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::iter::*;
+    ///
+    /// fn init_tree() -> DynTree<i32> {
+    ///     //      1
+    ///     //     ╱ ╲
+    ///     //    ╱   ╲
+    ///     //   2     3
+    ///     //  ╱ ╲   ╱ ╲
+    ///     // 4   5 6   7
+    ///     // |     |  ╱ ╲
+    ///     // 8     9 10  11
+    ///     let mut tree = DynTree::<i32>::new(1);
+    ///
+    ///     let mut root = tree.root_mut().unwrap();
+    ///     root.extend([2, 3]);
+    ///
+    ///     let mut n2 = root.child_mut(0).unwrap();
+    ///     n2.extend([4, 5]);
+    ///
+    ///     let mut n4 = n2.child_mut(0).unwrap();
+    ///     n4.push(8);
+    ///
+    ///     let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    ///     n3.extend([6, 7]);
+    ///
+    ///     let mut n6 = n3.child_mut(0).unwrap();
+    ///     n6.push(9);
+    ///
+    ///     let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    ///     n7.extend([10, 11]);
+    ///
+    ///     tree
+    /// }
+    ///
+    /// // bfs over data_mut
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    ///
+    /// // equivalent to `root.bfs_mut()`
+    /// for data in root.bfs_mut_over::<OverData>() {
+    ///     *data += 100;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111]
+    /// );
+    ///
+    /// // bfs over (depth, data_mut)
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    ///
+    /// for (depth, data) in root.bfs_mut_over::<OverDepthData>() {
+    ///     *data += depth as i32 * 100;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [1, 102, 103, 204, 205, 206, 207, 308, 309, 310, 311]
+    /// );
+    ///
+    /// // bfs over (depth, sibling index, data_mut)
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    /// for (depth, sibling_idx, data) in root.bfs_mut_over::<OverDepthSiblingData>() {
+    ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [1, 102, 10103, 204, 10205, 206, 10207, 308, 309, 310, 10311]
+    /// );
+    /// ```
+    pub fn bfs_mut_over<K: IterMutOver>(&'a self) -> BfsMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+        Bfs::new(self.col(), self.node_ptr().clone()).into()
+    }
+
     // helpers
 
     pub(crate) fn new(col: &'a mut SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
