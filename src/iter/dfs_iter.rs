@@ -4,7 +4,7 @@ use crate::{
     tree::{DefaultMemory, DefaultPinVec},
     TreeVariant,
 };
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
@@ -52,10 +52,8 @@ where
     P: PinnedVec<N<V>>,
 {
     pub(crate) fn new(col: &'a SelfRefCol<V, M, P>, root_ptr: NodePtr<V>) -> Self {
-        let mut queue = Vec::new();
-        queue.push(<K::QueueElement as QueueElement<V>>::from_root_ptr(
-            root_ptr,
-        ));
+        let root = <K::QueueElement as QueueElement<V>>::from_root_ptr(root_ptr);
+        let queue = vec![root];
         Self {
             col,
             queue,

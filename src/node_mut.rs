@@ -6,7 +6,6 @@ use crate::{
     tree_variant::RefsChildren,
     TreeVariant,
 };
-use alloc::vec::Vec;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
 

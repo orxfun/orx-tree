@@ -594,7 +594,7 @@ where
     pub fn iter_from<'a, M, P>(
         &'a mut self,
         root: &'a impl NodeRef<'a, V, M, P>,
-    ) -> DfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P, &'a mut Vec<K::QueueElement<V>>>
+    ) -> DfsIterOf<'a, V, K, M, P>
     where
         V: 'a,
         M: MemoryPolicy<V> + 'a,
@@ -612,7 +612,7 @@ where
     pub fn iter_mut_from<'a, M, P>(
         &'a mut self,
         root: &'a mut NodeMut<'a, V, M, P>,
-    ) -> DfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P, &'a mut Vec<K::QueueElement<V>>>
+    ) -> DfsIterMutOf<'a, V, K, M, P>
     where
         V: 'a,
         M: MemoryPolicy<V> + 'a,
@@ -680,3 +680,23 @@ pub type DfsOverDepthSiblingData<V> = DfsCore<V, OverDepthSiblingData>;
 ///
 /// [`Node`]: crate::Node
 pub type DfsOverDepthSiblingNode<V> = DfsCore<V, OverDepthSiblingNode>;
+
+// type simplification of iterators
+
+type DfsIterOf<'a, V, K, M, P> = DfsIter<
+    'a,
+    <K as IterOver>::IterKind<'a, V, M, P>,
+    V,
+    M,
+    P,
+    &'a mut Vec<<K as IterOver>::QueueElement<V>>,
+>;
+
+type DfsIterMutOf<'a, V, K, M, P> = DfsIterMut<
+    'a,
+    <K as IterOver>::IterKind<'a, V, M, P>,
+    V,
+    M,
+    P,
+    &'a mut Vec<<K as IterOver>::QueueElement<V>>,
+>;
