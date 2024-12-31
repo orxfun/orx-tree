@@ -753,7 +753,7 @@ where
     ///   Therefore, it does not require to allocate any intermediate data.
     ///   This fits best to situations where:
     ///   * we want to allocate as little as possible, and
-    ///   * we repeatedly traverse over the tree, and hence, we re-use the same stack over and over without new allocations.
+    ///   * we repeatedly traverse over the tree, and hence, we re-use the same queue over and over without new allocations.
     ///
     /// [`bfs`]: crate::NodeRef::bfs
     /// [`data`]: crate::NodeRef::data
@@ -971,13 +971,13 @@ where
     /// # bfs_over & bfs_over_using
     ///
     /// `bfs_over_using` differs from [`bfs_over`] in the following:
-    /// * Depth first search requires a stack (Vec) to be allocated.
-    /// * Every time `node.bfs_over()` is called, a new vector is allocated, and it is dropped once the iterator is consumed.
-    /// * `node.bfs_over_using`, on the other hand, requires a mutable reference to a vector to be used throughout the iteration.
+    /// * Depth first search requires a queue (VecDeque) to be allocated.
+    /// * Every time `node.bfs_over()` is called, a new queue is allocated, and it is dropped once the iterator is consumed.
+    /// * `node.bfs_over_using`, on the other hand, requires a mutable reference to a queue to be used throughout the iteration.
     ///   Therefore, it does not require to allocate any intermediate data.
     ///   This fits best to situations where:
     ///   * we want to allocate as little as possible, and
-    ///   * we repeatedly traverse over the tree, and hence, we re-use the same stack over and over without new allocations.
+    ///   * we repeatedly traverse over the tree, and hence, we re-use the same queue over and over without new allocations.
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
