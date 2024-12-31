@@ -1,12 +1,11 @@
 use crate::{
     helpers::N,
-    iter::{Bfs, BfsMut, Dfs, DfsMut, IterMutOver, NodeVal, NodeValueData},
+    iter::{BfsIter, BfsIterMut, DfsIter, DfsIterMut, IterMutOver, NodeVal, NodeValueData},
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
     TreeVariant,
 };
-use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
@@ -359,8 +358,8 @@ where
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
-    pub fn dfs_mut(&self) -> DfsMut<NodeVal<NodeValueData>, V, M, P> {
-        Dfs::new(self.col(), self.node_ptr().clone()).into()
+    pub fn dfs_mut(&self) -> DfsIterMut<NodeVal<NodeValueData>, V, M, P> {
+        DfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
     /// Creates a mutable depth first search iterator over the data of the nodes;
@@ -458,8 +457,8 @@ where
     pub fn dfs_mut_using(
         &'a mut self,
         stack: &'a mut Vec<NodePtr<V>>,
-    ) -> DfsMut<'a, NodeVal<NodeValueData>, V, M, P, &'a mut Vec<NodePtr<V>>> {
-        Dfs::new_with_queue(self.col(), self.node_ptr().clone(), stack).into()
+    ) -> DfsIterMut<'a, NodeVal<NodeValueData>, V, M, P, &'a mut Vec<NodePtr<V>>> {
+        DfsIter::new_with_queue(self.col(), self.node_ptr().clone(), stack).into()
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
@@ -561,8 +560,10 @@ where
     ///     [1, 102, 204, 308, 10205, 10103, 206, 309, 10207, 310, 10311]
     /// );
     /// ```
-    pub fn dfs_mut_over<K: IterMutOver>(&'a self) -> DfsMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
-        Dfs::new(self.col(), self.node_ptr().clone()).into()
+    pub fn dfs_mut_over<K: IterMutOver>(
+        &'a self,
+    ) -> DfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+        DfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
     // bfs
@@ -637,8 +638,8 @@ where
     /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
     /// assert_eq!(values, [10, 20, 3, 40, 50, 600, 7, 80, 900, 10, 11]);
     /// ```
-    pub fn bfs_mut(&self) -> BfsMut<NodeVal<NodeValueData>, V, M, P> {
-        Bfs::new(self.col(), self.node_ptr().clone()).into()
+    pub fn bfs_mut(&self) -> BfsIterMut<NodeVal<NodeValueData>, V, M, P> {
+        BfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
     /// Creates a mutable breadth first search iterator over different values of nodes.
@@ -740,8 +741,10 @@ where
     ///     [1, 102, 10103, 204, 10205, 206, 10207, 308, 309, 310, 10311]
     /// );
     /// ```
-    pub fn bfs_mut_over<K: IterMutOver>(&'a self) -> BfsMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
-        Bfs::new(self.col(), self.node_ptr().clone()).into()
+    pub fn bfs_mut_over<K: IterMutOver>(
+        &'a self,
+    ) -> BfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+        BfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
     // helpers

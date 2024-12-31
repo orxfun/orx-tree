@@ -1,4 +1,4 @@
-use super::{Dfs, IterKindCore};
+use super::{DfsIter, IterKindCore};
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},
@@ -11,7 +11,7 @@ use orx_selfref_col::MemoryPolicy;
 
 /// A mutable depth first search iterator.
 /// This traversal also known as "pre-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
-pub struct DfsMut<
+pub struct DfsIterMut<
     'a,
     K,
     V,
@@ -25,10 +25,10 @@ pub struct DfsMut<
     P: PinnedVec<N<V>>,
     S: SoM<Vec<K::QueueElement>>,
 {
-    dfs: Dfs<'a, K, V, M, P, S>,
+    dfs: DfsIter<'a, K, V, M, P, S>,
 }
 
-impl<'a, K, V, M, P, S> From<Dfs<'a, K, V, M, P, S>> for DfsMut<'a, K, V, M, P, S>
+impl<'a, K, V, M, P, S> From<DfsIter<'a, K, V, M, P, S>> for DfsIterMut<'a, K, V, M, P, S>
 where
     K: IterKindCore<'a, V, M, P>,
     V: TreeVariant,
@@ -36,12 +36,12 @@ where
     P: PinnedVec<N<V>>,
     S: SoM<Vec<K::QueueElement>>,
 {
-    fn from(dfs: Dfs<'a, K, V, M, P, S>) -> Self {
+    fn from(dfs: DfsIter<'a, K, V, M, P, S>) -> Self {
         Self { dfs }
     }
 }
 
-impl<'a, K, V, M, P, S> Iterator for DfsMut<'a, K, V, M, P, S>
+impl<'a, K, V, M, P, S> Iterator for DfsIterMut<'a, K, V, M, P, S>
 where
     K: IterKindCore<'a, V, M, P>,
     V: TreeVariant + 'a,

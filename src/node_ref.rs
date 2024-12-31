@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{Bfs, Dfs, IterKindCore, IterOver, NodeVal, NodeValueData},
+    iter::{BfsIter, DfsIter, IterKindCore, IterOver, NodeVal, NodeValueData},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -349,8 +349,8 @@ where
     /// let values: Vec<_> = n6.dfs().copied().collect();
     /// assert_eq!(values, [6, 9]);
     /// ```
-    fn dfs(&self) -> Dfs<NodeVal<NodeValueData>, V, M, P> {
-        Dfs::new(self.col(), self.node_ptr().clone())
+    fn dfs(&self) -> DfsIter<NodeVal<NodeValueData>, V, M, P> {
+        DfsIter::new(self.col(), self.node_ptr().clone())
     }
 
     /// Creates a depth first search iterator over the data of the nodes;
@@ -432,8 +432,8 @@ where
     fn dfs_using(
         &'a self,
         stack: &'a mut Vec<NodePtr<V>>,
-    ) -> Dfs<'a, NodeVal<NodeValueData>, V, M, P, &'a mut Vec<NodePtr<V>>> {
-        Dfs::new_with_queue(self.col(), self.node_ptr().clone(), stack)
+    ) -> DfsIter<'a, NodeVal<NodeValueData>, V, M, P, &'a mut Vec<NodePtr<V>>> {
+        DfsIter::new_with_queue(self.col(), self.node_ptr().clone(), stack)
     }
 
     /// Creates a depth first search iterator over different values of nodes;
@@ -566,8 +566,8 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn dfs_over<K: IterOver>(&'a self) -> Dfs<'a, K::IterKind<'a, V, M, P>, V, M, P> {
-        Dfs::new(self.col(), self.node_ptr().clone())
+    fn dfs_over<K: IterOver>(&'a self) -> DfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+        DfsIter::new(self.col(), self.node_ptr().clone())
     }
 
     /// Creates a depth first search iterator over different values of nodes;
@@ -660,7 +660,7 @@ where
     fn dfs_over_using<K: IterOver>(
         &'a self,
         stack: &'a mut Vec<<K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement>,
-    ) -> Dfs<
+    ) -> DfsIter<
         'a,
         K::IterKind<'a, V, M, P>,
         V,
@@ -668,7 +668,7 @@ where
         P,
         &'a mut Vec<<K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement>,
     > {
-        Dfs::new_with_queue(self.col(), self.node_ptr().clone(), stack)
+        DfsIter::new_with_queue(self.col(), self.node_ptr().clone(), stack)
     }
 
     // bfs
@@ -733,8 +733,8 @@ where
     /// let values: Vec<_> = n6.bfs().copied().collect();
     /// assert_eq!(values, [6, 9]);
     /// ```
-    fn bfs(&self) -> Bfs<NodeVal<NodeValueData>, V, M, P> {
-        Bfs::new(self.col(), self.node_ptr().clone())
+    fn bfs(&self) -> BfsIter<NodeVal<NodeValueData>, V, M, P> {
+        BfsIter::new(self.col(), self.node_ptr().clone())
     }
 
     /// Creates a breadth first search iterator over the data of the nodes.
@@ -817,8 +817,8 @@ where
     fn bfs_using(
         &'a self,
         queue: &'a mut VecDeque<NodePtr<V>>,
-    ) -> Bfs<'a, NodeVal<NodeValueData>, V, M, P, &'a mut VecDeque<NodePtr<V>>> {
-        Bfs::new_with_queue(self.col(), self.node_ptr().clone(), queue)
+    ) -> BfsIter<'a, NodeVal<NodeValueData>, V, M, P, &'a mut VecDeque<NodePtr<V>>> {
+        BfsIter::new_with_queue(self.col(), self.node_ptr().clone(), queue)
     }
 
     /// Creates a breadth first search iterator over different values of nodes.
@@ -952,8 +952,8 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn bfs_over<K: IterOver>(&'a self) -> Bfs<'a, K::IterKind<'a, V, M, P>, V, M, P> {
-        Bfs::new(self.col(), self.node_ptr().clone())
+    fn bfs_over<K: IterOver>(&'a self) -> BfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+        BfsIter::new(self.col(), self.node_ptr().clone())
     }
 
     /// Creates a breadth first search iterator over different values of nodes.
@@ -1046,17 +1046,8 @@ where
     /// ```
     fn bfs_over_using<K: IterOver>(
         &'a self,
-        queue: &'a mut VecDeque<
-            <K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement,
-        >,
-    ) -> Bfs<
-        'a,
-        K::IterKind<'a, V, M, P>,
-        V,
-        M,
-        P,
-        &'a mut VecDeque<<K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement>,
-    > {
-        Bfs::new_with_queue(self.col(), self.node_ptr().clone(), queue)
+        queue: &'a mut VecDeque<K::QueueElement<V>>,
+    ) -> BfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P, &'a mut VecDeque<K::QueueElement<V>>> {
+        BfsIter::new_with_queue(self.col(), self.node_ptr().clone(), queue)
     }
 }
