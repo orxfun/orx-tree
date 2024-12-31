@@ -18,7 +18,7 @@ where
     node_ptr: NodePtr<V>,
 }
 
-impl<'a, V, M, P> Clone for Node<'a, V, M, P>
+impl<V, M, P> Clone for Node<'_, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,

@@ -10,7 +10,8 @@ use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-/// A depth first search iterator; also known as "pre-order traversal" ([wiki](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+/// A depth first search iterator.
+/// This traversal also known as "pre-order" ([wiki](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
 pub struct Dfs<
     'a,
     K,

@@ -35,7 +35,7 @@ where
         col: &'a SelfRefCol<V, M, P>,
         queue_element: &Self::QueueElement,
     ) -> Self::YieldElement {
-        D::value(col, node(&queue_element))
+        D::value(col, node(queue_element))
     }
 }
 
