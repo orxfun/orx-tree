@@ -1,4 +1,4 @@
-use super::{Bfs, IterKindCore};
+use super::{BfsIter, IterKindCore};
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},
@@ -11,7 +11,7 @@ use orx_selfref_col::MemoryPolicy;
 
 /// A mutable breadth first search iterator.
 /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
-pub struct BfsMut<
+pub struct BfsIterMut<
     'a,
     K,
     V,
@@ -25,10 +25,10 @@ pub struct BfsMut<
     P: PinnedVec<N<V>>,
     S: SoM<VecDeque<K::QueueElement>>,
 {
-    bfs: Bfs<'a, K, V, M, P, S>,
+    bfs: BfsIter<'a, K, V, M, P, S>,
 }
 
-impl<'a, K, V, M, P, S> From<Bfs<'a, K, V, M, P, S>> for BfsMut<'a, K, V, M, P, S>
+impl<'a, K, V, M, P, S> From<BfsIter<'a, K, V, M, P, S>> for BfsIterMut<'a, K, V, M, P, S>
 where
     K: IterKindCore<'a, V, M, P>,
     V: TreeVariant,
@@ -36,12 +36,12 @@ where
     P: PinnedVec<N<V>>,
     S: SoM<VecDeque<K::QueueElement>>,
 {
-    fn from(bfs: Bfs<'a, K, V, M, P, S>) -> Self {
+    fn from(bfs: BfsIter<'a, K, V, M, P, S>) -> Self {
         Self { bfs }
     }
 }
 
-impl<'a, K, V, M, P, S> Iterator for BfsMut<'a, K, V, M, P, S>
+impl<'a, K, V, M, P, S> Iterator for BfsIterMut<'a, K, V, M, P, S>
 where
     K: IterKindCore<'a, V, M, P>,
     V: TreeVariant + 'a,

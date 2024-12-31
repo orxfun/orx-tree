@@ -132,6 +132,11 @@ impl IterOver for OverData {
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
+
+    type QueueElement<V>
+        = NodePtr<V>
+    where
+        V: TreeVariant;
 }
 
 impl IterMutOver for OverData {}
@@ -213,4 +218,9 @@ impl IterOver for OverNode {
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
+
+    type QueueElement<V>
+        = NodePtr<V>
+    where
+        V: TreeVariant;
 }

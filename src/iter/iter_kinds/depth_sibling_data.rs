@@ -169,6 +169,11 @@ impl IterOver for OverDepthSiblingData {
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
+
+    type QueueElement<V>
+        = (usize, usize, NodePtr<V>)
+    where
+        V: TreeVariant;
 }
 
 impl IterMutOver for OverDepthSiblingData {}
@@ -260,4 +265,9 @@ impl IterOver for OverDepthSiblingNode {
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
+
+    type QueueElement<V>
+        = (usize, usize, NodePtr<V>)
+    where
+        V: TreeVariant;
 }

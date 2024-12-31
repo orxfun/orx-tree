@@ -44,11 +44,16 @@ where
 /// Defines the return element or item of the iterator over the tree.
 pub trait IterOver {
     /// Core iteration kind.
-    type IterKind<'a, V, M, P>: IterKindCore<'a, V, M, P>
+    type IterKind<'a, V, M, P>: IterKindCore<'a, V, M, P, QueueElement = Self::QueueElement<V>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
+
+    /// Type of elements stored in the intermediate queue storage.
+    type QueueElement<V>: QueueElement<V>
+    where
+        V: TreeVariant;
 }
 
 /// Defines the return element or item of the mutable iterator over the tree.
