@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{DfsMut, IterMutOver, IterOver, NodeVal, NodeValueData},
+    iter::{Dfs, DfsMut, IterMutOver, IterOver, NodeVal, NodeValueData},
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
@@ -358,7 +358,7 @@ where
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
     pub fn dfs_mut(&self) -> DfsMut<NodeVal<NodeValueData>, V, M, P> {
-        DfsMut::new(self.col(), self.node_ptr().clone())
+        Dfs::new(self.col(), self.node_ptr().clone()).into()
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
@@ -461,7 +461,7 @@ where
     /// );
     /// ```
     pub fn dfs_mut_over<K: IterMutOver>(&'a self) -> DfsMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
-        DfsMut::new(self.col(), self.node_ptr().clone())
+        Dfs::new(self.col(), self.node_ptr().clone()).into()
     }
 
     // helpers
