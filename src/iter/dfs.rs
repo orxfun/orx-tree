@@ -1,4 +1,4 @@
-use super::kind_core::{IterKindCore, StackElement};
+use super::{IterKindCore, StackElement};
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},
