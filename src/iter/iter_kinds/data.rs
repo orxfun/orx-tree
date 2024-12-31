@@ -1,6 +1,6 @@
 use super::{
-    kind_traits::node, IterKindCore, IterOver, NodeValue, NodeValueData, NodeValueNode,
-    QueueElement,
+    kind_traits::{node, node_mut},
+    IterKindCore, IterOver, NodeValue, NodeValueData, NodeValueNode, QueueElement,
 };
 use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
 use core::marker::PhantomData;
@@ -25,6 +25,8 @@ where
 
     type YieldElement = <Self::ValueFromNode as NodeValue<'a, V, M, P>>::Value;
 
+    type YieldElementMut = <Self::ValueFromNode as NodeValue<'a, V, M, P>>::ValueMut;
+
     #[inline(always)]
     fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
         node(parent.node_ptr()).next().children_ptr().rev().cloned()
@@ -36,6 +38,13 @@ where
         queue_element: &Self::QueueElement,
     ) -> Self::YieldElement {
         D::value(col, node(queue_element))
+    }
+
+    fn element_mut(
+        col: &'a SelfRefCol<V, M, P>,
+        queue_element: &Self::QueueElement,
+    ) -> Self::YieldElementMut {
+        D::value_mut(col, node_mut(queue_element))
     }
 }
 
@@ -193,6 +202,19 @@ pub struct OverNode;
 impl IterOver for OverNode {
     type IterKind<'a, V, M, P>
         = NodeVal<NodeValueNode>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+}
+
+// over mut
+
+pub struct OverDataMut;
+
+impl IterOver for OverDataMut {
+    type IterKind<'a, V, M, P>
+        = NodeVal<NodeValueData>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,

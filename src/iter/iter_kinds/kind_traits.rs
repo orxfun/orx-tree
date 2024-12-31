@@ -1,4 +1,4 @@
-use super::{QueueElement, NodeValue};
+use super::{NodeValue, QueueElement};
 use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
@@ -19,6 +19,9 @@ where
     /// Element type of the iterator; i.e., `Iterator::Item`.
     type YieldElement;
 
+    /// Mutable element type of the iterator; i.e., `Iterator::Item`.
+    type YieldElementMut;
+
     /// Creates children from the current parent.
     fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a;
 
@@ -27,6 +30,12 @@ where
         col: &'a SelfRefCol<V, M, P>,
         queue_element: &Self::QueueElement,
     ) -> Self::YieldElement;
+
+    /// Creates the mutable element to be yield, or the iterator item, from the queue element.
+    fn element_mut(
+        col: &'a SelfRefCol<V, M, P>,
+        queue_element: &Self::QueueElement,
+    ) -> Self::YieldElementMut;
 }
 
 /// Defines the return element or item of the iterator over the tree.
@@ -53,4 +62,9 @@ pub trait IterOver {
 #[inline(always)]
 pub(super) fn node<'a, V: TreeVariant>(node_ptr: &NodePtr<V>) -> &'a N<V> {
     unsafe { &*node_ptr.ptr() }
+}
+
+#[inline(always)]
+pub(super) fn node_mut<'a, V: TreeVariant>(node_ptr: &NodePtr<V>) -> &'a mut N<V> {
+    unsafe { &mut *node_ptr.ptr_mut() }
 }
