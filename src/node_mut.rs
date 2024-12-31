@@ -6,25 +6,38 @@ use crate::{
     tree_variant::RefsChildren,
     TreeVariant,
 };
+use alloc::vec::Vec;
+use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
 
+pub trait NodeMutOrientation {}
+
+pub struct NodeMutDown {}
+impl NodeMutOrientation for NodeMutDown {}
+
+pub struct NodeMutUpAndDown {}
+impl NodeMutOrientation for NodeMutUpAndDown {}
+
 /// A node of the tree, which in turn is a tree.
-pub struct NodeMut<'a, V, M = DefaultMemory<V>, P = DefaultPinVec<V>>
+pub struct NodeMut<'a, V, M = DefaultMemory<V>, P = DefaultPinVec<V>, O = NodeMutUpAndDown>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
+    O: NodeMutOrientation,
 {
     col: &'a mut SelfRefCol<V, M, P>,
     node_ptr: NodePtr<V>,
+    phantom: PhantomData<O>,
 }
 
-impl<'a, V, M, P> NodeRefCore<'a, V, M, P> for NodeMut<'a, V, M, P>
+impl<'a, V, M, P, O> NodeRefCore<'a, V, M, P> for NodeMut<'a, V, M, P, O>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
+    O: NodeMutOrientation,
 {
     #[inline(always)]
     fn col(&self) -> &SelfRefCol<V, M, P> {
@@ -37,11 +50,12 @@ where
     }
 }
 
-impl<'a, V, M, P> NodeMut<'a, V, M, P>
+impl<'a, V, M, P, O> NodeMut<'a, V, M, P, O>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
+    O: NodeMutOrientation,
 {
     /// Returns a mutable reference to data of the root node.
     ///
@@ -69,6 +83,8 @@ where
             .expect("node holding a tree reference must be active")
     }
 
+    // growth
+
     /// Pushes the node with the given `value` as a child of this node.
     ///
     /// Returns the index of the created child node.
@@ -93,18 +109,8 @@ where
     /// assert_eq!(node_c.num_children(), 3);
     /// ```
     pub fn push(&mut self, value: V::Item) -> NodeIdx<V> {
-        let parent_ptr = self.node_ptr.clone();
-
-        let child_idx = self.col.push_get_idx(value);
-        let child_ptr = child_idx.node_ptr();
-
-        let child = self.col.node_mut(&child_ptr);
-        child.prev_mut().set_some(parent_ptr.clone());
-
-        let parent = self.col.node_mut(&parent_ptr);
-        parent.next_mut().push(child_ptr);
-
-        child_idx
+        let child_ptr = self.push_get_ptr(value);
+        NodeIdx::new(self.col.memory_state(), &child_ptr)
     }
 
     /// Pushes nodes with given `values` as children of this node.
@@ -129,6 +135,95 @@ where
         for x in values.into_iter() {
             _ = self.push(x);
         }
+    }
+
+    /// Extends the tree by pushing `values` as children of this node.
+    ///
+    /// Returns the array of mutable children nodes.
+    ///
+    /// This is convenient especially while building trees as demonstrated in the example.
+    ///
+    /// # Safety
+    ///
+    /// Returned mutable children nodes have a mutation orientation of `NodeMutDown`;
+    /// unlike the default orientation of `NodeMutUpAndDown`.
+    /// Mutable nodes with `NodeMutDown` orientation do not have the `parent_mut` method.
+    /// In other words, they can only proceed down in the tree.
+    ///
+    /// Due to the structural properties of trees, this is sufficient to guarantee that
+    /// we can never have more than once mutable reference to the same node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    ///
+    /// let [mut n2, mut n3] = root.extend_split([2, 3]);
+    ///
+    /// let [mut n4, mut _n5] = n2.extend_split([4, 5]);
+    ///
+    /// let [_n8] = n4.extend_split([8]);
+    ///
+    /// let [mut n6, mut n7] = n3.extend_split([6, 7]);
+    ///
+    /// let [_n9] = n6.extend_split([9]);
+    ///
+    /// let [mut _n10, mut _n11] = n7.extend_split([10, 11]);
+    ///
+    /// // check the tree
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    /// ```
+    pub fn extend_split<const C: usize>(
+        &mut self,
+        values: [V::Item; C],
+    ) -> [NodeMut<'a, V, M, P, NodeMutDown>; C] {
+        values.map(|value| {
+            let child_ptr = self.push_get_ptr(value);
+
+            // SAFETY: please refer to the safety section above.
+            let col_mut = unsafe {
+                &mut *(self.col as *const SelfRefCol<V, M, P> as *mut SelfRefCol<V, M, P>)
+            };
+
+            NodeMut::<'a, V, M, P, NodeMutDown>::new(col_mut, child_ptr)
+        })
+    }
+
+    pub fn extend_split_iter<I>(
+        &'a mut self,
+        values: I,
+    ) -> impl Iterator<Item = NodeMut<'a, V, M, P, NodeMutDown>>
+    where
+        I: IntoIterator<Item = V::Item>,
+    {
+        values.into_iter().map(|value| {
+            let child_ptr = self.push_get_ptr(value);
+
+            let col_mut = unsafe {
+                &mut *(self.col as *const SelfRefCol<V, M, P> as *mut SelfRefCol<V, M, P>)
+            };
+
+            NodeMut::<'a, V, M, P, NodeMutDown>::new(col_mut, child_ptr)
+        })
     }
 
     /// Pushes nodes with the given `values` as children of this node.
@@ -157,7 +252,7 @@ where
     pub fn extend_get_indices<'b, I>(
         &'b mut self,
         values: I,
-    ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P>
+    ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P, O>
     where
         I: IntoIterator<Item = V::Item>,
         I::IntoIter: 'b,
@@ -225,64 +320,16 @@ where
             .map(|p| NodeMut::new(self.col, p))
     }
 
-    /// Consumes this mutable node and returns the mutable node of its parent,
-    /// returns None if this is the root node.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// // build the following tree using child_mut and parent_mut:
-    /// // r
-    /// // |-- a
-    /// //     |-- c, d, e
-    /// // |-- b
-    /// //     |-- f, g
-    /// //            |-- h, i, j
-    /// let mut tree = DynTree::<char>::new('r');
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// root.extend(['a', 'b']);
-    ///
-    /// let mut a = root.child_mut(0).unwrap();
-    /// a.extend(['c', 'd', 'e']);
-    ///
-    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
-    /// b.extend(['f', 'g']);
-    ///
-    /// let mut g = b.child_mut(1).unwrap();
-    /// g.extend(['h', 'i', 'j']);
-    ///
-    /// // check data - breadth first
-    ///
-    /// let root = tree.root().unwrap();
-    ///
-    /// let mut data = vec![*root.data()]; // depth 0
-    ///
-    /// data.extend(root.children().map(|x| *x.data())); // depth 1
-    ///
-    /// for node in root.children() {
-    ///     data.extend(node.children().map(|x| *x.data())); // depth 2
-    /// }
-    ///
-    /// for node in root.children() {
-    ///     for node in node.children() {
-    ///         data.extend(node.children().map(|x| *x.data())); // depth 3
-    ///     }
-    /// }
-    ///
-    /// assert_eq!(
-    ///     data,
-    ///     ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    /// )
-    /// ```
-    pub fn parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
-        self.node()
-            .prev()
-            .get()
-            .cloned()
-            .map(|p| NodeMut::new(self.col, p))
+    pub fn children_mut(
+        &'a mut self,
+    ) -> impl ExactSizeIterator<Item = NodeMut<'a, V, M, P, NodeMutDown>> {
+        let children_ptr = self.node().next().children_ptr();
+        children_ptr.map(|ptr| {
+            let col_mut = unsafe {
+                &mut *(self.col as *const SelfRefCol<V, M, P> as *mut SelfRefCol<V, M, P>)
+            };
+            NodeMut::<'a, V, M, P, NodeMutDown>::new(col_mut, ptr.clone())
+        })
     }
 
     // dfs
@@ -693,10 +740,142 @@ where
     // helpers
 
     pub(crate) fn new(col: &'a mut SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
-        Self { col, node_ptr }
+        Self {
+            col,
+            node_ptr,
+            phantom: PhantomData,
+        }
     }
 
     fn node_mut(&mut self) -> &mut N<V> {
         unsafe { &mut *self.node_ptr().ptr_mut() }
     }
+
+    pub(crate) fn push_get_ptr(&mut self, value: V::Item) -> NodePtr<V> {
+        let parent_ptr = self.node_ptr.clone();
+
+        let child_ptr = self.col.push(value);
+
+        let child = self.col.node_mut(&child_ptr);
+        child.prev_mut().set_some(parent_ptr.clone());
+
+        let parent = self.col.node_mut(&parent_ptr);
+        parent.next_mut().push(child_ptr.clone());
+
+        child_ptr
+    }
+
+    #[inline(always)]
+    pub(crate) fn col_mut(&mut self) -> &mut SelfRefCol<V, M, P> {
+        self.col
+    }
+}
+
+impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
+where
+    V: TreeVariant,
+    M: MemoryPolicy<V>,
+    P: PinnedVec<N<V>>,
+{
+    /// Consumes this mutable node and returns the mutable node of its parent,
+    /// returns None if this is the root node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // build the following tree using child_mut and parent_mut:
+    /// // r
+    /// // |-- a
+    /// //     |-- c, d, e
+    /// // |-- b
+    /// //     |-- f, g
+    /// //            |-- h, i, j
+    /// let mut tree = DynTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend(['a', 'b']);
+    ///
+    /// let mut a = root.child_mut(0).unwrap();
+    /// a.extend(['c', 'd', 'e']);
+    ///
+    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
+    /// b.extend(['f', 'g']);
+    ///
+    /// let mut g = b.child_mut(1).unwrap();
+    /// g.extend(['h', 'i', 'j']);
+    ///
+    /// // check data - breadth first
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let mut data = vec![*root.data()]; // depth 0
+    ///
+    /// data.extend(root.children().map(|x| *x.data())); // depth 1
+    ///
+    /// for node in root.children() {
+    ///     data.extend(node.children().map(|x| *x.data())); // depth 2
+    /// }
+    ///
+    /// for node in root.children() {
+    ///     for node in node.children() {
+    ///         data.extend(node.children().map(|x| *x.data())); // depth 3
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(
+    ///     data,
+    ///     ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+    /// )
+    /// ```
+    pub fn parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
+        self.node()
+            .prev()
+            .get()
+            .cloned()
+            .map(|p| NodeMut::new(self.col, p))
+    }
+}
+
+#[test]
+fn abc() {
+    use crate::iter::*;
+    use crate::*;
+    use alloc::vec;
+    use alloc::vec::Vec;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲   ╱ ╲
+    // 4   5 6   7
+    // |     |  ╱ ╲
+    // 8     9 10  11
+    let mut tree = DynTree::<_>::new(1);
+
+    let mut root = tree.root_mut().unwrap();
+
+    let [mut n2, mut n3] = root.extend_split([2, 3]);
+
+    let [mut n4, mut _n5] = n2.extend_split([4, 5]);
+
+    let [_n8] = n4.extend_split([8]);
+
+    let [mut n6, mut n7] = n3.extend_split([6, 7]);
+
+    let [_n9] = n6.extend_split([9]);
+
+    let [mut _n10, mut _n11] = n7.extend_split([10, 11]);
+
+    // check the tree
+
+    let root = tree.root().unwrap();
+
+    let bfs: Vec<_> = root.bfs().copied().collect();
+    assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    let dfs: Vec<_> = root.dfs().copied().collect();
+    assert_eq!(dfs, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
 }
