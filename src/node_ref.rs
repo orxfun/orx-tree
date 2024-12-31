@@ -296,8 +296,18 @@ where
     ///
     /// See also [`dfs_over`] for variants yielding different values for each traversed node.
     ///
+    /// # Allocation
+    ///
+    /// Note that depth first search requires an stack (Vec) to be allocated.
+    /// Each time this method is called, a stack is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Dfs`] to optimize performance, which will create only the stack only once
+    /// and re-use it to create many iterators.
+    ///
     /// [`data`]: crate::NodeRef::data
     /// [`dfs_over`]: crate::NodeRef::dfs_over
+    /// [`Dfs`]: crate::Dfs
     ///
     /// # Examples
     ///
@@ -353,89 +363,6 @@ where
         DfsIter::new(self.col(), self.node_ptr().clone())
     }
 
-    /// Creates a depth first search iterator over the data of the nodes;
-    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
-    ///
-    /// Return value is an `Iterator` which yields [`data`] of each traversed node.
-    ///
-    /// See also [`dfs_over_using`] for variants yielding different values for each traversed node.
-    ///
-    /// # dfs & dfs_using
-    ///
-    /// `dfs_using` differs from [`dfs`] in the following:
-    /// * Depth first search requires a stack (Vec) to be allocated.
-    /// * Every time `node.dfs()` is called, a new vector is allocated, and it is dropped once the iterator is consumed.
-    /// * `node.dfs_using`, on the other hand, requires a mutable reference to a vector to be used throughout the iteration.
-    ///   Therefore, it does not require to allocate any intermediate data.
-    ///   This fits best to situations where:
-    ///   * we want to allocate as little as possible, and
-    ///   * we repeatedly traverse over the tree, and hence, we re-use the same stack over and over without new allocations.
-    ///
-    /// [`dfs`]: crate::NodeRef::dfs
-    /// [`data`]: crate::NodeRef::data
-    /// [`dfs_over_using`]: crate::NodeRef::dfs_over_using
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    /// let mut tree = BinaryTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
-    ///
-    /// let mut n2 = root.child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
-    ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
-    /// n4.push(8);
-    ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
-    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
-    ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
-    ///
-    /// // allocate the stack once
-    ///
-    /// let mut stack = vec![];
-    ///
-    /// // depth-first-search (dfs) from the root
-    ///
-    /// let values: Vec<_> = tree.root().unwrap().dfs_using(&mut stack).copied().collect();
-    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
-    ///
-    /// // dfs from any node
-    ///
-    /// let root = tree.root().unwrap();
-    /// let n3 = root.child(1).unwrap();
-    /// let values: Vec<_> = n3.dfs_using(&mut stack).copied().collect();
-    /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
-    ///
-    /// let idx6 = &n3_children_idx[0];
-    /// let n6 = tree.node(idx6).unwrap();
-    /// let values: Vec<_> = n6.dfs_using(&mut stack).copied().collect();
-    /// assert_eq!(values, [6, 9]);
-    /// ```
-    fn dfs_using(
-        &'a self,
-        stack: &'a mut Vec<NodePtr<V>>,
-    ) -> DfsIter<'a, NodeVal<NodeValueData>, V, M, P, &'a mut Vec<NodePtr<V>>> {
-        DfsIter::new_with_queue(self.col(), self.node_ptr().clone(), stack)
-    }
-
     /// Creates a depth first search iterator over different values of nodes;
     /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
     ///
@@ -457,6 +384,19 @@ where
     /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Allocation
+    ///
+    /// Note that depth first search requires an stack (Vec) to be allocated.
+    /// Each time this method is called, a stack is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Dfs`] to optimize performance, which will create only the stack only once
+    /// and re-use it to create many iterators.
+    ///
+    /// [`data`]: crate::NodeRef::data
+    /// [`dfs_over`]: crate::NodeRef::dfs_over
+    /// [`Dfs`]: crate::Dfs
     ///
     /// # Examples
     ///
@@ -568,107 +508,6 @@ where
     /// ```
     fn dfs_over<K: IterOver>(&'a self) -> DfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P> {
         DfsIter::new(self.col(), self.node_ptr().clone())
-    }
-
-    /// Creates a depth first search iterator over different values of nodes;
-    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
-    ///
-    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
-    ///
-    /// * [`OverData`] yields [`data`] of nodes (therefore, node.dfs_over_using::&lt;Data&gt;() is equivalent to node.dfs_using())
-    /// * [`OverDepthData`] yields (depth, ['data']) pairs where the first element is a usize representing the depth of the node in the tree
-    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, ['data']) tuples where the second element is a usize representing the index of the node among its siblings
-    /// * [`OverNode`] yields directly the nodes ([`Node`])
-    /// * [`OverDepthNode`] yields (depth, node) pairs where the first element is a usize representing the depth of the node in the tree
-    /// * [`OverDepthSiblingNode`] yields (depth, sibling_idx, node) tuples where the second element is a usize representing the index of the node among its siblings
-    ///
-    /// # dfs_over & dfs_over_using
-    ///
-    /// `dfs_over_using` differs from [`dfs_over`] in the following:
-    /// * Depth first search requires a stack (Vec) to be allocated.
-    /// * Every time `node.dfs_over()` is called, a new vector is allocated, and it is dropped once the iterator is consumed.
-    /// * `node.dfs_over_using`, on the other hand, requires a mutable reference to a vector to be used throughout the iteration.
-    ///   Therefore, it does not require to allocate any intermediate data.
-    ///   This fits best to situations where:
-    ///   * we want to allocate as little as possible, and
-    ///   * we repeatedly traverse over the tree, and hence, we re-use the same stack over and over without new allocations.
-    ///
-    /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
-    ///
-    /// [`data`]: crate::NodeRef::data
-    /// [`OverData`]: crate::iter::OverData
-    /// [`OverDepthData`]: crate::iter::OverDepthData
-    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
-    /// [`OverNode`]: crate::iter::OverNode
-    /// [`OverDepthNode`]: crate::iter::OverDepthNode
-    /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
-    /// [`dfs_over`]: crate::NodeRef::dfs_over
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    /// use orx_tree::iter::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    /// let mut tree = BinaryTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
-    ///
-    /// let mut n2 = root.child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
-    ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
-    /// n4.push(8);
-    ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
-    ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
-    ///
-    /// // dfs over (depth, data)
-    ///
-    /// let mut stack = vec![]; // allocate stack only once
-    ///
-    /// let root = tree.root().unwrap();
-    ///
-    /// let mut iter = root.dfs_over_using::<OverDepthData>(&mut stack);
-    /// assert_eq!(iter.next(), Some((0, &1)));
-    /// assert_eq!(iter.next(), Some((1, &2)));
-    /// assert_eq!(iter.next(), Some((2, &4)));
-    /// assert_eq!(iter.next(), Some((3, &8)));
-    /// assert_eq!(iter.next(), Some((2, &5))); // ...
-    ///
-    /// let depths: Vec<usize> = root.dfs_over_using::<OverDepthData>(&mut stack).map(|x| x.0).collect();
-    /// assert_eq!(depths, [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]);
-    ///
-    /// let values: Vec<i32> = root.dfs_over_using::<OverDepthData>(&mut stack).map(|x| *x.1).collect();
-    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
-    /// ```
-    fn dfs_over_using<K: IterOver>(
-        &'a self,
-        stack: &'a mut Vec<<K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement>,
-    ) -> DfsIter<
-        'a,
-        K::IterKind<'a, V, M, P>,
-        V,
-        M,
-        P,
-        &'a mut Vec<<K::IterKind<'a, V, M, P> as IterKindCore<'a, V, M, P>>::QueueElement>,
-    > {
-        DfsIter::new_with_queue(self.col(), self.node_ptr().clone(), stack)
     }
 
     // bfs
