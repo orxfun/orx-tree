@@ -6,6 +6,8 @@ use crate::{
     tree_variant::RefsChildren,
     TreeVariant,
 };
+use alloc::collections::VecDeque;
+use alloc::vec::Vec;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
 
@@ -359,6 +361,105 @@ where
     /// ```
     pub fn dfs_mut(&self) -> DfsMut<NodeVal<NodeValueData>, V, M, P> {
         Dfs::new(self.col(), self.node_ptr().clone()).into()
+    }
+
+    /// Creates a mutable depth first search iterator over the data of the nodes;
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
+    ///
+    /// Return value is an `Iterator` which yields [`data_mut`] of each traversed node.
+    ///
+    /// See also [`dfs_mut_over_using`] for variants yielding different values for each traversed node.
+    ///
+    /// # dfs_mut & dfs_mut_using
+    ///
+    /// `dfs_mut_using` differs from [`dfs_mut`] in the following:
+    /// * Depth first search requires a stack (Vec) to be allocated.
+    /// * Every time `node.dfs_mut()` is called, a new vector is allocated, and it is dropped once the iterator is consumed.
+    /// * `node.dfs_mut_using`, on the other hand, requires a mutable reference to a vector to be used throughout the iteration.
+    ///   Therefore, it does not require to allocate any intermediate data.
+    ///   This fits best to situations where:
+    ///   * we want to allocate as little as possible, and
+    ///   * we repeatedly traverse over the tree, and hence, we re-use the same stack over and over without new allocations.
+    ///
+    /// [`dfs_mut`]: crate::NodeMut::dfs_mut
+    /// [`data_mut`]: crate::NodeMut::data_mut
+    /// [`dfs_mut_over_using`]: crate::NodeMut::dfs_mut_over_using
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// let mut n2 = root.child_mut(0).unwrap();
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// n4.push(8);
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
+    ///
+    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// n6.push(9);
+    ///
+    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// n7.extend([10, 11]);
+    ///
+    /// // allocate the stack once
+    /// // and use it for all dfs_using and dfs_mut_using calls
+    ///
+    /// let mut stack = vec![];
+    ///
+    /// // depth-first-search (dfs) from the root
+    ///
+    /// for x in tree.root_mut().unwrap().dfs_mut_using(&mut stack) {
+    ///     *x *= 10;
+    /// }
+    ///
+    /// let root = tree.root().unwrap();
+    /// let values: Vec<_> = root.dfs_using(&mut stack).copied().collect();
+    /// assert_eq!(values, [10, 20, 40, 80, 50, 30, 60, 90, 70, 100, 110]);
+    ///
+    /// // dfs from any node
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// for x in n3.dfs_mut_using(&mut stack) {
+    ///     *x /= 10;
+    /// }
+    /// let root = tree.root().unwrap();
+    /// let n3 = root.child(1).unwrap();
+    /// let values: Vec<_> = n3.dfs_using(&mut stack).copied().collect();
+    /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
+    ///
+    /// let mut n6 = tree.node_mut(&n3_children_idx[0]).unwrap();
+    /// for x in n6.dfs_mut_using(&mut stack) {
+    ///     *x *= 100;
+    /// }
+    /// let n6 = tree.node_mut(&n3_children_idx[0]).unwrap();
+    /// let values: Vec<_> = n6.dfs_using(&mut stack).copied().collect();
+    /// assert_eq!(values, [600, 900]);
+    ///
+    /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
+    /// ```
+    pub fn dfs_mut_using(
+        &'a mut self,
+        stack: &'a mut Vec<NodePtr<V>>,
+    ) -> DfsMut<'a, NodeVal<NodeValueData>, V, M, P, &'a mut Vec<NodePtr<V>>> {
+        Dfs::new_with_queue(self.col(), self.node_ptr().clone(), stack).into()
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
