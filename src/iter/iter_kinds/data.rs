@@ -101,7 +101,7 @@ where
 ///     // ...
 /// }
 ///
-/// let nodes: Vec<Node<_>> = root.dfs_over::<OverNode>().collect();
+/// let nodes: Vec<BinaryNode<i32>> = root.dfs_over::<OverNode>().collect();
 ///
 /// let values: Vec<i32> = nodes.iter().map(|x| *x.data()).collect();
 /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
@@ -136,7 +136,7 @@ impl IterOver for OverData {
 /// // 4   5 6   7
 /// // |     |  ╱ ╲
 /// // 8     9 10  11
-/// let mut tree = BinaryTree::<i32>::new(1);
+/// let mut tree = DynTree::<i32>::new(1);
 ///
 /// let mut root = tree.root_mut().unwrap();
 /// root.extend([2, 3]);
@@ -180,7 +180,7 @@ impl IterOver for OverData {
 ///     // ...
 /// }
 ///
-/// let nodes: Vec<Node<_>> = root.dfs_over::<OverNode>().collect();
+/// let nodes: Vec<DynNode<_>> = root.dfs_over::<OverNode>().collect();
 ///
 /// let values: Vec<i32> = nodes.iter().map(|x| *x.data()).collect();
 /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
