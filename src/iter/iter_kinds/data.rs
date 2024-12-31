@@ -1,5 +1,5 @@
 use super::{
-    kind_traits::{node, node_mut},
+    kind_traits::{node, node_mut, IterMutOver},
     IterKindCore, IterOver, NodeValue, NodeValueData, NodeValueNode, QueueElement,
 };
 use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
@@ -129,6 +129,8 @@ impl IterOver for OverData {
         P: PinnedVec<N<V>> + 'a;
 }
 
+impl IterMutOver for OverData {}
+
 /// Iterator directly over tree nodes.
 ///
 /// # Examples
@@ -202,19 +204,6 @@ pub struct OverNode;
 impl IterOver for OverNode {
     type IterKind<'a, V, M, P>
         = NodeVal<NodeValueNode>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy<V> + 'a,
-        P: PinnedVec<N<V>> + 'a;
-}
-
-// over mut
-
-pub struct OverDataMut;
-
-impl IterOver for OverDataMut {
-    type IterKind<'a, V, M, P>
-        = NodeVal<NodeValueData>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,

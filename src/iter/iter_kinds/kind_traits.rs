@@ -48,6 +48,9 @@ pub trait IterOver {
         P: PinnedVec<N<V>> + 'a;
 }
 
+/// Defines the return element or item of the mutable iterator over the tree.
+pub trait IterMutOver: IterOver {}
+
 // helpers
 
 /// # Safety
