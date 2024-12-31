@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{Dfs, DfsMut, IterMutOver, IterOver, NodeVal, NodeValueData},
+    iter::{Bfs, BfsMut, Dfs, DfsMut, IterMutOver, IterOver, NodeVal, NodeValueData},
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
@@ -462,6 +462,82 @@ where
     /// ```
     pub fn dfs_mut_over<K: IterMutOver>(&'a self) -> DfsMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
         Dfs::new(self.col(), self.node_ptr().clone()).into()
+    }
+
+    // bfs
+
+    /// Creates a mutable breadth first search iterator over the data of the nodes.
+    /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
+    ///
+    /// Return value is an `Iterator` which yields [`data_mut`] of each traversed node.
+    ///
+    /// See also [`bfs_mut_over`] for variants yielding different values for each traversed node.
+    ///
+    /// [`data_mut`]: crate::NodeMut::data_mut
+    /// [`bfs_mut_over`]: crate::NodeMut::bfs_mut_over
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// let mut n2 = root.child_mut(0).unwrap();
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// n4.push(8);
+    ///
+    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
+    ///
+    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// n6.push(9);
+    ///
+    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// n7.extend([10, 11]);
+    ///
+    /// // depth-first-search (dfs) from the root
+    ///
+    /// for x in tree.root_mut().unwrap().bfs_mut() {
+    ///     *x *= 10;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
+    /// assert_eq!(values, [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110]);
+    ///
+    /// // bfs from any node
+    ///
+    /// let n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// for x in n3.bfs_mut() {
+    ///     *x /= 10;
+    /// }
+    /// let values: Vec<_> = n3.bfs().copied().collect();
+    /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
+    ///
+    /// let n6 = tree.node_mut(&n3_children_idx[0]).unwrap();
+    /// for x in n6.bfs_mut() {
+    ///     *x *= 100;
+    /// }
+    /// let values: Vec<_> = n6.bfs().copied().collect();
+    /// assert_eq!(values, [600, 900]);
+    ///
+    /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
+    /// assert_eq!(values, [10, 20, 3, 40, 50, 600, 7, 80, 900, 10, 11]);
+    /// ```
+    pub fn bfs_mut(&self) -> BfsMut<NodeVal<NodeValueData>, V, M, P> {
+        Bfs::new(self.col(), self.node_ptr().clone()).into()
     }
 
     // helpers
