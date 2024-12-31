@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{DfsMut, NodeVal, NodeValueData},
+    iter::{DfsMut, IterMutOver, IterOver, NodeVal, NodeValueData},
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
@@ -358,6 +358,109 @@ where
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
     pub fn dfs_mut(&self) -> DfsMut<NodeVal<NodeValueData>, V, M, P> {
+        DfsMut::new(self.col(), self.node_ptr().clone())
+    }
+
+    /// Creates a mutable depth first search iterator over different values of nodes;
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+    ///
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
+    ///
+    /// * [`OverData`] yields data_mut of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
+    /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
+    ///
+    /// [`data_mut`]: crate::NodeRef::data_mut
+    /// [`OverData`]: crate::iter::OverData
+    /// [`OverDepthData`]: crate::iter::OverDepthData
+    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    ///
+    /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::iter::*;
+    ///
+    /// fn init_tree() -> DynTree<i32> {
+    ///     //      1
+    ///     //     ╱ ╲
+    ///     //    ╱   ╲
+    ///     //   2     3
+    ///     //  ╱ ╲   ╱ ╲
+    ///     // 4   5 6   7
+    ///     // |     |  ╱ ╲
+    ///     // 8     9 10  11
+    ///     let mut tree = DynTree::<i32>::new(1);
+    ///
+    ///     let mut root = tree.root_mut().unwrap();
+    ///     root.extend([2, 3]);
+    ///
+    ///     let mut n2 = root.child_mut(0).unwrap();
+    ///     n2.extend([4, 5]);
+    ///
+    ///     let mut n4 = n2.child_mut(0).unwrap();
+    ///     n4.push(8);
+    ///
+    ///     let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    ///     n3.extend([6, 7]);
+    ///
+    ///     let mut n6 = n3.child_mut(0).unwrap();
+    ///     n6.push(9);
+    ///
+    ///     let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    ///     n7.extend([10, 11]);
+    ///
+    ///     tree
+    /// }
+    ///
+    /// // dfs over data_mut
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    ///
+    /// // equivalent to `root.dfs_mut()`
+    /// for data in root.dfs_mut_over::<OverData>() {
+    ///     *data += 100;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [101, 102, 104, 108, 105, 103, 106, 109, 107, 110, 111]
+    /// );
+    ///
+    /// // dfs over (depth, data_mut)
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    ///
+    /// for (depth, data) in root.dfs_mut_over::<OverDepthData>() {
+    ///     *data += depth as i32 * 100;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [1, 102, 204, 308, 205, 103, 206, 309, 207, 310, 311]
+    /// );
+    ///
+    /// // dfs over (depth, sibling index, data_mut)
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    /// for (depth, sibling_idx, data) in root.dfs_mut_over::<OverDepthSiblingData>() {
+    ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [1, 102, 204, 308, 10205, 10103, 206, 309, 10207, 310, 10311]
+    /// );
+    /// ```
+    pub fn dfs_mut_over<K: IterMutOver>(&'a self) -> DfsMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
         DfsMut::new(self.col(), self.node_ptr().clone())
     }
 

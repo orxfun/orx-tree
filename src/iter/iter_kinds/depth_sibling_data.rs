@@ -1,5 +1,5 @@
 use super::{
-    kind_traits::{node, node_mut},
+    kind_traits::{node, node_mut, IterMutOver},
     IterKindCore, IterOver, NodeValue, NodeValueData, NodeValueNode, QueueElement,
 };
 use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
@@ -160,6 +160,8 @@ impl IterOver for OverDepthSiblingData {
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
 }
+
+impl IterMutOver for OverDepthSiblingData {}
 
 /// Iterator over (node depth, index of node among its siblings, node) tuples.
 ///
