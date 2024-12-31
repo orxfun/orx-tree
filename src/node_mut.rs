@@ -297,7 +297,7 @@ where
     ///
     /// # Allocation
     ///
-    /// Note that depth first search requires an stack (Vec) to be allocated.
+    /// Note that depth first search requires a stack (Vec) to be allocated.
     /// Each time this method is called, a stack is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
@@ -387,6 +387,17 @@ where
     /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Allocation
+    ///
+    /// Note that depth first search requires a stack (Vec) to be allocated.
+    /// Each time this method is called, a stack is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Dfs`] to optimize performance, which will create only the stack only once
+    /// and re-use it to create many iterators.
+    ///
+    /// [`Dfs`]: crate::Dfs
     ///
     /// # Examples
     ///
@@ -489,6 +500,17 @@ where
     /// [`data_mut`]: crate::NodeMut::data_mut
     /// [`bfs_mut_over`]: crate::NodeMut::bfs_mut_over
     ///
+    /// # Allocation
+    ///
+    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
+    /// Each time this method is called, a queue is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// and re-use it to create many iterators.
+    ///
+    /// [`Bfs`]: crate::Bfs
+    ///
     /// # Examples
     ///
     /// ```
@@ -568,6 +590,17 @@ where
     /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Allocation
+    ///
+    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
+    /// Each time this method is called, a queue is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// and re-use it to create many iterators.
+    ///
+    /// [`Bfs`]: crate::Bfs
     ///
     /// # Examples
     ///
