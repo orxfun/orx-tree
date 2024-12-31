@@ -7,7 +7,10 @@ mod iter_kinds;
 
 pub use bfs_iter::BfsIter;
 pub use bfs_iter_mut::BfsIterMut;
-pub use dfs::{Dfs, DfsCore, DfsOverData, DfsOverNode};
+pub use dfs::{
+    Dfs, DfsCore, DfsOverData, DfsOverDepthData, DfsOverDepthNode, DfsOverDepthSiblingData,
+    DfsOverDepthSiblingNode, DfsOverNode,
+};
 pub use dfs_iter::DfsIter;
 pub use dfs_iter_mut::DfsIterMut;
 pub use iter_kinds::{
