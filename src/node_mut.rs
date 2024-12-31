@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{Bfs, BfsMut, Dfs, DfsMut, IterMutOver, IterOver, NodeVal, NodeValueData},
+    iter::{Bfs, BfsMut, Dfs, DfsMut, IterMutOver, NodeVal, NodeValueData},
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
