@@ -1,6 +1,7 @@
-use super::{
-    DfsIterMut, IterMutOver, IterOver, OverData, OverDepthData, OverDepthNode,
-    OverDepthSiblingData, OverDepthSiblingNode, OverNode,
+use super::DfsIterMut;
+use crate::iter::{
+    IterMutOver, IterOver, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
+    OverDepthSiblingNode, OverNode,
 };
 use crate::{helpers::N, iter::DfsIter, node_ref::NodeRefCore, NodeMut, NodeRef, TreeVariant};
 use alloc::vec::Vec;

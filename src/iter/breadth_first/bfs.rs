@@ -1,6 +1,7 @@
-use super::{
-    BfsIterMut, IterMutOver, IterOver, OverData, OverDepthData, OverDepthNode,
-    OverDepthSiblingData, OverDepthSiblingNode, OverNode,
+use super::BfsIterMut;
+use crate::iter::{
+    IterMutOver, IterOver, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
+    OverDepthSiblingNode, OverNode,
 };
 use crate::{helpers::N, iter::BfsIter, node_ref::NodeRefCore, NodeMut, NodeRef, TreeVariant};
 use alloc::collections::VecDeque;
