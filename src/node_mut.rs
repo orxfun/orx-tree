@@ -288,7 +288,7 @@ where
     // dfs
 
     /// Creates a mutable depth first search iterator over the data of the nodes;
-    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
     ///
     /// Return value is an `Iterator` which yields [`data_mut`] of each traversed node.
     ///
@@ -362,7 +362,7 @@ where
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
-    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_implementation)).
+    /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
     ///
     /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
     ///
