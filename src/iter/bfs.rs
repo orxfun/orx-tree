@@ -596,7 +596,7 @@ where
     pub fn iter_from<'a, M, P>(
         &'a mut self,
         root: &'a impl NodeRef<'a, V, M, P>,
-    ) -> BfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P, &'a mut VecDeque<K::QueueElement<V>>>
+    ) -> BfsIterOf<'a, V, K, M, P>
     where
         V: 'a,
         M: MemoryPolicy<V> + 'a,
@@ -614,7 +614,7 @@ where
     pub fn iter_mut_from<'a, M, P>(
         &'a mut self,
         root: &'a mut NodeMut<'a, V, M, P>,
-    ) -> BfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P, &'a mut VecDeque<K::QueueElement<V>>>
+    ) -> BfsIterMutOf<'a, V, K, M, P>
     where
         V: 'a,
         M: MemoryPolicy<V> + 'a,
@@ -682,3 +682,23 @@ pub type BfsOverDepthSiblingData<V> = BfsCore<V, OverDepthSiblingData>;
 ///
 /// [`Node`]: crate::Node
 pub type BfsOverDepthSiblingNode<V> = BfsCore<V, OverDepthSiblingNode>;
+
+// type simplification of iterators
+
+type BfsIterOf<'a, V, K, M, P> = BfsIter<
+    'a,
+    <K as IterOver>::IterKind<'a, V, M, P>,
+    V,
+    M,
+    P,
+    &'a mut VecDeque<<K as IterOver>::QueueElement<V>>,
+>;
+
+type BfsIterMutOf<'a, V, K, M, P> = BfsIterMut<
+    'a,
+    <K as IterOver>::IterKind<'a, V, M, P>,
+    V,
+    M,
+    P,
+    &'a mut VecDeque<<K as IterOver>::QueueElement<V>>,
+>;
