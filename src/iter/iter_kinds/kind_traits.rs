@@ -1,4 +1,4 @@
-use super::{QueueElement, ValueFromNode};
+use super::{QueueElement, NodeValue};
 use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
@@ -14,7 +14,7 @@ where
     type QueueElement: QueueElement<V>;
 
     /// Part of the return value that is extracted from the node.
-    type ValueFromNode: ValueFromNode<'a, V, M, P>;
+    type ValueFromNode: NodeValue<'a, V, M, P>;
 
     /// Element type of the iterator; i.e., `Iterator::Item`.
     type YieldElement;

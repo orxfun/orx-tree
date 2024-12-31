@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{DataFromNode, Dfs, IterOver, NodeVal},
+    iter::{NodeValueData, Dfs, IterOver, NodeVal},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -347,7 +347,7 @@ where
     /// let values: Vec<_> = n6.dfs().copied().collect();
     /// assert_eq!(values, [6, 9]);
     /// ```
-    fn dfs(&self) -> Dfs<NodeVal<DataFromNode>, V, M, P> {
+    fn dfs(&self) -> Dfs<NodeVal<NodeValueData>, V, M, P> {
         Dfs::new(self.col(), self.node_ptr().clone())
     }
 

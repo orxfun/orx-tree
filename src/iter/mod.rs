@@ -3,7 +3,7 @@ mod iter_kinds;
 
 pub use dfs::Dfs;
 pub use iter_kinds::{
-    DataFromNode, IterKindCore, IterOver, NodeDepthSiblingVal, NodeDepthVal, NodeFromNode, NodeVal,
+    NodeValueData, IterKindCore, IterOver, NodeDepthSiblingVal, NodeDepthVal, NodeValueNode, NodeVal,
     OverData, OverDepthData, OverDepthNode, OverDepthSiblingData, OverDepthSiblingNode, OverNode,
-    QueueElement, ValueFromNode,
+    QueueElement, NodeValue,
 };

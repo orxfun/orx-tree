@@ -3,7 +3,7 @@ use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
 /// Part of the iterator item that is obtained from the tree node.
-pub trait ValueFromNode<'a, V, M, P>
+pub trait NodeValue<'a, V, M, P>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -17,9 +17,9 @@ where
 }
 
 /// Returns the entire node.
-pub struct NodeFromNode;
+pub struct NodeValueNode;
 
-impl<'a, V, M, P> ValueFromNode<'a, V, M, P> for NodeFromNode
+impl<'a, V, M, P> NodeValue<'a, V, M, P> for NodeValueNode
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -34,9 +34,9 @@ where
 }
 
 /// Returns a reference to the node.
-pub struct DataFromNode;
+pub struct NodeValueData;
 
-impl<'a, V, M, P> ValueFromNode<'a, V, M, P> for DataFromNode
+impl<'a, V, M, P> NodeValue<'a, V, M, P> for NodeValueData
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,

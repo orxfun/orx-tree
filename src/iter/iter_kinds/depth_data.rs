@@ -1,6 +1,6 @@
 use super::{
-    kind_traits::node, DataFromNode, IterKindCore, IterOver, NodeFromNode, QueueElement,
-    ValueFromNode,
+    kind_traits::node, NodeValueData, IterKindCore, IterOver, NodeValueNode, QueueElement,
+    NodeValue,
 };
 use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
 use core::marker::PhantomData;
@@ -17,7 +17,7 @@ where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
-    D: ValueFromNode<'a, V, M, P>,
+    D: NodeValue<'a, V, M, P>,
 {
     type QueueElement = (usize, NodePtr<V>);
 
@@ -25,7 +25,7 @@ where
 
     type YieldElement = (
         usize,
-        <Self::ValueFromNode as ValueFromNode<'a, V, M, P>>::Value,
+        <Self::ValueFromNode as NodeValue<'a, V, M, P>>::Value,
     );
 
     #[inline(always)]
@@ -125,7 +125,7 @@ pub struct OverDepthData;
 
 impl IterOver for OverDepthData {
     type IterKind<'a, V, M, P>
-        = NodeDepthVal<DataFromNode>
+        = NodeDepthVal<NodeValueData>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
@@ -208,7 +208,7 @@ pub struct OverDepthNode;
 
 impl IterOver for OverDepthNode {
     type IterKind<'a, V, M, P>
-        = NodeDepthVal<NodeFromNode>
+        = NodeDepthVal<NodeValueNode>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
