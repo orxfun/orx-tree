@@ -1,4 +1,5 @@
-use super::{BfsIter, IterKindCore};
+use super::BfsIter;
+use crate::iter::IterKindCore;
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},

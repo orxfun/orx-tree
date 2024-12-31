@@ -1,6 +1,7 @@
-use super::{DfsIter, IterKindCore};
+use super::DfsIter;
 use crate::{
     helpers::N,
+    iter::IterKindCore,
     tree::{DefaultMemory, DefaultPinVec},
     TreeVariant,
 };
