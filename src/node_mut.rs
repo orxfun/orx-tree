@@ -66,11 +66,13 @@ where
     /// let mut tree = DynTree::<i32>::new(0);
     ///
     /// let mut root = tree.root_mut().unwrap();
+    ///
     /// *root.data_mut() = 10;
     /// assert_eq!(root.data(), &10);
     ///
-    /// let a = root.push(1);
-    /// let mut node = tree.node_mut(&a).unwrap();
+    /// let [idx_a] = root.grow([1]);
+    /// let mut node = idx_a.node_mut(&mut tree);
+    ///
     /// *node.data_mut() += 10;
     /// assert_eq!(node.data(), &11);
     /// ```
@@ -84,9 +86,15 @@ where
 
     // growth
 
-    /// Pushes the node with the given `value` as a child of this node.
+    /// Pushes the node with the given `child` as a child of this node.
     ///
-    /// Returns the index of the created child node.
+    /// If the corresponding node index of the child is required;
+    /// you may use [`grow`]`:
+    ///
+    /// * `node.push(child);`
+    /// * `let child_idx = node.grow([child]);`
+    ///
+    /// [`grow`]: crate::NodeMut::grow
     ///
     /// # Examples
     ///
@@ -96,20 +104,32 @@ where
     /// let mut tree = DynTree::<char>::new('a');
     ///
     /// let mut node = tree.root_mut().unwrap();
-    /// let b = node.push('b'); // b is the index of the node
-    /// let c = node.push('c');
+    /// node.push('b');
+    /// node.push('c');
     ///
-    /// let node_b = tree.node(&b).unwrap(); // access the node via idx
-    /// assert_eq!(node_b.data(), &'b');
+    /// let mut node = node.child_mut(0).unwrap();
+    /// node.push('d');
     ///
-    /// let mut node_c = tree.node_mut(&c).unwrap();
-    /// let d = node_c.push('d');
-    /// node_c.extend(['e', 'f']);
-    /// assert_eq!(node_c.num_children(), 3);
+    /// // validate the tree
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, ['a', 'b', 'c', 'd']);
+    ///
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, ['a', 'b', 'd', 'c']);
     /// ```
-    pub fn push(&mut self, value: V::Item) -> NodeIdx<V> {
-        let child_ptr = self.push_get_ptr(value);
-        NodeIdx::new(self.col.memory_state(), &child_ptr)
+    pub fn push(&mut self, child: V::Item) {
+        let parent_ptr = self.node_ptr.clone();
+
+        let child_ptr = self.col.push(child);
+
+        let child = self.col.node_mut(&child_ptr);
+        child.prev_mut().set_some(parent_ptr.clone());
+
+        let parent = self.col.node_mut(&parent_ptr);
+        parent.next_mut().push(child_ptr.clone());
     }
 
     /// Pushes nodes with given `values` as children of this node.
@@ -220,7 +240,7 @@ where
     ///
     /// assert_eq!(node.num_children(), 4);
     ///
-    /// let node_d = tree.node(&cde[1]).unwrap();
+    /// let node_d = cde[1].node(&tree);
     /// assert_eq!(node_d.data(), &'d');
     /// ```
     pub fn extend_get_indices<'b, I>(
@@ -231,7 +251,10 @@ where
         I: IntoIterator<Item = V::Item>,
         I::IntoIter: 'b,
     {
-        values.into_iter().map(|x| self.push(x))
+        values.into_iter().map(|value| {
+            let child_ptr = self.push_get_ptr(value);
+            NodeIdx::new(self.col.memory_state(), &child_ptr)
+        })
     }
 
     /// Consumes this mutable node and returns the mutable node of the `child-index`-th child;
@@ -378,7 +401,7 @@ where
     /// let values: Vec<_> = n3.dfs().copied().collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     ///
-    /// let n6 = tree.node_mut(&n3_children_idx[0]).unwrap();
+    /// let mut n6 = n3_children_idx[0].node_mut(&mut tree);
     /// for x in n6.dfs_mut() {
     ///     *x *= 100;
     /// }
@@ -581,7 +604,7 @@ where
     /// let values: Vec<_> = n3.bfs().copied().collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     ///
-    /// let n6 = tree.node_mut(&n3_children_idx[0]).unwrap();
+    /// let mut n6 = n3_children_idx[0].node_mut(&mut tree);
     /// for x in n6.bfs_mut() {
     ///     *x *= 100;
     /// }

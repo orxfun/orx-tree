@@ -81,12 +81,13 @@ where
     /// assert_eq!(tree.len(), 1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// let _ = root.push(4);
-    /// let idx = root.push(2);
+    /// let [_, idx] = root.grow([4, 2]);
+    ///
     /// assert_eq!(tree.len(), 3);
     ///
-    /// let mut node = tree.node_mut(&idx).unwrap();
+    /// let mut node = idx.node_mut(&mut tree);
     /// node.push(7);
+    ///
     /// assert_eq!(tree.len(), 4);
     /// ```
     #[inline(always)]
@@ -145,9 +146,9 @@ where
     ///
     /// let mut root = tree.root_mut().unwrap();
     /// root.push(4);
-    /// let idx = root.push(2);
+    /// let [idx] = root.grow([2]);
     ///
-    /// let mut node = tree.node_mut(&idx).unwrap();
+    /// let mut node = idx.node_mut(&mut tree);
     /// node.push(7);
     ///
     /// assert_eq!(tree.len(), 4);
@@ -218,54 +219,31 @@ where
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
     ///
+    /// A node index is valid iff it satisfies the following three conditions:
+    ///
+    /// * It is created from a node of this tree.
+    /// * The node is not removed from the tree.
+    /// * Tree memory state has not changed since the index is created.
+    ///
     /// # Examples
     ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// let mut tree = BinaryTree::<_>::new('a');
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// let b = root.push('b');
-    /// let c = root.push('c');
-    ///
-    /// assert_eq!(tree.node(&b).map(|x| *x.data()), Some('b'));
-    ///
-    /// let node = tree.node(&c).unwrap();
-    /// assert_eq!(node.data(), &'c');
-    ///
-    /// tree.clear();
-    /// assert!(tree.is_empty());
-    /// assert_eq!(tree.node(&b), None);
-    /// assert_eq!(tree.node(&c), None);
-    /// ```
-    pub fn node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
+    /// TODO: examples mentioning the memory state
+    pub fn get_node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
         self.0.get_ptr(node_idx).map(|p| Node::new(&self.0, p))
     }
 
     /// Returns the mutable node with the given `node_idx`; returns None if the index is invalid.
     ///
+    /// A node index is valid iff it satisfies the following three conditions:
+    ///
+    /// * It is created from a node of this tree.
+    /// * The node is not removed from the tree.
+    /// * Tree memory state has not changed since the index is created.
+    ///
     /// # Examples
     ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// let mut tree = DynTree::<_>::new('a');
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// let b = root.push('b');
-    /// let c = root.push('c');
-    ///
-    /// let mut node = tree.node_mut(&b).unwrap();
-    /// node.extend(['d', 'e', 'f']);
-    ///
-    /// assert_eq!(node.num_children(), 3);
-    ///
-    /// tree.clear();
-    /// assert!(tree.is_empty());
-    /// assert_eq!(tree.node_mut(&b), None);
-    /// ```
-    pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<V, M, P>> {
+    /// TODO: examples mentioning the memory state
+    pub fn get_node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<V, M, P>> {
         self.0
             .get_ptr(node_idx)
             .map(|p| NodeMut::new(&mut self.0, p))
