@@ -461,16 +461,30 @@ where
     ///
     /// # Examples
     ///
+    /// The example below demonstrates one way to build a tree using `into_parent_mut` and `into_child_mut` methods.
+    /// In this approach, we start from the mutable root node.
+    /// Then, we convert one mutable node to another, always having only one mutable node.
+    ///
+    /// See [`grow`], [`grow_iter`] and [`grow_vec`] methods to see an alternative tree building approach which makes
+    /// use of node indices.
+    ///
+    /// [`grow`]: crate::NodeMut::grow
+    /// [`grow_iter`]: crate::NodeMut::grow_iter
+    /// [`grow_vec`]: crate::NodeMut::grow_vec
+    ///
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the following tree using into_child_mut and parent_mut:
-    /// // r
-    /// // |-- a
-    /// //     |-- c, d, e
-    /// // |-- b
-    /// //     |-- f, g
-    /// //            |-- h, i, j
+    /// //        r
+    /// //       ╱ ╲
+    /// //      ╱   ╲
+    /// //     ╱     ╲
+    /// //    a       b
+    /// //  ╱ | ╲    ╱ ╲
+    /// // c  d  e  f   g
+    /// //            ╱ | ╲
+    /// //           h  i  j
+    ///
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
@@ -479,34 +493,21 @@ where
     /// let mut a = root.into_child_mut(0).unwrap();
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = a.parent_mut().unwrap().into_child_mut(1).unwrap();
+    /// let mut b = a.into_parent_mut().unwrap().into_child_mut(1).unwrap();
     /// b.extend(['f', 'g']);
     ///
     /// let mut g = b.into_child_mut(1).unwrap();
     /// g.extend(['h', 'i', 'j']);
     ///
-    /// // check data - breadth first
+    /// // validate the tree
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut data = vec![*root.data()]; // depth 0
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']);
     ///
-    /// data.extend(root.children().map(|x| *x.data())); // depth 1
-    ///
-    /// for node in root.children() {
-    ///     data.extend(node.children().map(|x| *x.data())); // depth 2
-    /// }
-    ///
-    /// for node in root.children() {
-    ///     for node in node.children() {
-    ///         data.extend(node.children().map(|x| *x.data())); // depth 3
-    ///     }
-    /// }
-    ///
-    /// assert_eq!(
-    ///     data,
-    ///     ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    /// )
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, ['r', 'a', 'c', 'd', 'e', 'b', 'f', 'g', 'h', 'i', 'j']);
     /// ```
     pub fn into_child_mut(self, child_index: usize) -> Option<NodeMut<'a, V, M, P>> {
         self.node()
@@ -961,16 +962,30 @@ where
     ///
     /// # Examples
     ///
+    /// The example below demonstrates one way to build a tree using `into_parent_mut` and `into_child_mut` methods.
+    /// In this approach, we start from the mutable root node.
+    /// Then, we convert one mutable node to another, always having only one mutable node.
+    ///
+    /// See [`grow`], [`grow_iter`] and [`grow_vec`] methods to see an alternative tree building approach which makes
+    /// use of node indices.
+    ///
+    /// [`grow`]: crate::NodeMut::grow
+    /// [`grow_iter`]: crate::NodeMut::grow_iter
+    /// [`grow_vec`]: crate::NodeMut::grow_vec
+    ///
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the following tree using into_child_mut and parent_mut:
-    /// // r
-    /// // |-- a
-    /// //     |-- c, d, e
-    /// // |-- b
-    /// //     |-- f, g
-    /// //            |-- h, i, j
+    /// //        r
+    /// //       ╱ ╲
+    /// //      ╱   ╲
+    /// //     ╱     ╲
+    /// //    a       b
+    /// //  ╱ | ╲    ╱ ╲
+    /// // c  d  e  f   g
+    /// //            ╱ | ╲
+    /// //           h  i  j
+    ///
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
@@ -979,36 +994,23 @@ where
     /// let mut a = root.into_child_mut(0).unwrap();
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = a.parent_mut().unwrap().into_child_mut(1).unwrap();
+    /// let mut b = a.into_parent_mut().unwrap().into_child_mut(1).unwrap();
     /// b.extend(['f', 'g']);
     ///
     /// let mut g = b.into_child_mut(1).unwrap();
     /// g.extend(['h', 'i', 'j']);
     ///
-    /// // check data - breadth first
+    /// // validate the tree
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut data = vec![*root.data()]; // depth 0
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']);
     ///
-    /// data.extend(root.children().map(|x| *x.data())); // depth 1
-    ///
-    /// for node in root.children() {
-    ///     data.extend(node.children().map(|x| *x.data())); // depth 2
-    /// }
-    ///
-    /// for node in root.children() {
-    ///     for node in node.children() {
-    ///         data.extend(node.children().map(|x| *x.data())); // depth 3
-    ///     }
-    /// }
-    ///
-    /// assert_eq!(
-    ///     data,
-    ///     ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    /// )
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, ['r', 'a', 'c', 'd', 'e', 'b', 'f', 'g', 'h', 'i', 'j']);
     /// ```
-    pub fn parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
+    pub fn into_parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
         self.node()
             .prev()
             .get()
@@ -1025,77 +1027,37 @@ fn abc() {
     use alloc::vec;
     use alloc::vec::Vec;
 
-    fn init_tree() -> DynTree<i32> {
-        //      1
-        //     ╱ ╲
-        //    ╱   ╲
-        //   2     3
-        //  ╱ ╲   ╱ ╲
-        // 4   5 6   7
-        // |     |  ╱ ╲
-        // 8     9 10  11
+    //        r
+    //       ╱ ╲
+    //      ╱   ╲
+    //     ╱     ╲
+    //    a       b
+    //  ╱ | ╲    ╱ ╲
+    // c  d  e  f   g
+    //            ╱ | ╲
+    //           h  i  j
 
-        let mut tree = DynTree::<i32>::new(1);
+    let mut tree = DynTree::<char>::new('r');
 
-        let mut root = tree.root_mut().unwrap();
-        let [id2, id3] = root.grow([2, 3]);
+    let mut root = tree.root_mut().unwrap();
+    root.extend(['a', 'b']);
 
-        let mut n2 = id2.node_mut(&mut tree);
-        let [id4, _] = n2.grow([4, 5]);
+    let mut a = root.into_child_mut(0).unwrap();
+    a.extend(['c', 'd', 'e']);
 
-        id4.node_mut(&mut tree).push(8);
+    let mut b = a.into_parent_mut().unwrap().into_child_mut(1).unwrap();
+    b.extend(['f', 'g']);
 
-        let mut n3 = id3.node_mut(&mut tree);
-        let [id6, id7] = n3.grow([6, 7]);
+    let mut g = b.into_child_mut(1).unwrap();
+    g.extend(['h', 'i', 'j']);
 
-        id6.node_mut(&mut tree).push(9);
-        id7.node_mut(&mut tree).extend([10, 11]);
+    // validate the tree
 
-        tree
-    }
+    let root = tree.root().unwrap();
 
-    // dfs over data_mut
+    let bfs: Vec<_> = root.bfs().copied().collect();
+    assert_eq!(bfs, ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']);
 
-    let mut tree = init_tree();
-
-    let root = tree.root_mut().unwrap();
-
-    // equivalent to `root.dfs_mut()`
-    for data in root.dfs_mut_over::<OverData>() {
-        *data += 100;
-    }
-    let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
-    assert_eq!(
-        values,
-        [101, 102, 104, 108, 105, 103, 106, 109, 107, 110, 111]
-    );
-
-    // dfs over (depth, data_mut)
-
-    let mut tree = init_tree();
-
-    let root = tree.root_mut().unwrap();
-
-    for (depth, data) in root.dfs_mut_over::<OverDepthData>() {
-        *data += depth as i32 * 100;
-    }
-    let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
-    assert_eq!(
-        values,
-        [1, 102, 204, 308, 205, 103, 206, 309, 207, 310, 311]
-    );
-
-    // dfs over (depth, sibling index, data_mut)
-
-    let mut tree = init_tree();
-
-    let root = tree.root_mut().unwrap();
-    for (depth, sibling_idx, data) in root.dfs_mut_over::<OverDepthSiblingData>() {
-        *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
-    }
-    let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
-    assert_eq!(
-        values,
-        [1, 102, 204, 308, 10205, 10103, 206, 309, 10207, 310, 10311]
-    );
+    let dfs: Vec<_> = root.dfs().copied().collect();
+    assert_eq!(dfs, ['r', 'a', 'c', 'd', 'e', 'b', 'f', 'g', 'h', 'i', 'j']);
 }

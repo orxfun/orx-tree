@@ -115,7 +115,7 @@ where
 /// let mut n6 = n3.into_child_mut(0).unwrap();
 /// n6.push(9);
 ///
-/// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
+/// let mut n7 = n6.into_parent_mut().unwrap().into_child_mut(1).unwrap();
 /// n7.extend([10, 11]);
 ///
 /// // dfs over (depth, sibling index, data)
@@ -211,7 +211,7 @@ impl IterMutOver for OverDepthSiblingData {}
 /// let mut n6 = n3.into_child_mut(0).unwrap();
 /// n6.push(9);
 ///
-/// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
+/// let mut n7 = n6.into_parent_mut().unwrap().into_child_mut(1).unwrap();
 /// n7.extend([10, 11]);
 ///
 /// // dfs over (depth, sibling index, data)
