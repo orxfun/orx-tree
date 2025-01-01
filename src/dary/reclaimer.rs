@@ -64,8 +64,8 @@ fn swap<const D: usize, P, T>(
 
     // occupied.children.parent => vacant
     for child in (unsafe { &*occupied }).next().iter() {
-        let child_mut = unsafe { child.node_mut() };
-        let parent = child_mut.prev_mut();
+        let into_child_mut = unsafe { child.node_mut() };
+        let parent = into_child_mut.prev_mut();
         parent.set_some(NodePtr::new(vacant));
     }
 

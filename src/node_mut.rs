@@ -90,12 +90,11 @@ where
     /// Pushes the node with the given `child` as a child of this node.
     ///
     /// If the corresponding node index of the child is required;
-    /// you may use [`grow`]`:
-    ///
-    /// * `node.push(child);`
-    /// * `let child_idx = node.grow([child]);`
+    /// you may use [`grow`], [`grow_iter`] or [`grow_vec`].
     ///
     /// [`grow`]: crate::NodeMut::grow
+    /// [`grow_iter`]: crate::NodeMut::grow_iter
+    /// [`grow_vec`]: crate::NodeMut::grow_vec
     ///
     /// # Examples
     ///
@@ -108,7 +107,7 @@ where
     /// node.push('b');
     /// node.push('c');
     ///
-    /// let mut node = node.child_mut(0).unwrap();
+    /// let mut node = node.into_child_mut(0).unwrap();
     /// node.push('d');
     ///
     /// // validate the tree
@@ -134,6 +133,14 @@ where
     }
 
     /// Pushes nodes with given `values` as children of this node.
+    ///
+    /// If the corresponding node indices of the children are required;
+    /// you may use [`grow`]:
+    ///
+    /// * `node.push(child);`
+    /// * `let child_idx = node.grow([child]);`
+    ///
+    /// [`grow`]: crate::NodeMut::grow
     ///
     /// # Examples
     ///
@@ -384,15 +391,80 @@ where
         self.grow_iter(children).collect()
     }
 
-    /// Consumes this mutable node and returns the mutable node of the `child-index`-th child;
+    // traversal
+
+    /// Returns the mutable node of the `child-index`-th child of this node;
     /// returns None if the child index is out of bounds.
+    ///
+    /// See also [`into_child_mut`] for consuming traversal.
+    ///
+    /// [`into_child_mut`]: crate::NodeMut::into_child_mut
     ///
     /// # Examples
     ///
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the following tree using child_mut and parent_mut:
+    /// //       1
+    /// //      ╱ ╲
+    /// //     ╱   ╲
+    /// //    ╱     ╲
+    /// //   2       3
+    /// //  ╱ ╲    ╱ | ╲
+    /// // 3   4  4  5  6
+    /// // |   |  |  |  |
+    /// // 6   7  7  8  9
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// root.extend([2, 3]);
+    ///
+    /// for c in 0..root.num_children() {
+    ///     let mut node = root.child_mut(c).unwrap();
+    ///
+    ///     let val = *node.data();
+    ///     let children = (0..val).map(|x| x + 1 + val);
+    ///
+    ///     node.extend(children);
+    ///
+    ///     for c in 0..node.num_children() {
+    ///         let mut node = node.child_mut(c).unwrap();
+    ///         node.push(*node.data() + 3);
+    ///     }
+    /// }
+    ///
+    /// // validate the tree
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 3, 4, 4, 5, 6, 6, 7, 7, 8, 9]);
+    ///
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
+    /// ```
+    pub fn child_mut(&mut self, child_index: usize) -> Option<NodeMut<'_, V, M, P>> {
+        self.node()
+            .next()
+            .get_ptr(child_index)
+            .cloned()
+            .map(move |p| NodeMut::new(self.col, p))
+    }
+
+    /// Consumes this mutable node and returns the mutable node of the `child-index`-th child;
+    /// returns None if the child index is out of bounds.
+    ///
+    /// See also [`child_mut`] for non-consuming access.
+    ///
+    /// [`child_mut`]: crate::NodeMut::child_mut
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // build the following tree using into_child_mut and parent_mut:
     /// // r
     /// // |-- a
     /// //     |-- c, d, e
@@ -404,13 +476,13 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend(['a', 'b']);
     ///
-    /// let mut a = root.child_mut(0).unwrap();
+    /// let mut a = root.into_child_mut(0).unwrap();
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut b = a.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// b.extend(['f', 'g']);
     ///
-    /// let mut g = b.child_mut(1).unwrap();
+    /// let mut g = b.into_child_mut(1).unwrap();
     /// g.extend(['h', 'i', 'j']);
     ///
     /// // check data - breadth first
@@ -436,7 +508,7 @@ where
     ///     ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
     /// )
     /// ```
-    pub fn child_mut(self, child_index: usize) -> Option<NodeMut<'a, V, M, P>> {
+    pub fn into_child_mut(self, child_index: usize) -> Option<NodeMut<'a, V, M, P>> {
         self.node()
             .next()
             .get_ptr(child_index)
@@ -496,19 +568,19 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // depth-first-search (dfs) from the root
@@ -521,7 +593,7 @@ where
     ///
     /// // dfs from any node
     ///
-    /// let n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// for x in n3.dfs_mut() {
     ///     *x /= 10;
     /// }
@@ -589,19 +661,19 @@ where
     ///     let mut root = tree.root_mut().unwrap();
     ///     root.extend([2, 3]);
     ///
-    ///     let mut n2 = root.child_mut(0).unwrap();
+    ///     let mut n2 = root.into_child_mut(0).unwrap();
     ///     n2.extend([4, 5]);
     ///
-    ///     let mut n4 = n2.child_mut(0).unwrap();
+    ///     let mut n4 = n2.into_child_mut(0).unwrap();
     ///     n4.push(8);
     ///
-    ///     let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    ///     let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     ///     n3.extend([6, 7]);
     ///
-    ///     let mut n6 = n3.child_mut(0).unwrap();
+    ///     let mut n6 = n3.into_child_mut(0).unwrap();
     ///     n6.push(9);
     ///
-    ///     let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    ///     let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     ///     n7.extend([10, 11]);
     ///
     ///     tree
@@ -699,19 +771,19 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // depth-first-search (dfs) from the root
@@ -724,7 +796,7 @@ where
     ///
     /// // bfs from any node
     ///
-    /// let n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// for x in n3.bfs_mut() {
     ///     *x /= 10;
     /// }
@@ -792,19 +864,19 @@ where
     ///     let mut root = tree.root_mut().unwrap();
     ///     root.extend([2, 3]);
     ///
-    ///     let mut n2 = root.child_mut(0).unwrap();
+    ///     let mut n2 = root.into_child_mut(0).unwrap();
     ///     n2.extend([4, 5]);
     ///
-    ///     let mut n4 = n2.child_mut(0).unwrap();
+    ///     let mut n4 = n2.into_child_mut(0).unwrap();
     ///     n4.push(8);
     ///
-    ///     let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    ///     let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     ///     n3.extend([6, 7]);
     ///
-    ///     let mut n6 = n3.child_mut(0).unwrap();
+    ///     let mut n6 = n3.into_child_mut(0).unwrap();
     ///     n6.push(9);
     ///
-    ///     let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    ///     let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     ///     n7.extend([10, 11]);
     ///
     ///     tree
@@ -904,7 +976,7 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the following tree using child_mut and parent_mut:
+    /// // build the following tree using into_child_mut and parent_mut:
     /// // r
     /// // |-- a
     /// //     |-- c, d, e
@@ -916,13 +988,13 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend(['a', 'b']);
     ///
-    /// let mut a = root.child_mut(0).unwrap();
+    /// let mut a = root.into_child_mut(0).unwrap();
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut b = a.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// b.extend(['f', 'g']);
     ///
-    /// let mut g = b.child_mut(1).unwrap();
+    /// let mut g = b.into_child_mut(1).unwrap();
     /// g.extend(['h', 'i', 'j']);
     ///
     /// // check data - breadth first
