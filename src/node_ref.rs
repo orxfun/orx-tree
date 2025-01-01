@@ -246,7 +246,7 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the following tree using into_child_mut and parent_mut:
+    /// // build the following tree using into_child_mut and into_parent_mut:
     /// // r
     /// // +-- a
     /// // |   +-- c, d, e
@@ -262,7 +262,7 @@ where
     /// let mut a = root.into_child_mut(0).unwrap();
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = a.parent_mut().unwrap().into_child_mut(1).unwrap();
+    /// let mut b = a.into_parent_mut().unwrap().into_child_mut(1).unwrap();
     /// b.extend(['f', 'g']);
     ///
     /// let mut g = b.into_child_mut(1).unwrap();
