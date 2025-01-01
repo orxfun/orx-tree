@@ -563,25 +563,22 @@ where
     /// // 4   5 6   7
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
-    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // depth-first-search (dfs) from the root
     ///
@@ -600,7 +597,7 @@ where
     /// let values: Vec<_> = n3.dfs().copied().collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     ///
-    /// let mut n6 = n3_children_idx[0].node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.dfs_mut() {
     ///     *x *= 100;
     /// }
@@ -656,25 +653,22 @@ where
     ///     // 4   5 6   7
     ///     // |     |  ╱ ╲
     ///     // 8     9 10  11
+    ///
     ///     let mut tree = DynTree::<i32>::new(1);
     ///
     ///     let mut root = tree.root_mut().unwrap();
-    ///     root.extend([2, 3]);
+    ///     let [id2, id3] = root.grow([2, 3]);
     ///
-    ///     let mut n2 = root.into_child_mut(0).unwrap();
-    ///     n2.extend([4, 5]);
+    ///     let mut n2 = id2.node_mut(&mut tree);
+    ///     let [id4, _] = n2.grow([4, 5]);
     ///
-    ///     let mut n4 = n2.into_child_mut(0).unwrap();
-    ///     n4.push(8);
+    ///     id4.node_mut(&mut tree).push(8);
     ///
-    ///     let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    ///     n3.extend([6, 7]);
+    ///     let mut n3 = id3.node_mut(&mut tree);
+    ///     let [id6, id7] = n3.grow([6, 7]);
     ///
-    ///     let mut n6 = n3.into_child_mut(0).unwrap();
-    ///     n6.push(9);
-    ///
-    ///     let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    ///     n7.extend([10, 11]);
+    ///     id6.node_mut(&mut tree).push(9);
+    ///     id7.node_mut(&mut tree).extend([10, 11]);
     ///
     ///     tree
     /// }
@@ -766,25 +760,22 @@ where
     /// // 4   5 6   7
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
-    /// let mut tree = BinaryTree::<i32>::new(1);
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // depth-first-search (dfs) from the root
     ///
@@ -803,7 +794,7 @@ where
     /// let values: Vec<_> = n3.bfs().copied().collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     ///
-    /// let mut n6 = n3_children_idx[0].node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.bfs_mut() {
     ///     *x *= 100;
     /// }
@@ -859,25 +850,22 @@ where
     ///     // 4   5 6   7
     ///     // |     |  ╱ ╲
     ///     // 8     9 10  11
+    ///
     ///     let mut tree = DynTree::<i32>::new(1);
     ///
     ///     let mut root = tree.root_mut().unwrap();
-    ///     root.extend([2, 3]);
+    ///     let [id2, id3] = root.grow([2, 3]);
     ///
-    ///     let mut n2 = root.into_child_mut(0).unwrap();
-    ///     n2.extend([4, 5]);
+    ///     let mut n2 = id2.node_mut(&mut tree);
+    ///     let [id4, _] = n2.grow([4, 5]);
     ///
-    ///     let mut n4 = n2.into_child_mut(0).unwrap();
-    ///     n4.push(8);
+    ///     id4.node_mut(&mut tree).push(8);
     ///
-    ///     let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    ///     n3.extend([6, 7]);
+    ///     let mut n3 = id3.node_mut(&mut tree);
+    ///     let [id6, id7] = n3.grow([6, 7]);
     ///
-    ///     let mut n6 = n3.into_child_mut(0).unwrap();
-    ///     n6.push(9);
-    ///
-    ///     let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    ///     n7.extend([10, 11]);
+    ///     id6.node_mut(&mut tree).push(9);
+    ///     id7.node_mut(&mut tree).extend([10, 11]);
     ///
     ///     tree
     /// }
@@ -1037,52 +1025,77 @@ fn abc() {
     use alloc::vec;
     use alloc::vec::Vec;
 
-    //       1          // depth: 0
-    //      ╱ ╲
-    //     ╱   ╲
-    //    ╱     ╲
-    //   3       4      // depth: 1
-    //  ╱ ╲     ╱ ╲
-    // 7   8   8   9    // depth: 2
+    fn init_tree() -> DynTree<i32> {
+        //      1
+        //     ╱ ╲
+        //    ╱   ╲
+        //   2     3
+        //  ╱ ╲   ╱ ╲
+        // 4   5 6   7
+        // |     |  ╱ ╲
+        // 8     9 10  11
 
-    fn val(parent_value: i32, depth: usize, sibling_idx: usize) -> i32 {
-        parent_value + (depth * 2 + sibling_idx) as i32
+        let mut tree = DynTree::<i32>::new(1);
+
+        let mut root = tree.root_mut().unwrap();
+        let [id2, id3] = root.grow([2, 3]);
+
+        let mut n2 = id2.node_mut(&mut tree);
+        let [id4, _] = n2.grow([4, 5]);
+
+        id4.node_mut(&mut tree).push(8);
+
+        let mut n3 = id3.node_mut(&mut tree);
+        let [id6, id7] = n3.grow([6, 7]);
+
+        id6.node_mut(&mut tree).push(9);
+        id7.node_mut(&mut tree).extend([10, 11]);
+
+        tree
     }
 
-    let mut tree = DynTree::<_>::new(1);
-    let mut idx = vec![];
-    let mut depth_idx_range = vec![];
+    // dfs over data_mut
 
-    idx.push(tree.root().unwrap().idx());
-    depth_idx_range.push(0..1);
+    let mut tree = init_tree();
 
-    for depth in [1, 2] {
-        let begin_num_nodes = idx.len();
-        let parent_indices: Vec<_> = depth_idx_range[depth - 1]
-            .clone()
-            .map(|x| idx[x].clone())
-            .collect();
+    let root = tree.root_mut().unwrap();
 
-        for parent_idx in parent_indices {
-            let mut parent = parent_idx.node_mut(&mut tree);
-            let parent_value = *parent.data();
-
-            let children = (0..2).map(|sibling_idx| val(parent_value, depth, sibling_idx));
-            let children_indices = parent.grow_iter(children);
-            idx.extend(children_indices);
-        }
-
-        let end_num_nodes = idx.len();
-        depth_idx_range.push(begin_num_nodes..end_num_nodes);
+    // equivalent to `root.dfs_mut()`
+    for data in root.dfs_mut_over::<OverData>() {
+        *data += 100;
     }
+    let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    assert_eq!(
+        values,
+        [101, 102, 104, 108, 105, 103, 106, 109, 107, 110, 111]
+    );
 
-    // validate the tree
+    // dfs over (depth, data_mut)
 
-    let root = tree.root().unwrap();
+    let mut tree = init_tree();
 
-    let bfs: Vec<_> = root.bfs().copied().collect();
-    assert_eq!(bfs, [1, 3, 4, 7, 8, 8, 9]);
+    let root = tree.root_mut().unwrap();
 
-    let dfs: Vec<_> = root.dfs().copied().collect();
-    assert_eq!(dfs, [1, 3, 7, 8, 4, 8, 9]);
+    for (depth, data) in root.dfs_mut_over::<OverDepthData>() {
+        *data += depth as i32 * 100;
+    }
+    let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    assert_eq!(
+        values,
+        [1, 102, 204, 308, 205, 103, 206, 309, 207, 310, 311]
+    );
+
+    // dfs over (depth, sibling index, data_mut)
+
+    let mut tree = init_tree();
+
+    let root = tree.root_mut().unwrap();
+    for (depth, sibling_idx, data) in root.dfs_mut_over::<OverDepthSiblingData>() {
+        *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
+    }
+    let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
+    assert_eq!(
+        values,
+        [1, 102, 204, 308, 10205, 10103, 206, 309, 10207, 310, 10311]
+    );
 }

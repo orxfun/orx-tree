@@ -86,22 +86,18 @@ impl Bfs {
     /// let mut tree = BinaryTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
@@ -166,22 +162,18 @@ impl Bfs {
     /// let mut tree = BinaryTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
@@ -244,22 +236,18 @@ impl Bfs {
     /// let mut tree = BinaryTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
@@ -330,22 +318,18 @@ impl Bfs {
     /// let mut tree = BinaryTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
@@ -416,25 +400,21 @@ impl Bfs {
     /// // 4   5 6   7
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = BinaryTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
@@ -509,22 +489,18 @@ impl Bfs {
     /// let mut tree = BinaryTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = root.into_child_mut(0).unwrap();
-    /// n2.extend([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let mut n4 = n2.into_child_mut(0).unwrap();
-    /// n4.push(8);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
-    /// n3.extend([6, 7]);
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let mut n6 = n3.into_child_mut(0).unwrap();
-    /// n6.push(9);
-    ///
-    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
