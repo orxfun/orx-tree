@@ -1,6 +1,9 @@
 use crate::{
     helpers::N,
-    iter::{BfsIter, BfsIterMut, DfsIter, DfsIterMut, IterMutOver, NodeVal, NodeValueData},
+    iter::{
+        BfsIter, BfsIterMut, ChildrenMutIter, DfsIter, DfsIterMut, IterMutOver, NodeVal,
+        NodeValueData,
+    },
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
@@ -517,16 +520,97 @@ where
             .map(|p| NodeMut::new(self.col, p))
     }
 
+    /// Creates an iterator over mutable nodes of children of this node.
+    ///
+    /// # Safety
+    ///
+    /// Mutable tree nodes; i.e. `NodeMut`, has two orientation for mutations:
+    ///
+    /// * [`NodeMutUpAndDown`]: This is the default orientation which allows to mutate both ancestors
+    ///   and descendants of the node.
+    /// * [`NodeMutDown`]: This orientation allows only to mutate self and descendants of the node.
+    ///   For instance, a mutable node with this orientation does not implement [`parent_mut`] or
+    ///   [`into_parent_mut`] methods.
+    ///
+    /// The `children_mut` iterator yields mutable nodes with `NodeMutDown` orientation.
+    /// Therefore, mutating children of a node is safe, since the node itself or its ancestors cannot be mutated
+    /// during the iteration.
+    ///
+    /// [`parent_mut`]: Self::parent_mut
+    /// [`into_parent_mut`]: Self::into_parent_mut
+    ///
+    /// # Examples
+    ///
+    /// In the following example, we first build the tree; however:
+    ///
+    /// * we do not add nodes 8 & 9; and
+    /// * we add nodes 11 & 12 with initial values of 711 & 712.
+    ///
+    /// Later using `children_mut` of node 2, we grow the tree by adding nodes 8 & 9.
+    /// This demonstrates that we can safely mutate the structure of the tree.
+    ///
+    /// Then, using `children_mut` of node 7, we update values of its children.
+    /// This demonstrates the mutation of node data.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //       1
+    /// //      ╱ ╲
+    /// //     ╱   ╲
+    /// //    ╱     ╲
+    /// //   2       3
+    /// //  ╱ ╲     ╱  ╲
+    /// // 4   5   6    7
+    /// // |   |   |   ╱ ╲
+    /// // *8  *9 10 *11 *12
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    ///
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// n2.extend([4, 5]);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(10);
+    /// id7.node_mut(&mut tree).extend([711, 712]);
+    ///
+    /// // push nodes 8 and 9 using children_mut of node 2
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// for mut child in n2.children_mut() {
+    ///     let child_val = *child.data(); // 4 & 5
+    ///     child.push(child_val + 4); // 8 & 9
+    /// }
+    ///
+    /// // update values using children_mut of node 7
+    ///
+    /// let mut n7 = id7.node_mut(&mut tree);
+    /// for mut child in n7.children_mut() {
+    ///     *child.data_mut() -= 700;
+    /// }
+    ///
+    /// // validate the tree
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    ///
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 4, 8, 5, 9, 3, 6, 10, 7, 11, 12]);
+    /// ```
     pub fn children_mut(
-        &'a mut self,
-    ) -> impl ExactSizeIterator<Item = NodeMut<'a, V, M, P, NodeMutDown>> {
-        let children_ptr = self.node().next().children_ptr();
-        children_ptr.map(|ptr| {
-            let col_mut = unsafe {
-                &mut *(self.col as *const SelfRefCol<V, M, P> as *mut SelfRefCol<V, M, P>)
-            };
-            NodeMut::<'a, V, M, P, NodeMutDown>::new(col_mut, ptr.clone())
-        })
+        &mut self,
+    ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>>
+           + DoubleEndedIterator
+           + use<'_, 'a, V, M, P, O> {
+        ChildrenMutIter::new(&mut self.col, self.node_ptr.ptr())
     }
 
     // dfs
@@ -1099,38 +1183,19 @@ fn abc() {
     use alloc::vec;
     use alloc::vec::Vec;
 
-    //        x
-    //       ╱ ╲
-    //      ╱   ╲
-    //     ╱     ╲
-    //    a       b
-    //  ╱ | ╲    ╱ ╲
-    // c  d  e  f   g
+    //       1
+    //      ╱ ╲
+    //     ╱   ╲
+    //    ╱     ╲
+    //   2       3
+    //  ╱ ╲     ╱  ╲
+    // 4   5   6    7
+    // |   |   |   ╱ ╲
+    // *8  *9 10 *11 *12
 
-    let mut tree = DynTree::<char>::new('r');
+    let mut tree = DynTree::<_>::new(1);
 
     let mut root = tree.root_mut().unwrap();
-    let [id_a, id_b] = root.grow(['a', 'b']);
 
-    let mut a = id_a.node_mut(&mut tree);
-    a.extend(['c', 'd', 'e']);
-
-    let mut b = id_b.node_mut(&mut tree);
-    let [_, id_g] = b.grow(['f', 'g']);
-
-    let mut g = id_g.node_mut(&mut tree);
-    let mut b = g.parent_mut().unwrap();
-    let mut root = b.parent_mut().unwrap();
-
-    *root.data_mut() = 'x';
-
-    // validate the tree
-
-    let root = tree.root().unwrap();
-
-    let bfs: Vec<_> = root.bfs().copied().collect();
-    assert_eq!(bfs, ['x', 'a', 'b', 'c', 'd', 'e', 'f', 'g']);
-
-    let dfs: Vec<_> = root.dfs().copied().collect();
-    assert_eq!(dfs, ['x', 'a', 'c', 'd', 'e', 'b', 'f', 'g']);
+    _ = root.grow([2]);
 }
