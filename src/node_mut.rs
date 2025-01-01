@@ -6,9 +6,10 @@ use crate::{
     tree_variant::RefsChildren,
     TreeVariant,
 };
+use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, MemoryState, NodeIdx, NodePtr, SelfRefCol};
+use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
 
 pub trait NodeMutOrientation {}
 
@@ -244,7 +245,7 @@ where
     /// # Examples
     ///
     /// Following example demonstrates one way to build an arbitrary depth tree with a special data structure systematically
-    /// using the `grow_iter` method.`
+    /// using the `grow_iter` method.
     ///
     /// ```
     /// use orx_tree::*;
@@ -310,6 +311,77 @@ where
             let child_ptr = self.push_get_ptr(value);
             NodeIdx::new(self.col.memory_state(), &child_ptr)
         })
+    }
+
+    /// Pushes the given `children` values to children collection of this node.
+    ///
+    /// Returns the indices of the created child nodes collected in a vector.
+    ///
+    /// See [`grow`] when pushing a **const** number of children;
+    /// and [`grow_iter`] for the lazy iterator variant:
+    /// * `grow_vec` is a shorthand for the common use case of `node.grow_iter(children).collect::<Vec<_>>()`.
+    ///
+    /// As the name suggests, `grow`, `grow_vec` and `grow_iter` methods are convenient for building trees
+    /// from top to bottom since they immediately return the indices providing access to child nodes.
+    ///
+    /// On the other hand, when the node indices are not required, you may use [`push`] or [`extend`] instead.
+    ///
+    /// [`push`]: crate::NodeMut::push
+    /// [`extend`]: crate::NodeMut::extend
+    /// [`grow`]: crate::NodeMut::grow
+    /// [`grow_iter`]: crate::NodeMut::grow_iter
+    ///
+    /// # Examples
+    ///
+    /// Following example demonstrates one way to build a tree in a depth-first manner.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //       1
+    /// //      ╱ ╲
+    /// //     ╱   ╲
+    /// //    ╱     ╲
+    /// //   2       3
+    /// //  ╱ ╲    ╱ | ╲
+    /// // 3   4  4  5  6
+    /// // |   |  |  |  |
+    /// // 6   7  7  8  9
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    ///
+    /// let idx_depth1 = root.grow_vec(vec![2, 3]);
+    /// for idx in idx_depth1 {
+    ///     let mut node = idx.node_mut(&mut tree);
+    ///
+    ///     let val = *node.data();
+    ///     let children = (0..val).map(|x| x + 1 + val);
+    ///
+    ///     let idx_depth2 = node.grow_vec(children);
+    ///
+    ///     for idx in idx_depth2 {
+    ///         let mut node = idx.node_mut(&mut tree);
+    ///         node.push(*node.data() + 3);
+    ///     }
+    /// }
+    ///
+    /// // validate the tree
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 3, 4, 4, 5, 6, 6, 7, 7, 8, 9]);
+    ///
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
+    /// ```
+    pub fn grow_vec<I>(&mut self, children: I) -> Vec<NodeIdx<V>>
+    where
+        I: IntoIterator<Item = V::Item>,
+    {
+        self.grow_iter(children).collect()
     }
 
     /// Consumes this mutable node and returns the mutable node of the `child-index`-th child;
@@ -816,11 +888,6 @@ where
 
         child_ptr
     }
-
-    #[inline(always)]
-    pub(crate) fn col_mut(&mut self) -> &mut SelfRefCol<V, M, P> {
-        self.col
-    }
 }
 
 impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
@@ -946,51 +1013,4 @@ fn abc() {
 
     let dfs: Vec<_> = root.dfs().copied().collect();
     assert_eq!(dfs, [1, 3, 7, 8, 4, 8, 9]);
-}
-
-#[test]
-fn def() {
-    use super::*;
-    use crate::iter::*;
-    use crate::*;
-    use alloc::vec;
-    use alloc::vec::Vec;
-
-    //       1
-    //      ╱ ╲
-    //     ╱   ╲
-    //    ╱     ╲
-    //   2       3
-    //  ╱ ╲    ╱ | ╲
-    // 3   4  4  5  6
-    // |   |  |  |  |
-    // 6   7  7  8  9
-    let mut tree = DynTree::<_>::new(1);
-
-    let mut root = tree.root_mut().unwrap();
-
-    let idx_depth1: Vec<_> = root.grow_iter(vec![2, 3]).collect();
-    for idx in idx_depth1 {
-        let mut node = idx.node_mut(&mut tree);
-
-        let val = *node.data();
-        let children = (0..val).map(|x| x + 1 + val);
-
-        let idx_depth2: Vec<_> = node.grow_iter(children).collect();
-
-        for idx in idx_depth2 {
-            let mut node = idx.node_mut(&mut tree);
-            node.push(*node.data() + 3);
-        }
-    }
-
-    // validate the tree
-
-    let root = tree.root().unwrap();
-
-    let bfs: Vec<_> = root.bfs().copied().collect();
-    assert_eq!(bfs, [1, 2, 3, 3, 4, 4, 5, 6, 6, 7, 7, 8, 9]);
-
-    let dfs: Vec<_> = root.dfs().copied().collect();
-    assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
 }
