@@ -10,5 +10,8 @@ orx-selfref-col = { path = "../orx-selfref-col" }
 orx-self-or = "1.0"
 
 [features]
-default = []
+default = ["std"]
 std = []
+
+[lib]
+doctest = true
