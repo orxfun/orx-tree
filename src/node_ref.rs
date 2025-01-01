@@ -74,9 +74,9 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// assert_eq!(root.data(), &0);
     ///
-    /// let a = root.push(1);
-    /// let node = tree.node(&a).unwrap();
-    /// assert_eq!(node.data(), &1);
+    /// let [id_a] = root.grow([1]);
+    /// let a = id_a.node(&tree);
+    /// assert_eq!(a.data(), &1);
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_panics_doc)]
@@ -101,15 +101,15 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// assert_eq!(root.num_children(), 0);
     ///
-    /// let a = root.push(1);
-    /// let b = root.push(2);
+    /// let [id_a, id_b] = root.grow([1, 2]);
     /// assert_eq!(root.num_children(), 2);
     ///
-    /// let mut node = tree.node_mut(&a).unwrap();
-    /// node.extend([3, 4, 5, 6]);
+    /// let mut node = id_a.node_mut(&mut tree);
+    /// node.push(3);
+    /// node.extend([4, 5, 6]);
     /// assert_eq!(node.num_children(), 4);
     ///
-    /// assert_eq!(tree.node(&b).unwrap().num_children(), 0);
+    /// assert_eq!(id_b.node(&tree).num_children(), 0);
     /// ```
     fn num_children(&self) -> usize {
         self.node().next().num_children()
@@ -130,11 +130,11 @@ where
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// let a = root.push('a');
+    /// let [id_a] = root.grow(['a']);
     /// root.push('b');
     ///
-    /// let mut node_a = tree.node_mut(&a).unwrap();
-    /// node_a.extend(['c', 'd', 'e']);
+    /// let mut a = id_a.node_mut(&mut tree);
+    /// a.extend(['c', 'd', 'e']);
     ///
     /// // iterate over children of nodes
     ///
@@ -180,11 +180,11 @@ where
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// let a = root.push('a');
+    /// let [id_a] = root.grow(['a']);
     /// root.push('b');
     ///
-    /// let mut node_a = tree.node_mut(&a).unwrap();
-    /// node_a.extend(['c', 'd', 'e']);
+    /// let mut a = id_a.node_mut(&mut tree);
+    /// a.extend(['c', 'd', 'e']);
     ///
     /// // use child to access lower level nodes
     ///
@@ -353,7 +353,7 @@ where
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     ///
     /// let idx6 = &n3_children_idx[0];
-    /// let n6 = tree.node(idx6).unwrap();
+    /// let n6 = idx6.node(&tree);
     /// let values: Vec<_> = n6.dfs().copied().collect();
     /// assert_eq!(values, [6, 9]);
     /// ```
@@ -577,7 +577,7 @@ where
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     ///
     /// let idx6 = &n3_children_idx[0];
-    /// let n6 = tree.node(idx6).unwrap();
+    /// let n6 = idx6.node(&tree);
     /// let values: Vec<_> = n6.bfs().copied().collect();
     /// assert_eq!(values, [6, 9]);
     /// ```
