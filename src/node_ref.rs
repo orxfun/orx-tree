@@ -5,7 +5,7 @@ use crate::{
     Node, TreeVariant,
 };
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
+use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
 
 pub trait NodeRefCore<'a, V, M, P>
 where
@@ -39,6 +39,13 @@ where
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,
 {
+    /// Returns the node index of this node.
+    ///
+    /// TODO: examples
+    fn idx(&self) -> NodeIdx<V> {
+        NodeIdx::new(self.col().memory_state(), self.node_ptr())
+    }
+
     /// Returns true if this is the root node; equivalently, if its [`parent`] is none.
     ///
     /// [`parent`]: NodeRef::parent
@@ -332,7 +339,7 @@ where
     /// n4.push(8);
     ///
     /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
-    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
+    /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
     ///
     /// let mut n6 = n3.child_mut(0).unwrap();
     /// n6.push(9);
@@ -556,7 +563,7 @@ where
     /// n4.push(8);
     ///
     /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
-    /// let n3_children_idx: Vec<_> = n3.extend_get_indices([6, 7]).collect();
+    /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
     ///
     /// let mut n6 = n3.child_mut(0).unwrap();
     /// n6.push(9);
