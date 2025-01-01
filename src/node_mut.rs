@@ -957,8 +957,80 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
+    // traversal
+
+    /// Returns the mutable node of this node's parent,
+    /// returns None if this is the root node.
+    ///
+    /// See also [`into_parent_mut`] for consuming traversal.
+    ///
+    /// [`into_parent_mut`]: crate::NodeMut::into_parent_mut
+    ///
+    /// # Examples
+    ///
+    /// The example below demonstrates one way to build a tree using `into_parent_mut` and `into_child_mut` methods.
+    /// In this approach, we start from the mutable root node.
+    /// Then, we convert one mutable node to another, always having only one mutable node.
+    ///
+    /// See [`grow`], [`grow_iter`] and [`grow_vec`] methods to see an alternative tree building approach which makes
+    /// use of node indices.
+    ///
+    /// [`grow`]: crate::NodeMut::grow
+    /// [`grow_iter`]: crate::NodeMut::grow_iter
+    /// [`grow_vec`]: crate::NodeMut::grow_vec
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //        x
+    /// //       ╱ ╲
+    /// //      ╱   ╲
+    /// //     ╱     ╲
+    /// //    a       b
+    /// //  ╱ | ╲    ╱ ╲
+    /// // c  d  e  f   g
+    ///
+    /// let mut tree = DynTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id_a, id_b] = root.grow(['a', 'b']);
+    ///
+    /// let mut a = id_a.node_mut(&mut tree);
+    /// a.extend(['c', 'd', 'e']);
+    ///
+    /// let mut b = id_b.node_mut(&mut tree);
+    /// let [_, id_g] = b.grow(['f', 'g']);
+    ///
+    /// let mut g = id_g.node_mut(&mut tree);
+    /// let mut b = g.parent_mut().unwrap();
+    /// let mut root = b.parent_mut().unwrap();
+    ///
+    /// *root.data_mut() = 'x';
+    ///
+    /// // validate the tree
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(bfs, ['x', 'a', 'b', 'c', 'd', 'e', 'f', 'g']);
+    ///
+    /// let dfs: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(dfs, ['x', 'a', 'c', 'd', 'e', 'b', 'f', 'g']);
+    /// ```
+    pub fn parent_mut(&mut self) -> Option<NodeMut<'_, V, M, P>> {
+        self.node()
+            .prev()
+            .get()
+            .cloned()
+            .map(|p| NodeMut::new(self.col, p))
+    }
+
     /// Consumes this mutable node and returns the mutable node of its parent,
     /// returns None if this is the root node.
+    ///
+    /// See also [`parent_mut`] for non-consuming access.
+    ///
+    /// [`parent_mut`]: crate::NodeMut::parent_mut
     ///
     /// # Examples
     ///
@@ -1027,37 +1099,38 @@ fn abc() {
     use alloc::vec;
     use alloc::vec::Vec;
 
-    //        r
+    //        x
     //       ╱ ╲
     //      ╱   ╲
     //     ╱     ╲
     //    a       b
     //  ╱ | ╲    ╱ ╲
     // c  d  e  f   g
-    //            ╱ | ╲
-    //           h  i  j
 
     let mut tree = DynTree::<char>::new('r');
 
     let mut root = tree.root_mut().unwrap();
-    root.extend(['a', 'b']);
+    let [id_a, id_b] = root.grow(['a', 'b']);
 
-    let mut a = root.into_child_mut(0).unwrap();
+    let mut a = id_a.node_mut(&mut tree);
     a.extend(['c', 'd', 'e']);
 
-    let mut b = a.into_parent_mut().unwrap().into_child_mut(1).unwrap();
-    b.extend(['f', 'g']);
+    let mut b = id_b.node_mut(&mut tree);
+    let [_, id_g] = b.grow(['f', 'g']);
 
-    let mut g = b.into_child_mut(1).unwrap();
-    g.extend(['h', 'i', 'j']);
+    let mut g = id_g.node_mut(&mut tree);
+    let mut b = g.parent_mut().unwrap();
+    let mut root = b.parent_mut().unwrap();
+
+    *root.data_mut() = 'x';
 
     // validate the tree
 
     let root = tree.root().unwrap();
 
     let bfs: Vec<_> = root.bfs().copied().collect();
-    assert_eq!(bfs, ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']);
+    assert_eq!(bfs, ['x', 'a', 'b', 'c', 'd', 'e', 'f', 'g']);
 
     let dfs: Vec<_> = root.dfs().copied().collect();
-    assert_eq!(dfs, ['r', 'a', 'c', 'd', 'e', 'b', 'f', 'g', 'h', 'i', 'j']);
+    assert_eq!(dfs, ['x', 'a', 'c', 'd', 'e', 'b', 'f', 'g']);
 }
