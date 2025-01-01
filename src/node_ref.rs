@@ -246,7 +246,7 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the following tree using child_mut and parent_mut:
+    /// // build the following tree using into_child_mut and parent_mut:
     /// // r
     /// // +-- a
     /// // |   +-- c, d, e
@@ -259,13 +259,13 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend(['a', 'b']);
     ///
-    /// let mut a = root.child_mut(0).unwrap();
+    /// let mut a = root.into_child_mut(0).unwrap();
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = a.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut b = a.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// b.extend(['f', 'g']);
     ///
-    /// let mut g = b.child_mut(1).unwrap();
+    /// let mut g = b.into_child_mut(1).unwrap();
     /// g.extend(['h', 'i', 'j']);
     ///
     /// // check data - breadth first
@@ -332,19 +332,19 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // depth-first-search (dfs) from the root
@@ -422,19 +422,19 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // dfs over data
@@ -556,19 +556,19 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// let n3_children_idx: Vec<_> = n3.grow_iter([6, 7]).collect();
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // breadth-first-search (bfs) from the root
@@ -644,19 +644,19 @@ where
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // bfs over data

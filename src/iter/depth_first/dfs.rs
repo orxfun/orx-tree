@@ -88,19 +88,19 @@ impl Dfs {
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // create re-usable dfs iterable
@@ -168,19 +168,19 @@ impl Dfs {
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // create re-usable dfs iterable
@@ -246,19 +246,19 @@ impl Dfs {
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // create re-usable dfs iterable
@@ -332,19 +332,19 @@ impl Dfs {
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // create re-usable dfs iterable
@@ -421,19 +421,19 @@ impl Dfs {
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // create re-usable dfs iterable
@@ -511,19 +511,19 @@ impl Dfs {
     /// let mut root = tree.root_mut().unwrap();
     /// root.extend([2, 3]);
     ///
-    /// let mut n2 = root.child_mut(0).unwrap();
+    /// let mut n2 = root.into_child_mut(0).unwrap();
     /// n2.extend([4, 5]);
     ///
-    /// let mut n4 = n2.child_mut(0).unwrap();
+    /// let mut n4 = n2.into_child_mut(0).unwrap();
     /// n4.push(8);
     ///
-    /// let mut n3 = tree.root_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
     /// n3.extend([6, 7]);
     ///
-    /// let mut n6 = n3.child_mut(0).unwrap();
+    /// let mut n6 = n3.into_child_mut(0).unwrap();
     /// n6.push(9);
     ///
-    /// let mut n7 = n6.parent_mut().unwrap().child_mut(1).unwrap();
+    /// let mut n7 = n6.parent_mut().unwrap().into_child_mut(1).unwrap();
     /// n7.extend([10, 11]);
     ///
     /// // create re-usable dfs iterable
