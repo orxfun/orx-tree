@@ -6,10 +6,9 @@ use crate::{
     tree_variant::RefsChildren,
     TreeVariant,
 };
-use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
+use orx_selfref_col::{MemoryPolicy, MemoryState, NodeIdx, NodePtr, SelfRefCol};
 
 pub trait NodeMutOrientation {}
 
@@ -137,21 +136,22 @@ where
         }
     }
 
-    /// Extends the tree by pushing `values` as children of this node.
+    /// Pushes nodes with given `children` to children collection of this node.
     ///
-    /// Returns the array of mutable children nodes.
+    /// Returns the array node indices corresponding to each child node.
     ///
-    /// This is convenient especially while building trees as demonstrated in the example.
+    /// See [`grow_iter`] to push **non-const** number of children and obtain corresponding
+    /// node indices.
     ///
-    /// # Safety
+    /// As the name suggests, `grow` and `grow_iter` methods are convenient for building trees
+    /// from top to bottom since they immediately return the indices providing access to child
+    /// nodes.
     ///
-    /// Returned mutable children nodes have a mutation orientation of `NodeMutDown`;
-    /// unlike the default orientation of `NodeMutUpAndDown`.
-    /// Mutable nodes with `NodeMutDown` orientation do not have the `parent_mut` method.
-    /// In other words, they can only proceed down in the tree.
+    /// On the other hand, when the node indices are not required, you may use [`push`] or [`extend`] instead.
     ///
-    /// Due to the structural properties of trees, this is sufficient to guarantee that
-    /// we can never have more than once mutable reference to the same node.
+    /// [`push`]: crate::NodeMut::push
+    /// [`extend`]: crate::NodeMut::extend
+    /// [`grow_iter`]: crate::NodeMut::grow_iter
     ///
     /// # Examples
     ///
@@ -170,97 +170,18 @@ where
     ///
     /// let mut root = tree.root_mut().unwrap();
     ///
-    /// let [mut n2, mut n3] = root.extend_split([2, 3]);
+    /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let [mut n4, mut _n5] = n2.extend_split([4, 5]);
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// let [_n8] = n4.extend_split([8]);
+    /// id4.node_mut(&mut tree).push(8);
     ///
-    /// let [mut n6, mut n7] = n3.extend_split([6, 7]);
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// let [_n9] = n6.extend_split([9]);
-    ///
-    /// let [mut _n10, mut _n11] = n7.extend_split([10, 11]);
-    ///
-    /// // validate the tree
-    ///
-    /// let root = tree.root().unwrap();
-    ///
-    /// let bfs: Vec<_> = root.bfs().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-    ///
-    /// let dfs: Vec<_> = root.dfs().copied().collect();
-    /// assert_eq!(dfs, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
-    /// ```
-    pub fn extend_split<const C: usize>(
-        &mut self,
-        values: [V::Item; C],
-    ) -> [NodeMut<'a, V, M, P, NodeMutDown>; C] {
-        values.map(|value| {
-            let child_ptr = self.push_get_ptr(value);
-
-            // SAFETY: please refer to the safety section above.
-            let col_mut = unsafe {
-                &mut *(self.col as *const SelfRefCol<V, M, P> as *mut SelfRefCol<V, M, P>)
-            };
-
-            NodeMut::<'a, V, M, P, NodeMutDown>::new(col_mut, child_ptr)
-        })
-    }
-
-    /// Extends the tree by pushing `values` as children of this node.
-    ///
-    /// Returns an iterator of mutable children nodes.
-    ///
-    /// This is convenient especially while building trees as demonstrated in the example.
-    ///
-    /// # Safety
-    ///
-    /// Returned mutable children nodes have a mutation orientation of `NodeMutDown`;
-    /// unlike the default orientation of `NodeMutUpAndDown`.
-    /// Mutable nodes with `NodeMutDown` orientation do not have the `parent_mut` method.
-    /// In other words, they can only proceed down in the tree.
-    ///
-    /// Due to the structural properties of trees, this is sufficient to guarantee that
-    /// we can never have more than once mutable reference to the same node.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    ///
-    /// let mut tree = DynTree::<_>::new(1);
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    ///
-    /// let values = vec![2, 3];
-    /// let mut n1_children: Vec<_> = root.extend_split_iter(values).collect();
-    ///
-    /// let n2 = &mut n1_children[0];
-    /// let values = [4, 5];
-    /// let mut n2_children: Vec<_> = n2.extend_split_iter(values).collect();
-    ///
-    /// let n4 = &mut n2_children[0];
-    /// n4.push(8);
-    ///
-    /// let n3 = &mut n1_children[1];
-    /// let values = vec![6, 7];
-    /// let mut n3_children: Vec<_> = n3.extend_split_iter(values.iter().copied()).collect();
-    ///
-    /// let n6 = &mut n3_children[0];
-    /// n6.push(9);
-    ///
-    /// let n7 = &mut n3_children[1];
-    /// n7.extend([10, 11]);
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
     /// // validate the tree
     ///
@@ -272,22 +193,10 @@ where
     /// let dfs: Vec<_> = root.dfs().copied().collect();
     /// assert_eq!(dfs, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
     /// ```
-    pub fn extend_split_iter<'b, I>(
-        &'b mut self,
-        values: I,
-    ) -> impl Iterator<Item = NodeMut<'a, V, M, P, NodeMutDown>> + 'b
-    where
-        I: IntoIterator<Item = V::Item> + 'b,
-    {
-        values.into_iter().map(|value| {
-            let child_ptr = self.push_get_ptr(value);
-
-            // SAFETY: please refer to the safety section above.
-            let col_mut = unsafe {
-                &mut *(self.col as *const SelfRefCol<V, M, P> as *mut SelfRefCol<V, M, P>)
-            };
-
-            NodeMut::<'a, V, M, P, NodeMutDown>::new(col_mut, child_ptr)
+    pub fn grow<const N: usize>(&mut self, children: [V::Item; N]) -> [NodeIdx<V>; N] {
+        children.map(|child| {
+            let child_ptr = self.push_get_ptr(child);
+            NodeIdx::new(self.col.memory_state(), &child_ptr)
         })
     }
 
@@ -905,6 +814,7 @@ where
 
 #[test]
 fn abc() {
+    use super::*;
     use crate::iter::*;
     use crate::*;
     use alloc::vec;
@@ -918,30 +828,22 @@ fn abc() {
     // 4   5 6   7
     // |     |  ╱ ╲
     // 8     9 10  11
-
     let mut tree = DynTree::<_>::new(1);
 
     let mut root = tree.root_mut().unwrap();
 
-    let values = vec![2, 3];
-    let mut n1_children: Vec<_> = root.extend_split_iter(values).collect();
+    let [id2, id3] = root.grow([2, 3]);
 
-    let n2 = &mut n1_children[0];
-    let values = [4, 5];
-    let mut n2_children: Vec<_> = n2.extend_split_iter(values).collect();
+    let mut n2 = id2.node_mut(&mut tree);
+    let [id4, _] = n2.grow([4, 5]);
 
-    let n4 = &mut n2_children[0];
-    n4.push(8);
+    id4.node_mut(&mut tree).push(8);
 
-    let n3 = &mut n1_children[1];
-    let values = vec![6, 7];
-    let mut n3_children: Vec<_> = n3.extend_split_iter(values.iter().copied()).collect();
+    let mut n3 = id3.node_mut(&mut tree);
+    let [id6, id7] = n3.grow([6, 7]);
 
-    let n6 = &mut n3_children[0];
-    n6.push(9);
-
-    let n7 = &mut n3_children[1];
-    n7.extend([10, 11]);
+    id6.node_mut(&mut tree).push(9);
+    id7.node_mut(&mut tree).extend([10, 11]);
 
     // validate the tree
 
@@ -952,4 +854,20 @@ fn abc() {
 
     let dfs: Vec<_> = root.dfs().copied().collect();
     assert_eq!(dfs, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+}
+
+pub trait PushOutput<V: TreeVariant> {
+    fn new(memory_state: MemoryState, node_ptr: &NodePtr<V>) -> Self;
+}
+
+impl<V: TreeVariant> PushOutput<V> for () {
+    fn new(memory_state: MemoryState, node_ptr: &NodePtr<V>) -> Self {
+        ()
+    }
+}
+
+impl<V: TreeVariant> PushOutput<V> for NodeIdx<V> {
+    fn new(memory_state: MemoryState, node_ptr: &NodePtr<V>) -> Self {
+        Self::new(memory_state, node_ptr)
+    }
 }
