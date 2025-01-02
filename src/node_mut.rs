@@ -394,6 +394,12 @@ where
         self.grow_iter(children).collect()
     }
 
+    // shrink
+
+    pub fn remove(self) {
+        // TODO
+    }
+
     // traversal
 
     /// Returns the mutable node of the `child-index`-th child of this node;
