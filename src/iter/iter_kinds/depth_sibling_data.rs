@@ -1,8 +1,13 @@
 use super::{
-    kind_traits::{node, node_mut, IterMutOver},
-    IterKindCore, IterOver, NodeValue, NodeValueData, NodeValueNode, QueueElement,
+    dfs_bfs_kind::{node, node_mut},
+    DfsBfsIterKind, NodeValue, NodeValueData, NodeValueNode, QueueElement,
 };
-use crate::{helpers::N, tree_variant::RefsChildren, TreeVariant};
+use crate::{
+    helpers::N,
+    iter::{IterMutOver, IterOver},
+    tree_variant::RefsChildren,
+    TreeVariant,
+};
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
@@ -12,7 +17,7 @@ use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 /// Iterator over tuples of node depths, sibling indices and values obtained from tree nodes.
 pub struct NodeDepthSiblingVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> IterKindCore<'a, V, M, P> for NodeDepthSiblingVal<D>
+impl<'a, V, M, P, D> DfsBfsIterKind<'a, V, M, P> for NodeDepthSiblingVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -163,14 +168,14 @@ where
 pub struct OverDepthSiblingData;
 
 impl IterOver for OverDepthSiblingData {
-    type IterKind<'a, V, M, P>
+    type DfsBfsIterKind<'a, V, M, P>
         = NodeDepthSiblingVal<NodeValueData>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
 
-    type QueueElement<V>
+    type DfsBfsQueueElement<V>
         = (usize, usize, NodePtr<V>)
     where
         V: TreeVariant;
@@ -259,14 +264,14 @@ impl IterMutOver for OverDepthSiblingData {}
 pub struct OverDepthSiblingNode;
 
 impl IterOver for OverDepthSiblingNode {
-    type IterKind<'a, V, M, P>
+    type DfsBfsIterKind<'a, V, M, P>
         = NodeDepthSiblingVal<NodeValueNode>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a;
 
-    type QueueElement<V>
+    type DfsBfsQueueElement<V>
         = (usize, usize, NodePtr<V>)
     where
         V: TreeVariant;

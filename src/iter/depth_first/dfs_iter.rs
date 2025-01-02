@@ -1,4 +1,4 @@
-use crate::iter::{IterKindCore, QueueElement};
+use crate::iter::{DfsBfsIterKind, QueueElement};
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},
@@ -18,9 +18,9 @@ pub struct DfsIter<
     V,
     M = DefaultMemory<V>,
     P = DefaultPinVec<V>,
-    S = Vec<<K as IterKindCore<'a, V, M, P>>::QueueElement>,
+    S = Vec<<K as DfsBfsIterKind<'a, V, M, P>>::QueueElement>,
 > where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
@@ -33,7 +33,7 @@ pub struct DfsIter<
 
 impl<'a, K, V, M, P, S> From<DfsIter<'a, K, V, M, P, S>> for (&'a SelfRefCol<V, M, P>, S)
 where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
@@ -46,7 +46,7 @@ where
 
 impl<'a, K, V, M, P> DfsIter<'a, K, V, M, P, Vec<K::QueueElement>>
 where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
@@ -64,7 +64,7 @@ where
 
 impl<'a, K, V, M, P> DfsIter<'a, K, V, M, P, &'a mut Vec<K::QueueElement>>
 where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
@@ -88,7 +88,7 @@ where
 
 impl<'a, K, V, M, P, S> Iterator for DfsIter<'a, K, V, M, P, S>
 where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,

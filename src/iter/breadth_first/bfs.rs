@@ -544,7 +544,7 @@ impl Bfs {
 
 /// An iterable which can create breadth-first iterators over and over, using the same only-once allocated queue.
 pub struct BfsCore<V: TreeVariant, K: IterOver> {
-    queue: VecDeque<K::QueueElement<V>>,
+    queue: VecDeque<K::DfsBfsQueueElement<V>>,
 }
 
 impl<V, K> Default for BfsCore<V, K>
@@ -664,18 +664,18 @@ pub type BfsOverDepthSiblingNode<V> = BfsCore<V, OverDepthSiblingNode>;
 
 type BfsIterOf<'a, V, K, M, P> = BfsIter<
     'a,
-    <K as IterOver>::IterKind<'a, V, M, P>,
+    <K as IterOver>::DfsBfsIterKind<'a, V, M, P>,
     V,
     M,
     P,
-    &'a mut VecDeque<<K as IterOver>::QueueElement<V>>,
+    &'a mut VecDeque<<K as IterOver>::DfsBfsQueueElement<V>>,
 >;
 
 type BfsIterMutOf<'a, V, K, M, P> = BfsIterMut<
     'a,
-    <K as IterOver>::IterKind<'a, V, M, P>,
+    <K as IterOver>::DfsBfsIterKind<'a, V, M, P>,
     V,
     M,
     P,
-    &'a mut VecDeque<<K as IterOver>::QueueElement<V>>,
+    &'a mut VecDeque<<K as IterOver>::DfsBfsQueueElement<V>>,
 >;

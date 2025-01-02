@@ -3,8 +3,8 @@ use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-/// Core iterator return type kind.
-pub trait IterKindCore<'a, V, M, P>
+/// Core iterator return type kind for queue & stack based iterators such as dfs & bfs
+pub trait DfsBfsIterKind<'a, V, M, P>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
@@ -40,24 +40,6 @@ where
         queue_element: &Self::QueueElement,
     ) -> Self::YieldElementMut;
 }
-
-/// Defines the return element or item of the iterator over the tree.
-pub trait IterOver {
-    /// Core iteration kind.
-    type IterKind<'a, V, M, P>: IterKindCore<'a, V, M, P, QueueElement = Self::QueueElement<V>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy<V> + 'a,
-        P: PinnedVec<N<V>> + 'a;
-
-    /// Type of elements stored in the intermediate queue storage.
-    type QueueElement<V>: QueueElement<V>
-    where
-        V: TreeVariant;
-}
-
-/// Defines the return element or item of the mutable iterator over the tree.
-pub trait IterMutOver: IterOver {}
 
 // helpers
 

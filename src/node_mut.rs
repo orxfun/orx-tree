@@ -811,7 +811,7 @@ where
     /// ```
     pub fn dfs_mut_over<K: IterMutOver>(
         &'a self,
-    ) -> DfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+    ) -> DfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         DfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
@@ -1008,7 +1008,7 @@ where
     /// ```
     pub fn bfs_mut_over<K: IterMutOver>(
         &'a self,
-    ) -> BfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+    ) -> BfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 

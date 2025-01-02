@@ -28,6 +28,7 @@ where
 
 // impl
 
+/// Returns the node pointer.
 pub struct NodeValuePtr;
 
 impl<'a, V, M, P> NodeValue<'a, V, M, P> for NodeValuePtr

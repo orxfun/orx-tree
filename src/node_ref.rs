@@ -504,7 +504,7 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn dfs_over<K: IterOver>(&'a self) -> DfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+    fn dfs_over<K: IterOver>(&'a self) -> DfsIter<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         DfsIter::new(self.col(), self.node_ptr().clone())
     }
 
@@ -715,7 +715,7 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn bfs_over<K: IterOver>(&'a self) -> BfsIter<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+    fn bfs_over<K: IterOver>(&'a self) -> BfsIter<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone())
     }
 }

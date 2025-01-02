@@ -2,6 +2,7 @@ mod breadth_first;
 mod children_mut;
 mod depth_first;
 mod iter_kinds;
+mod iter_over;
 
 pub use breadth_first::{
     Bfs, BfsCore, BfsIter, BfsIterMut, BfsOverData, BfsOverDepthData, BfsOverDepthNode,
@@ -13,7 +14,9 @@ pub use depth_first::{
     DfsOverDepthSiblingData, DfsOverDepthSiblingNode, DfsOverNode,
 };
 pub use iter_kinds::{
-    IterKindCore, IterMutOver, IterOver, NodeDepthSiblingVal, NodeDepthVal, NodeVal, NodeValue,
-    NodeValueData, NodeValueNode, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
+    DfsBfsIterKind, NodeDepthSiblingVal, NodeDepthVal, NodeVal, NodeValue, NodeValueData,
+    NodeValueNode, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
     OverDepthSiblingNode, OverNode, QueueElement,
 };
+
+pub use iter_over::{IterMutOver, IterOver};
