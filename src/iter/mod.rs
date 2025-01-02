@@ -15,9 +15,10 @@ pub use depth_first::{
     DfsOverDepthSiblingData, DfsOverDepthSiblingNode, DfsOverNode,
 };
 pub use iter_kinds::{
-    DfsBfsIterKind, NodeDepthSiblingVal, NodeDepthVal, NodeVal, NodeValue, NodeValueData,
-    NodeValueNode, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
+    DfsBfsIterKind, DfsBfsNodeDepthSiblingVal, DfsBfsNodeDepthVal, DfsBfsNodeVal, NodeValue,
+    NodeValueData, NodeValueNode, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
     OverDepthSiblingNode, OverNode, QueueElement,
 };
+pub use post_order::{PostNodeDepthSiblingVal, PostNodeDepthVal, PostNodeVal, PostOrderKind};
 
 pub use iter_over::{IterMutOver, IterOver};

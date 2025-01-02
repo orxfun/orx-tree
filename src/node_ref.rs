@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{BfsIter, DfsIter, IterOver, NodeVal, NodeValueData},
+    iter::{BfsIter, DfsBfsNodeVal, DfsIter, IterOver, NodeValueData},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -360,7 +360,7 @@ where
     /// let values: Vec<_> = n6.dfs().copied().collect();
     /// assert_eq!(values, [6, 9]);
     /// ```
-    fn dfs(&self) -> DfsIter<NodeVal<NodeValueData>, V, M, P> {
+    fn dfs(&self) -> DfsIter<DfsBfsNodeVal<NodeValueData>, V, M, P> {
         DfsIter::new(self.col(), self.node_ptr().clone())
     }
 
@@ -572,7 +572,7 @@ where
     /// let values: Vec<_> = n6.bfs().copied().collect();
     /// assert_eq!(values, [6, 9]);
     /// ```
-    fn bfs(&self) -> BfsIter<NodeVal<NodeValueData>, V, M, P> {
+    fn bfs(&self) -> BfsIter<DfsBfsNodeVal<NodeValueData>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone())
     }
 

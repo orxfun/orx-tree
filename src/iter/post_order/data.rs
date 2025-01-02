@@ -5,9 +5,9 @@ use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
 /// Iterator over values obtained from tree nodes.
-pub struct NodeVal<D>(PhantomData<D>);
+pub struct PostNodeVal<D>(PhantomData<D>);
 
-impl<'a, V, M, P, D> PostOrderKind<'a, V, M, P> for NodeVal<D>
+impl<'a, V, M, P, D> PostOrderKind<'a, V, M, P> for PostNodeVal<D>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,

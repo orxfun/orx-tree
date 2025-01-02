@@ -1,64 +1,11 @@
-use super::{
-    dfs_bfs_kind::{node, node_mut},
-    DfsBfsIterKind, NodeValue, NodeValueData, NodeValueNode, QueueElement,
-};
+use super::{DfsBfsNodeVal, NodeValueData, NodeValueNode};
 use crate::{
     helpers::N,
-    iter::{IterMutOver, IterOver},
-    tree_variant::RefsChildren,
+    iter::{IterMutOver, IterOver, PostNodeVal},
     TreeVariant,
 };
-use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
-
-// core
-
-/// Iterator over values obtained from tree nodes.
-pub struct NodeVal<D>(PhantomData<D>);
-
-impl<'a, V, M, P, D> DfsBfsIterKind<'a, V, M, P> for NodeVal<D>
-where
-    V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
-    P: PinnedVec<N<V>> + 'a,
-    D: NodeValue<'a, V, M, P>,
-{
-    type QueueElement = NodePtr<V>;
-
-    type ValueFromNode = D;
-
-    type YieldElement = <Self::ValueFromNode as NodeValue<'a, V, M, P>>::Value;
-
-    type YieldElementMut = <Self::ValueFromNode as NodeValue<'a, V, M, P>>::ValueMut;
-
-    #[inline(always)]
-    fn children(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
-        node(parent.node_ptr()).next().children_ptr().cloned()
-    }
-
-    #[inline(always)]
-    fn children_rev(parent: &Self::QueueElement) -> impl Iterator<Item = Self::QueueElement> + 'a {
-        node(parent.node_ptr()).next().children_ptr().rev().cloned()
-    }
-
-    #[inline(always)]
-    fn element(
-        col: &'a SelfRefCol<V, M, P>,
-        queue_element: &Self::QueueElement,
-    ) -> Self::YieldElement {
-        D::value(col, node(queue_element))
-    }
-
-    fn element_mut(
-        col: &'a SelfRefCol<V, M, P>,
-        queue_element: &Self::QueueElement,
-    ) -> Self::YieldElementMut {
-        D::value_mut(col, node_mut(queue_element))
-    }
-}
-
-// over
+use orx_selfref_col::{MemoryPolicy, NodePtr};
 
 /// Iterator over data or values of the nodes.
 ///
@@ -132,7 +79,14 @@ pub struct OverData;
 
 impl IterOver for OverData {
     type DfsBfsIterKind<'a, V, M, P>
-        = NodeVal<NodeValueData>
+        = DfsBfsNodeVal<NodeValueData>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type PostOrderKind<'a, V, M, P>
+        = PostNodeVal<NodeValueData>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
@@ -218,7 +172,14 @@ pub struct OverNode;
 
 impl IterOver for OverNode {
     type DfsBfsIterKind<'a, V, M, P>
-        = NodeVal<NodeValueNode>
+        = DfsBfsNodeVal<NodeValueNode>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type PostOrderKind<'a, V, M, P>
+        = PostNodeVal<NodeValueNode>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,

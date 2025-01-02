@@ -1,9 +1,10 @@
-use super::{DfsBfsIterKind, QueueElement};
+use super::{post_order::PostOrderKind, DfsBfsIterKind, QueueElement};
 use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
-/// Defines the return element or item of the iterator over the tree.
+/// Defines the return element or item of the stack/queue based iterators over the tree,
+/// such as the depth first or breadth first traversals.
 pub trait IterOver {
     /// Core iteration kind.
     type DfsBfsIterKind<'a, V, M, P>: DfsBfsIterKind<
@@ -13,6 +14,12 @@ pub trait IterOver {
         P,
         QueueElement = Self::DfsBfsQueueElement<V>,
     >
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type PostOrderKind<'a, V, M, P>: PostOrderKind<'a, V, M, P>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
