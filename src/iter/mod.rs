@@ -3,6 +3,7 @@ mod children_mut;
 mod depth_first;
 mod iter_kinds;
 mod iter_over;
+mod post_order;
 
 pub use breadth_first::{
     Bfs, BfsCore, BfsIter, BfsIterMut, BfsOverData, BfsOverDepthData, BfsOverDepthNode,
