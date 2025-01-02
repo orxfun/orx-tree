@@ -23,17 +23,10 @@ where
     'a: 'b,
 {
     pub(crate) fn new(col: &'a mut SelfRefCol<V, M, P>, node_ptr: *const N<V>) -> Self {
-        let mut iter = Self {
-            children_ptr: Default::default(),
-            col,
-        };
-
         let node = unsafe { &*node_ptr };
         let children_ptr = node.next().children_ptr();
 
-        iter.children_ptr = children_ptr;
-
-        iter
+        Self { children_ptr, col }
     }
 
     fn next_child(&mut self, child_ptr: NodePtr<V>) -> NodeMut<'b, V, M, P, NodeMutDown> {
