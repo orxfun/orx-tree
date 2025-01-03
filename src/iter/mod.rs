@@ -20,7 +20,8 @@ pub use iter_kinds::{
     OverDepthSiblingNode, OverNode, QueueElement,
 };
 pub use post_order::{
-    PostNodeDepthSiblingVal, PostNodeDepthVal, PostNodeVal, PostOrderIter, PostOrderKind,
+    PostNodeDepthSiblingVal, PostNodeDepthVal, PostNodeVal, PostOrderIter, PostOrderIterMut,
+    PostOrderKind,
 };
 
 pub use iter_over::{IterMutOver, IterOver};

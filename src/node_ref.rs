@@ -344,21 +344,19 @@ where
     /// id6.node_mut(&mut tree).push(9);
     /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
-    /// // depth-first-search (dfs) from the root
-    ///
-    /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
-    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
-    ///
-    /// // dfs from any node
+    /// // traversal from any node
     ///
     /// let root = tree.root().unwrap();
-    /// let n3 = root.child(1).unwrap();
+    /// let values: Vec<_> = root.dfs().copied().collect();
+    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    ///
+    /// let n3 = id3.node(&tree);
     /// let values: Vec<_> = n3.dfs().copied().collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     ///
-    /// let n6 = id6.node(&tree);
-    /// let values: Vec<_> = n6.dfs().copied().collect();
-    /// assert_eq!(values, [6, 9]);
+    /// let n7 = id7.node(&tree);
+    /// let values: Vec<_> = n7.dfs().copied().collect();
+    /// assert_eq!(values, [7, 10, 11]);
     /// ```
     fn dfs(&self) -> DfsIter<DfsBfsNodeVal<NodeValueData>, V, M, P> {
         DfsIter::new(self.col(), self.node_ptr().clone())
@@ -561,16 +559,19 @@ where
     /// id6.node_mut(&mut tree).push(9);
     /// id7.node_mut(&mut tree).extend([10, 11]);
     ///
-    /// // bfs from any node
+    /// // traversal from any node
     ///
     /// let root = tree.root().unwrap();
-    /// let n3 = root.child(1).unwrap();
+    /// let values: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(values, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// let n3 = id3.node(&tree);
     /// let values: Vec<_> = n3.bfs().copied().collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     ///
-    /// let n6 = id6.node(&tree);
-    /// let values: Vec<_> = n6.bfs().copied().collect();
-    /// assert_eq!(values, [6, 9]);
+    /// let n7 = id7.node(&tree);
+    /// let values: Vec<_> = n7.bfs().copied().collect();
+    /// assert_eq!(values, [7, 10, 11]);
     /// ```
     fn bfs(&self) -> BfsIter<DfsBfsNodeVal<NodeValueData>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone())
@@ -719,7 +720,7 @@ where
         BfsIter::new(self.col(), self.node_ptr().clone())
     }
 
-    // post
+    // post-order
 
     /// Creates an iterator for post-order traversal rooted at this node
     /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
