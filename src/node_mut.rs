@@ -60,7 +60,7 @@ where
     P: PinnedVec<N<V>>,
     O: NodeMutOrientation,
 {
-    /// Returns a mutable reference to data of the root node.
+    /// Returns a mutable reference to data of this node.
     ///
     /// # Examples
     ///
@@ -707,11 +707,11 @@ where
     ///
     /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
     ///
-    /// * [`OverData`] yields data_mut of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
+    /// * [`OverData`] yields [`data_mut`] of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
     /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
     /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
     ///
-    /// [`data_mut`]: crate::NodeRef::data_mut
+    /// [`data_mut`]: crate::NodeMut::data_mut
     /// [`OverData`]: crate::iter::OverData
     /// [`OverDepthData`]: crate::iter::OverDepthData
     /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
@@ -904,11 +904,11 @@ where
     ///
     /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
     ///
-    /// * [`OverData`] yields data_mut of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
+    /// * [`OverData`] yields [`data_mut`] of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
     /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
     /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
     ///
-    /// [`data_mut`]: crate::NodeRef::data_mut
+    /// [`data_mut`]: crate::NodeMut::data_mut
     /// [`OverData`]: crate::iter::OverData
     /// [`OverDepthData`]: crate::iter::OverDepthData
     /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
@@ -1097,6 +1097,123 @@ where
     /// assert_eq!(values, [80, 40, 50, 20, 900, 600, 10, 11, 7, 3, 10]);
     /// ```
     pub fn post_order_mut(&self) -> PostOrderIterMut<PostNodeVal<NodeValueData>, V, M, P> {
+        PostOrderIter::new(self.col(), self.node_ptr().clone()).into()
+    }
+
+    /// Creates a mutable iterator for post-order traversal
+    /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
+    ///
+    /// An important property of post-order traversal is that nodes are yield after their all descendants are
+    /// yield; and hence, the root (this) node will be yield at last.
+    /// Among other reasons, this makes post-order traversal very useful for pruning or removing nodes from trees.
+    ///
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
+    ///
+    /// * [`OverData`] yields [`data_mut`] of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
+    /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
+    ///
+    /// [`data_mut`]: crate::NodeMut::data_mut
+    /// [`OverData`]: crate::iter::OverData
+    /// [`OverDepthData`]: crate::iter::OverDepthData
+    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    ///
+    /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Allocation
+    ///
+    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
+    /// Each time this method is called, a queue is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// and re-use it to create many iterators.
+    ///
+    /// [`Bfs`]: crate::Bfs
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::iter::*;
+    ///
+    /// fn init_tree() -> DynTree<i32> {
+    ///     //      1
+    ///     //     ╱ ╲
+    ///     //    ╱   ╲
+    ///     //   2     3
+    ///     //  ╱ ╲   ╱ ╲
+    ///     // 4   5 6   7
+    ///     // |     |  ╱ ╲
+    ///     // 8     9 10  11
+    ///
+    ///     let mut tree = DynTree::<i32>::new(1);
+    ///
+    ///     let mut root = tree.root_mut().unwrap();
+    ///     let [id2, id3] = root.grow([2, 3]);
+    ///
+    ///     let mut n2 = id2.node_mut(&mut tree);
+    ///     let [id4, _] = n2.grow([4, 5]);
+    ///
+    ///     id4.node_mut(&mut tree).push(8);
+    ///
+    ///     let mut n3 = id3.node_mut(&mut tree);
+    ///     let [id6, id7] = n3.grow([6, 7]);
+    ///
+    ///     id6.node_mut(&mut tree).push(9);
+    ///     id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    ///     tree
+    /// }
+    ///
+    /// // post-order over data_mut
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    ///
+    /// // equivalent to `root.post_order_mut()`
+    /// for data in root.post_order_mut_over::<OverData>() {
+    ///     *data += 100;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [108, 104, 105, 102, 109, 106, 110, 111, 107, 103, 101]
+    /// );
+    ///
+    /// // post-order over (depth, data_mut)
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    ///
+    /// for (depth, data) in root.post_order_mut_over::<OverDepthData>() {
+    ///     *data += depth as i32 * 100;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [308, 204, 205, 102, 309, 206, 310, 311, 207, 103, 1]
+    /// );
+    ///
+    /// // post-order over (depth, sibling index, data_mut)
+    ///
+    /// let mut tree = init_tree();
+    ///
+    /// let root = tree.root_mut().unwrap();
+    /// for (depth, sibling_idx, data) in root.post_order_mut_over::<OverDepthSiblingData>() {
+    ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
+    /// assert_eq!(
+    ///     values,
+    ///     [308, 204, 10205, 102, 309, 206, 310, 10311, 10207, 10103, 1]
+    /// );
+    /// ```
+    pub fn post_order_mut_over<K: IterMutOver>(
+        &'a self,
+    ) -> PostOrderIterMut<'a, K::PostOrderKind<'a, V, M, P>, V, M, P> {
         PostOrderIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
