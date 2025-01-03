@@ -17,9 +17,9 @@ where
     P: PinnedVec<N<V>>,
     D: SoM<DepthNodes<V>>,
 {
-    col: &'a SelfRefCol<V, M, P>,
-    depth_nodes: D,
-    depth: usize,
+    pub(super) col: &'a SelfRefCol<V, M, P>,
+    pub(super) depth_nodes: D,
+    pub(super) depth: usize,
     phantom: PhantomData<K>,
 }
 
@@ -76,20 +76,20 @@ where
     P: PinnedVec<N<V>>,
     D: SoM<DepthNodes<V>>,
 {
-    fn current(&self) -> Option<&DepthNode<V>> {
+    pub(super) fn current(&self) -> Option<&DepthNode<V>> {
         match self.depth < usize::MAX {
             true => Some(self.depth_nodes.get_ref().get(self.depth)),
             false => None,
         }
     }
 
-    fn move_deeper(&mut self, child: NodePtr<V>) {
+    pub(super) fn move_deeper(&mut self, child: NodePtr<V>) {
         let nodes = self.depth_nodes.get_mut();
         self.depth += 1;
         nodes.set(self.depth, child);
     }
 
-    fn move_shallower(&mut self) {
+    pub(super) fn move_shallower(&mut self) {
         match self.depth {
             0 => self.depth = usize::MAX,
             _ => {

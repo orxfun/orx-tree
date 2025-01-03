@@ -2,7 +2,7 @@ use crate::{
     helpers::N,
     iter::{
         BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, DfsIter, DfsIterMut, IterMutOver,
-        NodeValueData,
+        NodeValueData, PostNodeVal, PostOrderIter, PostOrderIterMut,
     },
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
@@ -681,14 +681,14 @@ where
     ///
     /// // dfs from any node
     ///
-    /// let n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
+    /// let n3 = id3.node_mut(&mut tree);
     /// for x in n3.dfs_mut() {
     ///     *x /= 10;
     /// }
     /// let values: Vec<_> = n3.dfs().copied().collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     ///
-    /// let mut n6 = id6.node_mut(&mut tree);
+    /// let n6 = id6.node_mut(&mut tree);
     /// for x in n6.dfs_mut() {
     ///     *x *= 100;
     /// }
@@ -878,14 +878,14 @@ where
     ///
     /// // bfs from any node
     ///
-    /// let n3 = tree.root_mut().unwrap().into_child_mut(1).unwrap();
+    /// let n3 = id3.node_mut(&mut tree);
     /// for x in n3.bfs_mut() {
     ///     *x /= 10;
     /// }
     /// let values: Vec<_> = n3.bfs().copied().collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     ///
-    /// let mut n6 = id6.node_mut(&mut tree);
+    /// let n6 = id6.node_mut(&mut tree);
     /// for x in n6.bfs_mut() {
     ///     *x *= 100;
     /// }
@@ -1010,6 +1010,94 @@ where
         &'a self,
     ) -> BfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone()).into()
+    }
+
+    // post-order
+
+    /// Creates a mutable iterator for post-order traversal
+    /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
+    ///
+    /// An important property of post-order traversal is that nodes are yield after their all descendants are
+    /// yield; and hence, the root (this) node will be yield at last.
+    /// Among other reasons, this makes post-order traversal very useful for pruning or removing nodes from trees.
+    ///
+    /// Return value is an `Iterator` which yields [`data_mut`] of each traversed node.
+    ///
+    /// See also [`bfs_mut_over`] for variants yielding different values for each traversed node.
+    ///
+    /// [`data_mut`]: crate::NodeMut::data_mut
+    /// [`bfs_mut_over`]: crate::NodeMut::bfs_mut_over
+    ///
+    /// # Allocation
+    ///
+    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
+    /// Each time this method is called, a queue is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// and re-use it to create many iterators.
+    ///
+    /// [`Bfs`]: crate::Bfs
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // traversal from the root
+    ///
+    /// for x in tree.root_mut().unwrap().post_order_mut() {
+    ///     *x *= 10;
+    /// }
+    /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
+    /// assert_eq!(values, [80, 40, 50, 20, 90, 60, 100, 110, 70, 30, 10]);
+    ///
+    /// // traversal from any node
+    ///
+    /// let n3 = id3.node_mut(&mut tree);
+    /// for x in n3.bfs_mut() {
+    ///     *x /= 10;
+    /// }
+    /// let values: Vec<_> = n3.post_order().copied().collect();
+    /// assert_eq!(values, [9, 6, 10, 11, 7, 3]);
+    ///
+    /// let n6 = id6.node_mut(&mut tree);
+    /// for x in n6.bfs_mut() {
+    ///     *x *= 100;
+    /// }
+    /// let values: Vec<_> = n6.post_order().copied().collect();
+    /// assert_eq!(values, [900, 600]);
+    ///
+    /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
+    /// assert_eq!(values, [80, 40, 50, 20, 900, 600, 10, 11, 7, 3, 10]);
+    /// ```
+    pub fn post_order_mut(&self) -> PostOrderIterMut<PostNodeVal<NodeValueData>, V, M, P> {
+        PostOrderIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
     // helpers
@@ -1179,29 +1267,4 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
-}
-
-#[test]
-fn abc() {
-    use super::*;
-    use crate::iter::*;
-    use crate::*;
-    use alloc::vec;
-    use alloc::vec::Vec;
-
-    //       1
-    //      ╱ ╲
-    //     ╱   ╲
-    //    ╱     ╲
-    //   2       3
-    //  ╱ ╲     ╱  ╲
-    // 4   5   6    7
-    // |   |   |   ╱ ╲
-    // *8  *9 10 *11 *12
-
-    let mut tree = DynTree::<_>::new(1);
-
-    let mut root = tree.root_mut().unwrap();
-
-    _ = root.grow([2]);
 }
