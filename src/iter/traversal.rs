@@ -13,7 +13,7 @@ use orx_selfref_col::MemoryPolicy;
 ///
 /// ## dfs (depth first search)
 ///
-///  * dfs iteration internally uses a stack (alloc::vec::Vec).
+/// * dfs iteration internally uses a stack (alloc::vec::Vec).
 /// * A dfs iterator can be created from a tree node using [`dfs`], [`dfs_mut`],
 ///   [`dfs_over`] or [`dfs_mut_over`]. Each time these methods are called a
 ///   stack will be created and dropped at the end of the iteration.
@@ -33,7 +33,7 @@ use orx_selfref_col::MemoryPolicy;
 ///
 /// ## post-order
 ///
-///  * post order iteration internally uses a vector (alloc::vec::Vec) of length **D**
+/// * post order iteration internally uses a vector (alloc::vec::Vec) of length **D**
 ///   where D is the maximum depth of nodes visited throughout the traversal.
 /// * A post order iterator can be created from a tree node using [`post_order`], [`post_order_mut`],
 ///   [`post_order_over`] or [`post_order_mut_over`]. Each time these methods are called a
@@ -71,6 +71,64 @@ impl Traversal {
     /// [`iter_mut`]: crate::iter::DfsIterable::iter_mut
     /// [`dfs_over`]: Self::dfs_over
     /// [`OverData`]: crate::iter::OverData
+    ///
+    /// # Examples
+    ///
+    /// The following example demonstrates how the iterable created from [`Traversal`] can be used
+    /// to repeatedly iterate over trees without requiring new allocation.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // create the iterable for dfs traversal
+    /// // that creates the internal stack once
+    ///
+    /// let mut dfs = Traversal::dfs();
+    ///
+    /// // repeatedly create iterators from it, without allocation
+    ///
+    /// let root = tree.root().unwrap();
+    /// let values: Vec<_> = dfs.iter(&root).copied().collect();
+    /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    ///
+    /// let mut n7 = id7.node_mut(&mut tree);
+    /// for (i, value) in dfs.iter_mut(&mut n7).enumerate() {
+    ///     *value += (i * 100) as i32;
+    /// }
+    ///
+    /// let n3 = id3.node(&tree);
+    /// let values: Vec<_> = dfs.iter(&n3).copied().collect();
+    /// assert_eq!(values, [3, 6, 9, 7, 110, 211]);
+    ///
+    /// let n7 = id7.node(&tree);
+    /// let values: Vec<_> = dfs.iter(&n7).copied().collect();
+    /// assert_eq!(values, [7, 110, 211]);
+    /// ```
     pub fn dfs<V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
     ) -> DfsIterable<OverData, V, M, P> {
         Default::default()
@@ -118,6 +176,64 @@ impl Traversal {
     /// [`iter_mut`]: crate::iter::DfsIterable::iter_mut
     /// [`bfs_over`]: Self::bfs_over
     /// [`OverData`]: crate::iter::OverData
+    ///
+    /// # Examples
+    ///
+    /// The following example demonstrates how the iterable created from [`Traversal`] can be used
+    /// to repeatedly iterate over trees without requiring new allocation.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // create the iterable for bfs traversal
+    /// // that creates the internal queue once
+    ///
+    /// let mut bfs = Traversal::bfs();
+    ///
+    /// // repeatedly create iterators from it, without allocation
+    ///
+    /// let root = tree.root().unwrap();
+    /// let values: Vec<_> = bfs.iter(&root).copied().collect();
+    /// assert_eq!(values, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// let mut n7 = id7.node_mut(&mut tree);
+    /// for (i, value) in bfs.iter_mut(&mut n7).enumerate() {
+    ///     *value += (i * 100) as i32;
+    /// }
+    ///
+    /// let n3 = id3.node(&tree);
+    /// let values: Vec<_> = bfs.iter(&n3).copied().collect();
+    /// assert_eq!(values, [3, 6, 7, 9, 110, 211]);
+    ///
+    /// let n7 = id7.node(&tree);
+    /// let values: Vec<_> = bfs.iter(&n7).copied().collect();
+    /// assert_eq!(values, [7, 110, 211]);
+    /// ```
     pub fn bfs<V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
     ) -> BfsIterable<OverData, V, M, P> {
         Default::default()
