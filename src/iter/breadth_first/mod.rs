@@ -3,7 +3,7 @@ mod bfs_iter;
 mod bfs_iter_mut;
 
 pub use bfs::{
-    Bfs, BfsCore, BfsOverData, BfsOverDepthData, BfsOverDepthNode, BfsOverDepthSiblingData,
+    Bfs, BfsIterable, BfsOverData, BfsOverDepthData, BfsOverDepthNode, BfsOverDepthSiblingData,
     BfsOverDepthSiblingNode, BfsOverNode,
 };
 pub use bfs_iter::BfsIter;
