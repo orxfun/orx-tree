@@ -1,4 +1,4 @@
-use super::{BfsIterable, DfsIterable, IterOver, OverData};
+use super::{BfsIterable, DfsIterable, IterOver, OverData, PostOrderIterable};
 use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
@@ -148,6 +148,41 @@ impl Traversal {
     /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
     pub fn bfs_over<O: IterOver, V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
     ) -> BfsIterable<O, V, M, P> {
+        Default::default()
+    }
+
+    /// Creates an iterable for post-order traversal which internally uses a vector of length **D** where D
+    /// is the maximum depth of the nodes traversed during iterations (alloc::vec::Vec).
+    ///
+    /// Created iterable can be used repeatedly without allocation to create iterators
+    /// using [`iter`] method and mutable iterators using [`iter_mut`] starting from any
+    /// node of a tree. These iterators traverse [`OverData`]; i.e., yield a reference or a mutable
+    /// reference to the data of the nodes.
+    ///
+    /// Further, [`iter_over`] and [`iter_mut_over`] methods can be used to create iterators which yield
+    /// different node value for each visited node. The node values are determined by the generic parameter
+    /// of the methods ([`IterOver`]).
+    ///
+    /// * [`OverData`] yields data of nodes
+    /// * [`OverDepthData`] yields (depth, data) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data) tuples where the second element is a usize representing the index of the node among its siblings
+    /// * [`OverNode`] yields directly the nodes ([`Node`])
+    /// * [`OverDepthNode`] yields (depth, node) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingNode`] yields (depth, sibling_idx, node) tuples where the second element is a usize representing the index of the node among its siblings
+    ///
+    /// [`iter`]: crate::iter::PostOrderIterable::iter
+    /// [`iter_mut`]: crate::iter::PostOrderIterable::iter_mut
+    /// [`iter_over`]: crate::iter::PostOrderIterable::iter_over
+    /// [`iter_mut_over`]: crate::iter::PostOrderIterable::iter_mut_over
+    /// [`OverData`]: crate::iter::OverData
+    /// [`IterOver`]: crate::iter::IterOver
+    /// [`OverDepthData`]: crate::iter::OverDepthData
+    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    /// [`OverNode`]: crate::iter::OverNode
+    /// [`OverDepthNode`]: crate::iter::OverDepthNode
+    /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
+    pub fn post_order<V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
+    ) -> PostOrderIterable<V, M, P> {
         Default::default()
     }
 }
