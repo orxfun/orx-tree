@@ -4,6 +4,7 @@ mod depth_first;
 mod iter_kinds;
 mod iter_over;
 mod post_order;
+mod tree_iter;
 
 pub use breadth_first::{
     Bfs, BfsIter, BfsIterMut, BfsIterable, BfsOverData, BfsOverDepthData, BfsOverDepthNode,
@@ -25,3 +26,4 @@ pub use post_order::{
 };
 
 pub use iter_over::{IterMutOver, IterOver};
+pub use tree_iter::TreeIter;
