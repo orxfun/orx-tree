@@ -47,7 +47,7 @@ impl Dfs {
     /// Depth and sibling indices are based on the node that the created iterator is rooted at:
     /// * depth is the of the node starting from the node that the iterator is created from (root) which has a depth of 0.
     /// * sibling index of the node is its position among its siblings (or children of its parent); root's sibling index is always 0.
-    pub fn over<K: IterOver, V: TreeVariant>() -> DfsCore<V, K> {
+    pub fn over<K: IterOver, V: TreeVariant>() -> DfsIterable<V, K> {
         Default::default()
     }
 
@@ -101,17 +101,17 @@ impl Dfs {
     ///
     /// // create re-usable dfs iterable
     /// // stack is created here, only once
-    /// // its `iter_from` and `iter_mut_from` calls re-use the same stack
+    /// // its `iter` and `iter_mut` calls re-use the same stack
     /// let mut dfs = Dfs::over_data();
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// for x in dfs.iter_mut_from(&mut root) {
+    /// for x in dfs.iter_mut(&mut root) {
     ///     *x *= 100;
     /// }
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = dfs.iter_from(&root);
+    /// let mut iter = dfs.iter(&root);
     /// assert_eq!(iter.next(), Some(&100));
     /// assert_eq!(iter.next(), Some(&200));
     /// assert_eq!(iter.next(), Some(&400));
@@ -119,7 +119,7 @@ impl Dfs {
     /// assert_eq!(iter.next(), Some(&500)); // ...
     ///
     /// let n3 = root.child(1).unwrap();
-    /// let values: Vec<_> = dfs.iter_from(&n3).copied().collect();
+    /// let values: Vec<_> = dfs.iter(&n3).copied().collect();
     /// assert_eq!(values, [300, 600, 900, 700, 1000, 1100]);
     /// ```
     pub fn over_data<V: TreeVariant>() -> DfsOverData<V> {
@@ -177,12 +177,12 @@ impl Dfs {
     ///
     /// // create re-usable dfs iterable
     /// // stack is created here, only once
-    /// // its `iter_from` calls re-use the same stack
+    /// // its `iter` calls re-use the same stack
     /// let mut dfs = Dfs::over_node();
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = dfs.iter_from(&root);
+    /// let mut iter = dfs.iter(&root);
     /// let _n1 = iter.next().unwrap();
     /// let n2 = iter.next().unwrap();
     /// let n4 = iter.next().unwrap();
@@ -191,7 +191,7 @@ impl Dfs {
     /// assert_eq!(n4.num_children(), 1);
     ///
     /// let n3 = root.child(1).unwrap();
-    /// let values: Vec<_> = dfs.iter_from(&n3).map(|x| *x.data()).collect();
+    /// let values: Vec<_> = dfs.iter(&n3).map(|x| *x.data()).collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     /// ```
     pub fn over_node<V: TreeVariant>() -> DfsOverNode<V> {
@@ -251,16 +251,16 @@ impl Dfs {
     ///
     /// // create re-usable dfs iterable
     /// // stack is created here, only once
-    /// // its `iter_from` and `iter_mut_from` calls re-use the same stack
+    /// // its `iter` and `iter_mut` calls re-use the same stack
     /// let mut dfs = Dfs::over_depth_data();
     ///
-    /// for (depth, x) in dfs.iter_mut_from(&mut tree.root_mut().unwrap()) {
+    /// for (depth, x) in dfs.iter_mut(&mut tree.root_mut().unwrap()) {
     ///     *x += depth as i32 * 100;
     /// }
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = dfs.iter_from(&root);
+    /// let mut iter = dfs.iter(&root);
     /// assert_eq!(iter.next(), Some((0, &1)));
     /// assert_eq!(iter.next(), Some((1, &102)));
     /// assert_eq!(iter.next(), Some((2, &204)));
@@ -269,10 +269,10 @@ impl Dfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = dfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = dfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 2, 1, 2, 2]);
     ///
-    /// let values: Vec<_> = dfs.iter_from(&n3).map(|x| *x.1).collect();
+    /// let values: Vec<_> = dfs.iter(&n3).map(|x| *x.1).collect();
     /// assert_eq!(values, [103, 206, 309, 207, 310, 311]);
     /// ```
     pub fn over_depth_data<V: TreeVariant>() -> DfsOverDepthData<V> {
@@ -333,12 +333,12 @@ impl Dfs {
     ///
     /// // create re-usable dfs iterable
     /// // stack is created here, only once
-    /// // its `iter_from` calls re-use the same stack
+    /// // its `iter` calls re-use the same stack
     /// let mut dfs = Dfs::over_depth_node();
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = dfs.iter_from(&root);
+    /// let mut iter = dfs.iter(&root);
     /// let (d, _n1) = iter.next().unwrap();
     /// assert_eq!(d, 0);
     ///
@@ -354,10 +354,10 @@ impl Dfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = dfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = dfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 2, 1, 2, 2]);
     ///
-    /// let values: Vec<_> = dfs.iter_from(&n3).map(|x| *x.1.data()).collect();
+    /// let values: Vec<_> = dfs.iter(&n3).map(|x| *x.1.data()).collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     /// ```
     pub fn over_depth_node<V: TreeVariant>() -> DfsOverDepthNode<V> {
@@ -418,10 +418,10 @@ impl Dfs {
     ///
     /// // create re-usable dfs iterable
     /// // stack is created here, only once
-    /// // its `iter_from` and `iter_mut_from` calls re-use the same stack
+    /// // its `iter` and `iter_mut` calls re-use the same stack
     /// let mut dfs = Dfs::over_depth_sibling_data();
     ///
-    /// for (depth, sibling_idx, x) in dfs.iter_mut_from(&mut tree.root_mut().unwrap()) {
+    /// for (depth, sibling_idx, x) in dfs.iter_mut(&mut tree.root_mut().unwrap()) {
     ///     match sibling_idx {
     ///         0 => *x += depth as i32 * 100,
     ///         _ => *x = -(*x + depth as i32 * 100),
@@ -430,7 +430,7 @@ impl Dfs {
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = dfs.iter_from(&root);
+    /// let mut iter = dfs.iter(&root);
     /// assert_eq!(iter.next(), Some((0, 0, &1)));
     /// assert_eq!(iter.next(), Some((1, 0, &102)));
     /// assert_eq!(iter.next(), Some((2, 0, &204)));
@@ -439,10 +439,10 @@ impl Dfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = dfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = dfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 2, 1, 2, 2]);
     ///
-    /// let values: Vec<_> = dfs.iter_from(&n3).map(|x| *x.2).collect();
+    /// let values: Vec<_> = dfs.iter(&n3).map(|x| *x.2).collect();
     /// assert_eq!(values, [-103, 206, 309, -207, 310, -311]);
     /// ```
     pub fn over_depth_sibling_data<V: TreeVariant>() -> DfsOverDepthSiblingData<V> {
@@ -504,12 +504,12 @@ impl Dfs {
     ///
     /// // create re-usable dfs iterable
     /// // stack is created here, only once
-    /// // its `iter_from` calls re-use the same stack
+    /// // its `iter` calls re-use the same stack
     /// let mut dfs = Dfs::over_depth_sibling_node();
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = dfs.iter_from(&root);
+    /// let mut iter = dfs.iter(&root);
     /// let (d, s, _n1) = iter.next().unwrap();
     /// assert_eq!(d, 0);
     /// assert_eq!(s, 0);
@@ -528,13 +528,13 @@ impl Dfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = dfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = dfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 2, 1, 2, 2]);
     ///
-    /// let sibling_indices: Vec<_> = dfs.iter_from(&n3).map(|x| x.1).collect();
+    /// let sibling_indices: Vec<_> = dfs.iter(&n3).map(|x| x.1).collect();
     /// assert_eq!(sibling_indices, [0, 0, 0, 1, 0, 1]);
     ///
-    /// let values: Vec<_> = dfs.iter_from(&n3).map(|x| *x.2.data()).collect();
+    /// let values: Vec<_> = dfs.iter(&n3).map(|x| *x.2.data()).collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     /// ```
     pub fn over_depth_sibling_node<V: TreeVariant>() -> DfsOverDepthSiblingNode<V> {
@@ -543,11 +543,11 @@ impl Dfs {
 }
 
 /// An iterable which can create depth-first iterators over and over, using the same only-once allocated stack.
-pub struct DfsCore<V: TreeVariant, K: IterOver> {
+pub struct DfsIterable<V: TreeVariant, K: IterOver> {
     stack: Vec<K::DfsBfsQueueElement<V>>,
 }
 
-impl<V, K> Default for DfsCore<V, K>
+impl<V, K> Default for DfsIterable<V, K>
 where
     V: TreeVariant,
     K: IterOver,
@@ -557,7 +557,7 @@ where
     }
 }
 
-impl<V, K> DfsCore<V, K>
+impl<V, K> DfsIterable<V, K>
 where
     V: TreeVariant,
     K: IterOver,
@@ -568,7 +568,7 @@ where
     /// Regardless, the depth-first-search will be rooted at this node:
     /// * root's depth will be assumed to be zero,
     /// * root's sibling index will be assumed to be zero since its siblings, if any, are not relevant to the search.
-    pub fn iter_from<'a, M, P>(
+    pub fn iter<'a, M, P>(
         &'a mut self,
         root: &'a impl NodeRef<'a, V, M, P>,
     ) -> DfsIterOf<'a, V, K, M, P>
@@ -586,7 +586,7 @@ where
     /// Regardless, the depth-first-search will be rooted at this node:
     /// * root's depth will be assumed to be zero,
     /// * root's sibling index will be assumed to be zero since its siblings, if any, are not relevant to the search.
-    pub fn iter_mut_from<'a, M, P>(
+    pub fn iter_mut<'a, M, P>(
         &'a mut self,
         root: &'a mut NodeMut<'a, V, M, P>,
     ) -> DfsIterMutOf<'a, V, K, M, P>
@@ -606,7 +606,7 @@ where
 /// * `V::Item` or [`data`] of the nodes.
 ///
 /// [`data`]: crate::NodeRef::data
-pub type DfsOverData<V> = DfsCore<V, OverData>;
+pub type DfsOverData<V> = DfsIterable<V, OverData>;
 
 /// An iterable which can create depth-first iterators over and over, using the same only-once allocated stack.
 ///
@@ -614,7 +614,7 @@ pub type DfsOverData<V> = DfsCore<V, OverData>;
 /// * [`Node`]
 ///
 /// [`Node`]: crate::Node
-pub type DfsOverNode<V> = DfsCore<V, OverNode>;
+pub type DfsOverNode<V> = DfsIterable<V, OverNode>;
 
 /// An iterable which can create depth-first iterators over and over, using the same only-once allocated stack.
 ///
@@ -624,7 +624,7 @@ pub type DfsOverNode<V> = DfsCore<V, OverNode>;
 ///   * and the first item of the tuple is the depth of the nodes relative to the root.
 ///
 /// [`data`]: crate::NodeRef::data
-pub type DfsOverDepthData<V> = DfsCore<V, OverDepthData>;
+pub type DfsOverDepthData<V> = DfsIterable<V, OverDepthData>;
 
 /// An iterable which can create depth-first iterators over and over, using the same only-once allocated stack.
 ///
@@ -634,7 +634,7 @@ pub type DfsOverDepthData<V> = DfsCore<V, OverDepthData>;
 ///   * and the first item of the tuple is the depth of the nodes relative to the root.
 ///
 /// [`Node`]: crate::Node
-pub type DfsOverDepthNode<V> = DfsCore<V, OverDepthNode>;
+pub type DfsOverDepthNode<V> = DfsIterable<V, OverDepthNode>;
 
 /// An iterable which can create depth-first iterators over and over, using the same only-once allocated stack.
 ///
@@ -645,7 +645,7 @@ pub type DfsOverDepthNode<V> = DfsCore<V, OverDepthNode>;
 ///   * and the second item of the tuple is index of the nodes among its siblings.
 ///
 /// [`data`]: crate::NodeRef::data
-pub type DfsOverDepthSiblingData<V> = DfsCore<V, OverDepthSiblingData>;
+pub type DfsOverDepthSiblingData<V> = DfsIterable<V, OverDepthSiblingData>;
 
 /// An iterable which can create depth-first iterators over and over, using the same only-once allocated stack.
 ///
@@ -656,7 +656,7 @@ pub type DfsOverDepthSiblingData<V> = DfsCore<V, OverDepthSiblingData>;
 ///   * and the second item of the tuple is index of the nodes among its siblings.
 ///
 /// [`Node`]: crate::Node
-pub type DfsOverDepthSiblingNode<V> = DfsCore<V, OverDepthSiblingNode>;
+pub type DfsOverDepthSiblingNode<V> = DfsIterable<V, OverDepthSiblingNode>;
 
 // type simplification of iterators
 

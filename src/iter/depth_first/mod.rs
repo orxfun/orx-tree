@@ -3,7 +3,7 @@ mod dfs_iter;
 mod dfs_iter_mut;
 
 pub use dfs::{
-    Dfs, DfsCore, DfsOverData, DfsOverDepthData, DfsOverDepthNode, DfsOverDepthSiblingData,
+    Dfs, DfsIterable, DfsOverData, DfsOverDepthData, DfsOverDepthNode, DfsOverDepthSiblingData,
     DfsOverDepthSiblingNode, DfsOverNode,
 };
 pub use dfs_iter::DfsIter;

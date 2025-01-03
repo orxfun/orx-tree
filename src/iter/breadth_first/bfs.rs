@@ -47,7 +47,7 @@ impl Bfs {
     /// Depth and sibling indices are based on the node that the created iterator is rooted at:
     /// * breadth is the of the node starting from the node that the iterator is created from (root) which has a breadth of 0.
     /// * sibling index of the node is its position among its siblings (or children of its parent); root's sibling index is always 0.
-    pub fn over<K: IterOver, V: TreeVariant>() -> BfsCore<V, K> {
+    pub fn over<K: IterOver, V: TreeVariant>() -> BfsIterable<V, K> {
         Default::default()
     }
 
@@ -101,17 +101,17 @@ impl Bfs {
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
-    /// // its `iter_from` and `iter_mut_from` calls re-use the same queue
+    /// // its `iter` and `iter_mut` calls re-use the same queue
     /// let mut bfs = Bfs::over_data();
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// for x in bfs.iter_mut_from(&mut root) {
+    /// for x in bfs.iter_mut(&mut root) {
     ///     *x *= 100;
     /// }
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = bfs.iter_from(&root);
+    /// let mut iter = bfs.iter(&root);
     /// assert_eq!(iter.next(), Some(&100));
     /// assert_eq!(iter.next(), Some(&200));
     /// assert_eq!(iter.next(), Some(&300));
@@ -119,7 +119,7 @@ impl Bfs {
     /// assert_eq!(iter.next(), Some(&500)); // ...
     ///
     /// let n3 = root.child(1).unwrap();
-    /// let values: Vec<_> = bfs.iter_from(&n3).copied().collect();
+    /// let values: Vec<_> = bfs.iter(&n3).copied().collect();
     /// assert_eq!(values, [300, 600, 700, 900, 1000, 1100]);
     /// ```
     pub fn over_data<V: TreeVariant>() -> BfsOverData<V> {
@@ -177,12 +177,12 @@ impl Bfs {
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
-    /// // its `iter_from` calls re-use the same queue
+    /// // its `iter` calls re-use the same queue
     /// let mut bfs = Bfs::over_node();
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = bfs.iter_from(&root);
+    /// let mut iter = bfs.iter(&root);
     /// let n1 = iter.next().unwrap();
     /// let _n2 = iter.next().unwrap();
     /// let n3 = iter.next().unwrap();
@@ -191,7 +191,7 @@ impl Bfs {
     /// assert_eq!(n3.num_children(), 2);
     ///
     /// let n3 = root.child(1).unwrap();
-    /// let values: Vec<_> = bfs.iter_from(&n3).map(|x| *x.data()).collect();
+    /// let values: Vec<_> = bfs.iter(&n3).map(|x| *x.data()).collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     /// ```
     pub fn over_node<V: TreeVariant>() -> BfsOverNode<V> {
@@ -251,16 +251,16 @@ impl Bfs {
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
-    /// // its `iter_from` and `iter_mut_from` calls re-use the same queue
+    /// // its `iter` and `iter_mut` calls re-use the same queue
     /// let mut bfs = Bfs::over_depth_data();
     ///
-    /// for (breadth, x) in bfs.iter_mut_from(&mut tree.root_mut().unwrap()) {
+    /// for (breadth, x) in bfs.iter_mut(&mut tree.root_mut().unwrap()) {
     ///     *x += breadth as i32 * 100;
     /// }
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = bfs.iter_from(&root);
+    /// let mut iter = bfs.iter(&root);
     /// assert_eq!(iter.next(), Some((0, &1)));
     /// assert_eq!(iter.next(), Some((1, &102)));
     /// assert_eq!(iter.next(), Some((1, &103)));
@@ -269,10 +269,10 @@ impl Bfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = bfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = bfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 1, 2, 2, 2]);
     ///
-    /// let values: Vec<_> = bfs.iter_from(&n3).map(|x| *x.1).collect();
+    /// let values: Vec<_> = bfs.iter(&n3).map(|x| *x.1).collect();
     /// assert_eq!(values, [103, 206, 207, 309, 310, 311]);
     /// ```
     pub fn over_depth_data<V: TreeVariant>() -> BfsOverDepthData<V> {
@@ -333,12 +333,12 @@ impl Bfs {
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
-    /// // its `iter_from` calls re-use the same queue
+    /// // its `iter` calls re-use the same queue
     /// let mut bfs = Bfs::over_depth_node();
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = bfs.iter_from(&root);
+    /// let mut iter = bfs.iter(&root);
     /// let (d, n1) = iter.next().unwrap();
     /// assert_eq!(d, 0);
     ///
@@ -354,10 +354,10 @@ impl Bfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = bfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = bfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 1, 2, 2, 2]);
     ///
-    /// let values: Vec<_> = bfs.iter_from(&n3).map(|x| *x.1.data()).collect();
+    /// let values: Vec<_> = bfs.iter(&n3).map(|x| *x.1.data()).collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     /// ```
     pub fn over_depth_node<V: TreeVariant>() -> BfsOverDepthNode<V> {
@@ -418,10 +418,10 @@ impl Bfs {
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
-    /// // its `iter_from` and `iter_mut_from` calls re-use the same queue
+    /// // its `iter` and `iter_mut` calls re-use the same queue
     /// let mut bfs = Bfs::over_depth_sibling_data();
     ///
-    /// for (breadth, sibling_idx, x) in bfs.iter_mut_from(&mut tree.root_mut().unwrap()) {
+    /// for (breadth, sibling_idx, x) in bfs.iter_mut(&mut tree.root_mut().unwrap()) {
     ///     match sibling_idx {
     ///         0 => *x += breadth as i32 * 100,
     ///         _ => *x = -(*x + breadth as i32 * 100),
@@ -430,7 +430,7 @@ impl Bfs {
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = bfs.iter_from(&root);
+    /// let mut iter = bfs.iter(&root);
     /// assert_eq!(iter.next(), Some((0, 0, &1)));
     /// assert_eq!(iter.next(), Some((1, 0, &102)));
     /// assert_eq!(iter.next(), Some((1, 1, &-103)));
@@ -439,10 +439,10 @@ impl Bfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = bfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = bfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 1, 2, 2, 2]);
     ///
-    /// let values: Vec<_> = bfs.iter_from(&n3).map(|x| *x.2).collect();
+    /// let values: Vec<_> = bfs.iter(&n3).map(|x| *x.2).collect();
     /// assert_eq!(values, [-103, 206, -207, 309, 310, -311]);
     /// ```
     pub fn over_depth_sibling_data<V: TreeVariant>() -> BfsOverDepthSiblingData<V> {
@@ -504,12 +504,12 @@ impl Bfs {
     ///
     /// // create re-usable bfs iterable
     /// // queue is created here, only once
-    /// // its `iter_from` calls re-use the same queue
+    /// // its `iter` calls re-use the same queue
     /// let mut bfs = Bfs::over_depth_sibling_node();
     ///
     /// let root = tree.root().unwrap();
     ///
-    /// let mut iter = bfs.iter_from(&root);
+    /// let mut iter = bfs.iter(&root);
     /// let (d, s, n1) = iter.next().unwrap();
     /// assert_eq!(d, 0);
     /// assert_eq!(s, 0);
@@ -528,13 +528,13 @@ impl Bfs {
     ///
     /// let n3 = root.child(1).unwrap();
     ///
-    /// let depths: Vec<_> = bfs.iter_from(&n3).map(|x| x.0).collect();
+    /// let depths: Vec<_> = bfs.iter(&n3).map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 1, 2, 2, 2]);
     ///
-    /// let sibling_indices: Vec<_> = bfs.iter_from(&n3).map(|x| x.1).collect();
+    /// let sibling_indices: Vec<_> = bfs.iter(&n3).map(|x| x.1).collect();
     /// assert_eq!(sibling_indices, [0, 0, 1, 0, 0, 1]);
     ///
-    /// let values: Vec<_> = bfs.iter_from(&n3).map(|x| *x.2.data()).collect();
+    /// let values: Vec<_> = bfs.iter(&n3).map(|x| *x.2.data()).collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     /// ```
     pub fn over_depth_sibling_node<V: TreeVariant>() -> BfsOverDepthSiblingNode<V> {
@@ -543,11 +543,11 @@ impl Bfs {
 }
 
 /// An iterable which can create breadth-first iterators over and over, using the same only-once allocated queue.
-pub struct BfsCore<V: TreeVariant, K: IterOver> {
+pub struct BfsIterable<V: TreeVariant, K: IterOver> {
     queue: VecDeque<K::DfsBfsQueueElement<V>>,
 }
 
-impl<V, K> Default for BfsCore<V, K>
+impl<V, K> Default for BfsIterable<V, K>
 where
     V: TreeVariant,
     K: IterOver,
@@ -559,7 +559,7 @@ where
     }
 }
 
-impl<V, K> BfsCore<V, K>
+impl<V, K> BfsIterable<V, K>
 where
     V: TreeVariant,
     K: IterOver,
@@ -570,7 +570,7 @@ where
     /// Regardless, the breadth-first-search will be rooted at this node:
     /// * root's breadth will be assumed to be zero,
     /// * root's sibling index will be assumed to be zero since its siblings, if any, are not relevant to the search.
-    pub fn iter_from<'a, M, P>(
+    pub fn iter<'a, M, P>(
         &'a mut self,
         root: &'a impl NodeRef<'a, V, M, P>,
     ) -> BfsIterOf<'a, V, K, M, P>
@@ -588,7 +588,7 @@ where
     /// Regardless, the breadth-first-search will be rooted at this node:
     /// * root's breadth will be assumed to be zero,
     /// * root's sibling index will be assumed to be zero since its siblings, if any, are not relevant to the search.
-    pub fn iter_mut_from<'a, M, P>(
+    pub fn iter_mut<'a, M, P>(
         &'a mut self,
         root: &'a mut NodeMut<'a, V, M, P>,
     ) -> BfsIterMutOf<'a, V, K, M, P>
@@ -608,7 +608,7 @@ where
 /// * `V::Item` or [`data`] of the nodes.
 ///
 /// [`data`]: crate::NodeRef::data
-pub type BfsOverData<V> = BfsCore<V, OverData>;
+pub type BfsOverData<V> = BfsIterable<V, OverData>;
 
 /// An iterable which can create breadth-first iterators over and over, using the same only-once allocated queue.
 ///
@@ -616,7 +616,7 @@ pub type BfsOverData<V> = BfsCore<V, OverData>;
 /// * [`Node`]
 ///
 /// [`Node`]: crate::Node
-pub type BfsOverNode<V> = BfsCore<V, OverNode>;
+pub type BfsOverNode<V> = BfsIterable<V, OverNode>;
 
 /// An iterable which can create breadth-first iterators over and over, using the same only-once allocated queue.
 ///
@@ -626,7 +626,7 @@ pub type BfsOverNode<V> = BfsCore<V, OverNode>;
 ///   * and the first item of the tuple is the breadth of the nodes relative to the root.
 ///
 /// [`data`]: crate::NodeRef::data
-pub type BfsOverDepthData<V> = BfsCore<V, OverDepthData>;
+pub type BfsOverDepthData<V> = BfsIterable<V, OverDepthData>;
 
 /// An iterable which can create breadth-first iterators over and over, using the same only-once allocated queue.
 ///
@@ -636,7 +636,7 @@ pub type BfsOverDepthData<V> = BfsCore<V, OverDepthData>;
 ///   * and the first item of the tuple is the breadth of the nodes relative to the root.
 ///
 /// [`Node`]: crate::Node
-pub type BfsOverDepthNode<V> = BfsCore<V, OverDepthNode>;
+pub type BfsOverDepthNode<V> = BfsIterable<V, OverDepthNode>;
 
 /// An iterable which can create breadth-first iterators over and over, using the same only-once allocated queue.
 ///
@@ -647,7 +647,7 @@ pub type BfsOverDepthNode<V> = BfsCore<V, OverDepthNode>;
 ///   * and the second item of the tuple is index of the nodes among its siblings.
 ///
 /// [`data`]: crate::NodeRef::data
-pub type BfsOverDepthSiblingData<V> = BfsCore<V, OverDepthSiblingData>;
+pub type BfsOverDepthSiblingData<V> = BfsIterable<V, OverDepthSiblingData>;
 
 /// An iterable which can create breadth-first iterators over and over, using the same only-once allocated queue.
 ///
@@ -658,7 +658,7 @@ pub type BfsOverDepthSiblingData<V> = BfsCore<V, OverDepthSiblingData>;
 ///   * and the second item of the tuple is index of the nodes among its siblings.
 ///
 /// [`Node`]: crate::Node
-pub type BfsOverDepthSiblingNode<V> = BfsCore<V, OverDepthSiblingNode>;
+pub type BfsOverDepthSiblingNode<V> = BfsIterable<V, OverDepthSiblingNode>;
 
 // type simplification of iterators
 
