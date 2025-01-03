@@ -11,13 +11,13 @@ pub use children_mut::ChildrenMutIter;
 pub use depth_first::{DfsIter, DfsIterMut, DfsIterable};
 pub use iter_kinds::{
     DfsBfsIterKind, DfsBfsNodeDepthSiblingVal, DfsBfsNodeDepthVal, DfsBfsNodeVal, NodeValue,
-    NodeValueData, NodeValueNode, OverData, OverDepthData, OverDepthNode, OverDepthPtr,
-    OverDepthSiblingData, OverDepthSiblingNode, OverDepthSiblingPtr, OverNode, OverPtr,
-    QueueElement,
+    NodeValueData, NodeValueFromPtr, NodeValueNode, NodeValuePtr, OverData, OverDepthData,
+    OverDepthNode, OverDepthPtr, OverDepthSiblingData, OverDepthSiblingNode, OverDepthSiblingPtr,
+    OverNode, OverPtr, QueueElement,
 };
 pub use post_order::{
     PostNodeDepthSiblingVal, PostNodeDepthVal, PostNodeVal, PostOrderIter, PostOrderIterMut,
-    PostOrderIterable, PostOrderKind,
+    PostOrderIterPtr, PostOrderIterable, PostOrderKind,
 };
 
 pub use iter_over::{IterMutOver, IterOver};
