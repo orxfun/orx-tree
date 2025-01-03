@@ -6,15 +6,9 @@ mod iter_over;
 mod post_order;
 mod traversal;
 
-pub use breadth_first::{
-    Bfs, BfsIter, BfsIterMut, BfsIterable, BfsOverData, BfsOverDepthData, BfsOverDepthNode,
-    BfsOverDepthSiblingData, BfsOverDepthSiblingNode, BfsOverNode,
-};
+pub use breadth_first::{Bfs, BfsIter, BfsIterMut, BfsIterable};
 pub use children_mut::ChildrenMutIter;
-pub use depth_first::{
-    Dfs, DfsIter, DfsIterMut, DfsIterable, DfsOverData, DfsOverDepthData, DfsOverDepthNode,
-    DfsOverDepthSiblingData, DfsOverDepthSiblingNode, DfsOverNode,
-};
+pub use depth_first::{Dfs, DfsIter, DfsIterMut, DfsIterable};
 pub use iter_kinds::{
     DfsBfsIterKind, DfsBfsNodeDepthSiblingVal, DfsBfsNodeDepthVal, DfsBfsNodeVal, NodeValue,
     NodeValueData, NodeValueNode, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
@@ -26,4 +20,4 @@ pub use post_order::{
 };
 
 pub use iter_over::{IterMutOver, IterOver};
-pub use traversal::Traversals;
+pub use traversal::Traversal;
