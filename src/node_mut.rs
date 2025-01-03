@@ -3,7 +3,7 @@ use crate::{
     iter::{
         BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, DfsIter, DfsIterMut, IterMutOver,
         NodeValueData, OverDepthSiblingData, OverDepthSiblingPtr, OverPtr, PostNodeVal,
-        PostOrderIter, PostOrderIterMut,
+        PostOrderIter, PostOrderIterMut, PostOrderIterPtr,
     },
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
@@ -478,8 +478,7 @@ where
         // taking its data out and emptying all of its previous and next links.
         // Close operation is lazy and does not invalidate the pointers that we the
         // shared reference to create.
-        let node: &Self = unsafe { &*(&self as *const Self) };
-        let iter = node.post_order_over::<OverPtr>();
+        let iter = PostOrderIterPtr::new(self.node_ptr.clone());
         for ptr in iter {
             if ptr != self.node_ptr {
                 self.col.close(&ptr);
