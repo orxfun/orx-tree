@@ -2,17 +2,18 @@ use crate::{
     helpers::N,
     iter::{
         BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, DfsIter, DfsIterMut, IterMutOver,
-        NodeValueData, PostNodeVal, PostOrderIter, PostOrderIterMut,
+        NodeValueData, OverDepthSiblingData, OverDepthSiblingPtr, OverPtr, PostNodeVal,
+        PostOrderIter, PostOrderIterMut,
     },
     node_ref::NodeRefCore,
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
-    TreeVariant,
+    NodeRef, TreeVariant,
 };
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
+use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, Refs, SelfRefCol};
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation {}
@@ -407,8 +408,100 @@ where
 
     // shrink
 
-    pub fn remove(self) {
-        // TODO
+    /// Removes this node and all of its descendants from the tree; and returns the
+    /// data of this node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // remove n4 downwards (removes 4 and 8)
+    ///
+    /// let data = id4.node_mut(&mut tree).remove();
+    /// assert_eq!(data, 4);
+    /// assert_eq!(tree.len(), 9);
+    ///
+    /// let root = tree.root().unwrap();
+    /// let values: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(values, [1, 2, 3, 5, 6, 7, 9, 10, 11]);
+    ///
+    /// // remove n3 downwards (3, 6, 7, 9, 10, 11)
+    ///
+    /// let data = id3.node_mut(&mut tree).remove();
+    /// assert_eq!(data, 3);
+    /// assert_eq!(tree.len(), 3);
+    ///
+    /// let root = tree.root().unwrap();
+    /// let values: Vec<_> = root.bfs().copied().collect();
+    /// assert_eq!(values, [1, 2, 5]);
+    ///
+    /// // remove the root: clear the entire (remaining) tree
+    ///
+    /// let data = tree.root_mut().unwrap().remove();
+    /// assert_eq!(data, 1);
+    /// assert_eq!(tree.len(), 0);
+    /// assert_eq!(tree.root(), None);
+    /// ```
+    pub fn remove(self) -> V::Item {
+        // TODO: we have the option to choose any traversal here; they are all safe
+        // with SelfRefCol. We can pick the fastest one after benchmarks.
+
+        // # SAFETY: We use this shared reference to iterate over the pointers of the
+        // descendent nodes. Using a mut reference to the collection, we will close
+        // each of the descendent nodes that we visit. Closing a node corresponds to
+        // taking its data out and emptying all of its previous and next links.
+        // Close operation is lazy and does not invalidate the pointers that we the
+        // shared reference to create.
+        let node: &Self = unsafe { &*(&self as *const Self) };
+        let iter = node.post_order_over::<OverPtr>();
+        for ptr in iter {
+            if ptr != self.node_ptr {
+                self.col.close(&ptr);
+            }
+        }
+
+        let node = unsafe { &mut *self.node_ptr.ptr_mut() };
+        if let Some(parent) = node.prev_mut().get() {
+            let parent = unsafe { &mut *parent.ptr_mut() };
+            let sibling_idx = parent.next_mut().remove(self.node_ptr.ptr() as usize);
+            assert!(sibling_idx.is_some())
+        }
+
+        let root_ptr = self.col.ends().get().expect("tree is not empty");
+        if root_ptr == &self.node_ptr {
+            self.col.ends_mut().clear();
+        }
+
+        // # SAFETY: On the other hand, close_and_reclaim might trigger a reclaim
+        // operation which moves around the nodes, invalidating other pointers;
+        // however, only after 'self.node_ptr' is also closed.
+        self.col.close_and_reclaim(&self.node_ptr)
     }
 
     // traversal

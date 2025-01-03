@@ -1,4 +1,4 @@
-use super::{DfsBfsNodeDepthSiblingVal, NodeValueData, NodeValueNode};
+use super::{node_value::NodeValuePtr, DfsBfsNodeDepthSiblingVal, NodeValueData, NodeValueNode};
 use crate::{
     helpers::N,
     iter::{IterMutOver, IterOver, PostNodeDepthSiblingVal},
@@ -200,6 +200,30 @@ impl IterOver for OverDepthSiblingNode {
 
     type PostOrderKind<'a, V, M, P>
         = PostNodeDepthSiblingVal<NodeValueNode>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type DfsBfsQueueElement<V>
+        = (usize, usize, NodePtr<V>)
+    where
+        V: TreeVariant;
+}
+
+/// Iterator over (node depth, index of node among its siblings, node pointer) tuples.
+pub struct OverDepthSiblingPtr;
+
+impl IterOver for OverDepthSiblingPtr {
+    type DfsBfsIterKind<'a, V, M, P>
+        = DfsBfsNodeDepthSiblingVal<NodeValuePtr>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type PostOrderKind<'a, V, M, P>
+        = PostNodeDepthSiblingVal<NodeValuePtr>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
