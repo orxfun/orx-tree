@@ -26,20 +26,6 @@ where
     fn value_mut(col: &'a SelfRefCol<V, M, P>, node: &'a mut N<V>) -> Self::ValueMut;
 }
 
-/// Part of the iterator item that is obtained from the tree node.
-pub trait NodeValueFromPtr<'a, V, M, P>: NodeValue<'a, V, M, P>
-where
-    V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
-    P: PinnedVec<N<V>> + 'a,
-{
-    /// Gets the value from the node.
-    fn value_from_ptr(node: &'a N<V>) -> Self::Value;
-
-    /// Gets the mutable value from the node.
-    fn value_mut_from_ptr(node: &'a mut N<V>) -> Self::ValueMut;
-}
-
 // impl
 
 /// Returns the node pointer.
@@ -61,21 +47,6 @@ where
     }
 
     fn value_mut(_: &'a SelfRefCol<V, M, P>, _: &'a mut N<V>) -> Self::ValueMut {
-        unreachable!("cannot iterate over mutable nodes")
-    }
-}
-
-impl<'a, V, M, P> NodeValueFromPtr<'a, V, M, P> for NodeValuePtr
-where
-    V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
-    P: PinnedVec<N<V>> + 'a,
-{
-    fn value_from_ptr(node: &'a N<V>) -> Self::Value {
-        NodePtr::new(node)
-    }
-
-    fn value_mut_from_ptr(_: &'a mut N<V>) -> Self::ValueMut {
         unreachable!("cannot iterate over mutable nodes")
     }
 }
