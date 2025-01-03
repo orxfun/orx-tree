@@ -35,7 +35,7 @@ pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
 pub use iter::Traversal;
 pub use node::Node;
-pub use node_mut::NodeMut;
+pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
 pub use node_ref::NodeRef;
 pub use r#dyn::{Dyn, DynNode, DynTree};
 pub use tree::Tree;
