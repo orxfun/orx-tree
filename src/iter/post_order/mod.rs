@@ -4,6 +4,7 @@ mod depth_nodes;
 mod depth_sibling_data;
 mod post_order_iter;
 mod post_order_iter_mut;
+mod post_order_iterable;
 mod post_order_kind;
 
 pub use data::PostNodeVal;

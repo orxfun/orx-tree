@@ -1,5 +1,6 @@
 use super::depth_nodes::{DepthNode, DepthNodes};
 use super::PostOrderKind;
+use crate::tree::{DefaultMemory, DefaultPinVec};
 use crate::{helpers::N, TreeVariant};
 use core::marker::PhantomData;
 use core::usize;
@@ -9,7 +10,7 @@ use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
 /// Iterator for post order traversal
 /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
-pub struct PostOrderIter<'a, K, V, M, P, D = DepthNodes<V>>
+pub struct PostOrderIter<'a, K, V, M = DefaultMemory<V>, P = DefaultPinVec<V>, D = DepthNodes<V>>
 where
     K: PostOrderKind<'a, V, M, P>,
     V: TreeVariant,
