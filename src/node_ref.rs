@@ -794,4 +794,154 @@ where
     fn post_order(&self) -> PostOrderIter<PostNodeVal<NodeValueData>, V, M, P> {
         PostOrderIter::new(self.col(), self.node_ptr().clone())
     }
+
+    /// Creates an iterator for post-order traversal rooted at this node over different values of the nodes
+    /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
+    ///
+    /// An important property of post-order traversal is that nodes are yield after their all descendants are
+    /// yield; and hence, the root (this) node will be yield at last.
+    /// Among other reasons, this makes post-order traversal very useful for pruning or removing nodes from trees.
+    ///
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
+    ///
+    /// * [`OverData`] yields [`data`] of nodes (therefore, node.dfs_over::&lt;Data&gt;() is equivalent to node.dfs())
+    /// * [`OverDepthData`] yields (depth, ['data']) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, ['data']) tuples where the second element is a usize representing the index of the node among its siblings
+    /// * [`OverNode`] yields directly the nodes ([`Node`])
+    /// * [`OverDepthNode`] yields (depth, node) pairs where the first element is a usize representing the depth of the node in the tree
+    /// * [`OverDepthSiblingNode`] yields (depth, sibling_idx, node) tuples where the second element is a usize representing the index of the node among its siblings
+    ///
+    /// [`data`]: crate::NodeRef::data
+    /// [`OverData`]: crate::iter::OverData
+    /// [`OverDepthData`]: crate::iter::OverDepthData
+    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    /// [`OverNode`]: crate::iter::OverNode
+    /// [`OverDepthNode`]: crate::iter::OverDepthNode
+    /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
+    ///
+    /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
+    ///
+    /// # Allocation
+    ///
+    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
+    /// Each time this method is called, a queue is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// and re-use it to create many iterators.
+    ///
+    /// [`Bfs`]: crate::Bfs
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::iter::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // post-order over data
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let values: Vec<i32> = root.post_order_over::<OverData>().copied().collect(); // or simply bfs()
+    /// assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+    ///
+    /// // post-order over (depth, data)
+    ///
+    /// let mut iter = root.post_order_over::<OverDepthData>();
+    /// assert_eq!(iter.next(), Some((3, &8))); // (depth, data)
+    /// assert_eq!(iter.next(), Some((2, &4)));
+    /// assert_eq!(iter.next(), Some((2, &5)));
+    /// assert_eq!(iter.next(), Some((1, &2)));
+    /// assert_eq!(iter.next(), Some((3, &9)));
+    /// assert_eq!(iter.next(), Some((2, &6))); // ...
+    ///
+    /// let all: Vec<(usize, &i32)> = root.post_order_over::<OverDepthData>().collect();
+    ///
+    /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
+    /// assert_eq!(depths, [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]);
+    ///
+    /// let values: Vec<i32> = all.iter().map(|x| *x.1).collect();
+    /// assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+    ///
+    /// // post-order over (depth, sibling index, data)
+    ///
+    /// let mut iter = root.post_order_over::<OverDepthSiblingData>();
+    /// assert_eq!(iter.next(), Some((3, 0, &8))); // (depth, sibling idx, data)
+    /// assert_eq!(iter.next(), Some((2, 0, &4)));
+    /// assert_eq!(iter.next(), Some((2, 1, &5)));
+    /// assert_eq!(iter.next(), Some((1, 0, &2)));
+    /// assert_eq!(iter.next(), Some((3, 0, &9)));
+    /// assert_eq!(iter.next(), Some((2, 0, &6))); // ...
+    ///
+    /// let all: Vec<(usize, usize, &i32)> = root.post_order_over::<OverDepthSiblingData>().collect();
+    ///
+    /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
+    /// assert_eq!(depths, [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]);
+    ///
+    /// let sibling_indices: Vec<usize> = all.iter().map(|x| x.1).collect();
+    /// assert_eq!(sibling_indices, [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]);
+    ///
+    /// let values: Vec<i32> = all.iter().map(|x| *x.2).collect();
+    /// assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+    ///
+    /// // post-order over nodes OR (depth, node) pairs OR (depth, sibling index, node) tuples
+    ///
+    /// let nodes: Vec<Node<_>> = root.post_order_over::<OverNode>().collect();
+    /// for (node, expected_value) in nodes.iter().zip(&values) {
+    ///     assert_eq!(node.data(), expected_value);
+    ///     assert!(node.num_children() <= 2);
+    /// }
+    ///
+    /// let nodes: Vec<(usize, Node<_>)> = root.post_order_over::<OverDepthNode>().collect();
+    /// for ((depth, node), (expected_depth, expected_value)) in
+    ///     nodes.iter().zip(depths.iter().zip(&values))
+    /// {
+    ///     assert_eq!(depth, expected_depth);
+    ///     assert_eq!(node.data(), expected_value);
+    ///     assert!(node.num_children() <= 2);
+    /// }
+    ///
+    /// let nodes: Vec<(usize, usize, Node<_>)> =
+    ///     root.post_order_over::<OverDepthSiblingNode>().collect();
+    /// for ((depth, sibling_idx, node), (expected_depth, (expected_sibling_idx, expected_value))) in
+    ///     nodes
+    ///         .iter()
+    ///         .zip(depths.iter().zip(sibling_indices.iter().zip(&values)))
+    /// {
+    ///     assert_eq!(depth, expected_depth);
+    ///     assert_eq!(sibling_idx, expected_sibling_idx);
+    ///     assert_eq!(node.data(), expected_value);
+    ///     assert!(node.num_children() <= 2);
+    /// }
+    /// ```
+    fn post_order_over<K: IterOver>(
+        &'a self,
+    ) -> PostOrderIter<'a, K::PostOrderKind<'a, V, M, P>, V, M, P> {
+        PostOrderIter::new(self.col(), self.node_ptr().clone())
+    }
 }
