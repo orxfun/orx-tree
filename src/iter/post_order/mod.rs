@@ -8,4 +8,5 @@ mod post_order_kind;
 pub use data::PostNodeVal;
 pub use depth_data::PostNodeDepthVal;
 pub use depth_sibling_data::PostNodeDepthSiblingVal;
+pub use post_order_iter::PostOrderIter;
 pub use post_order_kind::PostOrderKind;

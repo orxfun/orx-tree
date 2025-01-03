@@ -579,7 +579,7 @@ where
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a,
     {
-        BfsIter::new_with_queue(root.col(), root.node_ptr().clone(), &mut self.queue)
+        BfsIter::new_using(root.col(), root.node_ptr().clone(), &mut self.queue)
     }
 
     /// Creates a mutable breadth-first iterator for the tree rooted at the given `root` node.
@@ -598,7 +598,7 @@ where
         P: PinnedVec<N<V>> + 'a,
         K: IterMutOver,
     {
-        BfsIter::new_with_queue(root.col(), root.node_ptr().clone(), &mut self.queue).into()
+        BfsIter::new_using(root.col(), root.node_ptr().clone(), &mut self.queue).into()
     }
 }
 

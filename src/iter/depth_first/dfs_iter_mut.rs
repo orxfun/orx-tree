@@ -53,9 +53,9 @@ where
     type Item = K::YieldElementMut;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.dfs.queue.get_mut().pop().map(|parent| {
+        self.dfs.stack.get_mut().pop().map(|parent| {
             let children = K::children_rev(&parent);
-            self.dfs.queue.get_mut().extend(children);
+            self.dfs.stack.get_mut().extend(children);
             K::element_mut(self.dfs.col, &parent)
         })
     }

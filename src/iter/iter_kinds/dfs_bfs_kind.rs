@@ -3,7 +3,7 @@ use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-/// Core iterator return type kind for queue & stack based iterators such as dfs & bfs
+/// Core iterator return type kind for queue & stack based iterators such as dfs & bfs.
 pub trait DfsBfsIterKind<'a, V, M, P>
 where
     V: TreeVariant + 'a,

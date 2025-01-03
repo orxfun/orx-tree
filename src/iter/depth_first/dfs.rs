@@ -577,7 +577,7 @@ where
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a,
     {
-        DfsIter::new_with_queue(root.col(), root.node_ptr().clone(), &mut self.stack)
+        DfsIter::new_using(root.col(), root.node_ptr().clone(), &mut self.stack)
     }
 
     /// Creates a mutable depth-first iterator for the tree rooted at the given `root` node.
@@ -596,7 +596,7 @@ where
         P: PinnedVec<N<V>> + 'a,
         K: IterMutOver,
     {
-        DfsIter::new_with_queue(root.col(), root.node_ptr().clone(), &mut self.stack).into()
+        DfsIter::new_using(root.col(), root.node_ptr().clone(), &mut self.stack).into()
     }
 }
 

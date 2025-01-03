@@ -3,6 +3,7 @@ use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
+/// Core iterator return type kind for O(D) storage traversals, where D is the depth of the tree.
 pub trait PostOrderKind<'a, V, M, P>
 where
     V: TreeVariant + 'a,

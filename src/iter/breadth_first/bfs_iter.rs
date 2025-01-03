@@ -31,18 +31,7 @@ pub struct BfsIter<
     phantom: PhantomData<K>,
 }
 
-impl<'a, K, V, M, P, S> From<BfsIter<'a, K, V, M, P, S>> for (&'a SelfRefCol<V, M, P>, S)
-where
-    K: DfsBfsIterKind<'a, V, M, P>,
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-    S: SoM<VecDeque<K::QueueElement>>,
-{
-    fn from(value: BfsIter<'a, K, V, M, P, S>) -> Self {
-        (value.col, value.queue)
-    }
-}
+// new
 
 impl<'a, K, V, M, P> BfsIter<'a, K, V, M, P, VecDeque<K::QueueElement>>
 where
@@ -71,7 +60,7 @@ where
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
 {
-    pub(crate) fn new_with_queue(
+    pub(crate) fn new_using(
         col: &'a SelfRefCol<V, M, P>,
         root_ptr: NodePtr<V>,
         queue: &'a mut VecDeque<K::QueueElement>,
@@ -87,6 +76,8 @@ where
         }
     }
 }
+
+// iterator
 
 impl<'a, K, V, M, P, S> Iterator for BfsIter<'a, K, V, M, P, S>
 where

@@ -62,7 +62,7 @@ impl<V: TreeVariant> Default for DepthNodes<V> {
 impl<V: TreeVariant> DepthNodes<V> {
     pub fn init(&mut self, root_ptr: NodePtr<V>) {
         self.vec.clear();
-        //
+        self.vec.push(root_ptr.into());
     }
 
     pub fn get(&self, d: usize) -> &DepthNode<V> {
