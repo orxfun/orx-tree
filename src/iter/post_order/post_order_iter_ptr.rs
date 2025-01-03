@@ -4,6 +4,10 @@ use core::marker::PhantomData;
 use orx_self_or::SoM;
 use orx_selfref_col::NodePtr;
 
+/// Iterator for post order traversal
+/// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
+///
+/// Yields node pointers; i.e., `NodePtr<V>` pointing to the traversed nodes.
 pub struct PostOrderIterPtr<V, D = DepthNodes<V>>
 where
     V: TreeVariant,
