@@ -6,9 +6,9 @@ mod iter_over;
 mod post_order;
 mod traversal;
 
-pub use breadth_first::{Bfs, BfsIter, BfsIterMut, BfsIterable};
+pub use breadth_first::{BfsIter, BfsIterMut, BfsIterable};
 pub use children_mut::ChildrenMutIter;
-pub use depth_first::{Dfs, DfsIter, DfsIterMut, DfsIterable};
+pub use depth_first::{DfsIter, DfsIterMut, DfsIterable};
 pub use iter_kinds::{
     DfsBfsIterKind, DfsBfsNodeDepthSiblingVal, DfsBfsNodeDepthVal, DfsBfsNodeVal, NodeValue,
     NodeValueData, NodeValueNode, OverData, OverDepthData, OverDepthNode, OverDepthSiblingData,
