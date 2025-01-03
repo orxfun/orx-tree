@@ -20,4 +20,4 @@ pub use post_order::{
 };
 
 pub use iter_over::{IterMutOver, IterOver};
-pub use traversal::Traversal;
+pub use traversal::{Traversal, TraversalOver};

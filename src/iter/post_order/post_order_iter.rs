@@ -3,7 +3,6 @@ use super::PostOrderKind;
 use crate::tree::{DefaultMemory, DefaultPinVec};
 use crate::{helpers::N, TreeVariant};
 use core::marker::PhantomData;
-use core::usize;
 use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
@@ -119,7 +118,7 @@ where
                     Some(child) => self.move_deeper(child),
                     _ => {
                         let ptr = current.ptr();
-                        let x = K::element(&self.col, ptr, self.depth, self.depth_nodes.get_ref());
+                        let x = K::element(self.col, ptr, self.depth, self.depth_nodes.get_ref());
                         self.move_shallower();
                         return Some(x);
                     }

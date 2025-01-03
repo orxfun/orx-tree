@@ -55,7 +55,7 @@ where
                     _ => {
                         let ptr = current.ptr();
                         let x = K::element_mut(
-                            &self.iter.col,
+                            self.iter.col,
                             ptr,
                             self.iter.depth,
                             self.iter.depth_nodes.get_ref(),

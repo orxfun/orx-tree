@@ -14,11 +14,22 @@ use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
 
+/// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation {}
 
+/// Allows mutation of only the node itself and its descendants.
+///
+/// This is a safety requirement for methods such as [`children_mut`]:
+///
+/// * `children_mut` returns mutable children; however, with `NodeMutDown` orientation.
+/// * This prevents us from having more than once mutable reference to the same node.
+///
+/// [`children_mut`]: crate::NodeMut::children_mut
 pub struct NodeMutDown {}
 impl NodeMutOrientation for NodeMutDown {}
 
+/// Allows mutation of the node itself, its descendants and ancestors;
+/// i.e., does limit.
 pub struct NodeMutUpAndDown {}
 impl NodeMutOrientation for NodeMutUpAndDown {}
 
@@ -163,7 +174,7 @@ where
         I: IntoIterator<Item = V::Item>,
     {
         for x in values.into_iter() {
-            _ = self.push(x);
+            self.push(x);
         }
     }
 
@@ -616,7 +627,7 @@ where
     ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>>
            + DoubleEndedIterator
            + use<'_, 'a, V, M, P, O> {
-        ChildrenMutIter::new(&mut self.col, self.node_ptr.ptr())
+        ChildrenMutIter::new(self.col, self.node_ptr.ptr())
     }
 
     // dfs
@@ -630,16 +641,18 @@ where
     ///
     /// # Allocation
     ///
-    /// Note that depth first search requires a stack (Vec) to be allocated.
+    /// Note that depth first search requires a stack (alloc::vec::Vec) to be allocated.
     /// Each time this method is called, a stack is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Dfs`] to optimize performance, which will create only the stack only once
+    /// it is recommended to use [`Traversal::dfs`] to optimize performance, which will create the stack only once
     /// and re-use it to create many iterators.
     ///
-    /// [`data_mut`]: crate::NodeMut::data_mut
     /// [`dfs_mut_over`]: crate::NodeMut::dfs_mut_over
+    /// [`data_mut`]: crate::NodeMut::data_mut
+    /// [`dfs_over`]: crate::NodeRef::dfs_over
     /// [`Dfs`]: crate::Dfs
+    /// [`Traversal::dfs`]: crate::Traversal::dfs
     ///
     /// # Examples
     ///
@@ -705,29 +718,20 @@ where
     /// Creates a mutable depth first search iterator over different values of nodes;
     /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
     ///
-    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
-    ///
-    /// * [`OverData`] yields [`data_mut`] of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
-    /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
-    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
-    ///
-    /// [`data_mut`]: crate::NodeMut::data_mut
-    /// [`OverData`]: crate::iter::OverData
-    /// [`OverDepthData`]: crate::iter::OverDepthData
-    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`IterMutOver`] type parameter `O`.
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
     /// # Allocation
     ///
-    /// Note that depth first search requires a stack (Vec) to be allocated.
+    /// Note that depth first search requires a stack (alloc::vec::Vec) to be allocated.
     /// Each time this method is called, a stack is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Dfs`] to optimize performance, which will create only the stack only once
+    /// it is recommended to use [`Traversal::over`] to optimize performance, which will create the stack only once
     /// and re-use it to create many iterators.
     ///
-    /// [`Dfs`]: crate::Dfs
+    /// [`Traversal::over`]: crate::Traversal::over
     ///
     /// # Examples
     ///
@@ -829,14 +833,14 @@ where
     ///
     /// # Allocation
     ///
-    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
+    /// Note that breadth first search requires a queue (alloc::collections::VecDeque) to be allocated.
     /// Each time this method is called, a queue is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// it is recommended to use [`Traversal::bfs`] to optimize performance, which will create the queue only once
     /// and re-use it to create many iterators.
     ///
-    /// [`Bfs`]: crate::Bfs
+    /// [`Traversal::bfs`]: crate::Traversal::bfs
     ///
     /// # Examples
     ///
@@ -902,29 +906,20 @@ where
     /// Creates a mutable breadth first search iterator over different values of nodes.
     /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
     ///
-    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
-    ///
-    /// * [`OverData`] yields [`data_mut`] of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
-    /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
-    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
-    ///
-    /// [`data_mut`]: crate::NodeMut::data_mut
-    /// [`OverData`]: crate::iter::OverData
-    /// [`OverDepthData`]: crate::iter::OverDepthData
-    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`IterMutOver`] type parameter `O`.
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
     /// # Allocation
     ///
-    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
+    /// Note that breadth first search requires a queue (alloc::collections::VecDeque) to be allocated.
     /// Each time this method is called, a queue is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// it is recommended to use [`Traversal::over`] to optimize performance, which will create the queue only once
     /// and re-use it to create many iterators.
     ///
-    /// [`Bfs`]: crate::Bfs
+    /// [`Traversal::over`]: crate::Traversal::over
     ///
     /// # Examples
     ///
@@ -1030,14 +1025,15 @@ where
     ///
     /// # Allocation
     ///
-    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
-    /// Each time this method is called, a queue is allocated, used and dropped.
+    /// Note that post-order traversal requires a vector (alloc::vec::Vec) of size **D** to be allocated, where D is
+    /// the maximum depth of the nodes traversed.
+    /// Each time this method is called, a vector is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// it is recommended to use [`Traversal::post_order`] to optimize performance, which will create only the vector only once
     /// and re-use it to create many iterators.
     ///
-    /// [`Bfs`]: crate::Bfs
+    /// [`Traversal::post_order`]: crate::Traversal::post_order
     ///
     /// # Examples
     ///
@@ -1107,29 +1103,21 @@ where
     /// yield; and hence, the root (this) node will be yield at last.
     /// Among other reasons, this makes post-order traversal very useful for pruning or removing nodes from trees.
     ///
-    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic type parameter:
-    ///
-    /// * [`OverData`] yields [`data_mut`] of nodes (therefore, node.dfs_mut_over::&lt;Data&gt;() is equivalent to node.dfs_mut())
-    /// * [`OverDepthData`] yields (depth, data_mut) pairs where the first element is a usize representing the depth of the node in the tree
-    /// * [`OverDepthSiblingData`] yields (depth, sibling_idx, data_mut) tuples where the second element is a usize representing the index of the node among its siblings
-    ///
-    /// [`data_mut`]: crate::NodeMut::data_mut
-    /// [`OverData`]: crate::iter::OverData
-    /// [`OverDepthData`]: crate::iter::OverDepthData
-    /// [`OverDepthSiblingData`]: crate::iter::OverDepthSiblingData
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`IterMutOver`] type parameter `O`.
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
     /// # Allocation
     ///
-    /// Note that breadth first search requires a queue (VecDeque) to be allocated.
-    /// Each time this method is called, a queue is allocated, used and dropped.
+    /// Note that post-order traversal requires a vector (alloc::vec::Vec) of size **D** to be allocated, where D is
+    /// the maximum depth of the nodes traversed.
+    /// Each time this method is called, a vector is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Bfs`] to optimize performance, which will create only the queue only once
+    /// it is recommended to use [`Traversal::post_order`] to optimize performance, which will create only the vector only once
     /// and re-use it to create many iterators.
     ///
-    /// [`Bfs`]: crate::Bfs
+    /// [`Traversal::post_order`]: crate::Traversal::post_order
     ///
     /// # Examples
     ///
