@@ -1,7 +1,7 @@
 use crate::{
     helpers::N,
     iter::{
-        BfsIter, BfsIterMut, ChildrenMutIter, DfsIter, DfsIterMut, IterMutOver, NodeVal,
+        BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, DfsIter, DfsIterMut, IterMutOver,
         NodeValueData,
     },
     node_ref::NodeRefCore,
@@ -698,7 +698,7 @@ where
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
-    pub fn dfs_mut(&self) -> DfsIterMut<NodeVal<NodeValueData>, V, M, P> {
+    pub fn dfs_mut(&self) -> DfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
         DfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
@@ -811,7 +811,7 @@ where
     /// ```
     pub fn dfs_mut_over<K: IterMutOver>(
         &'a self,
-    ) -> DfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+    ) -> DfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         DfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
@@ -895,7 +895,7 @@ where
     /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
     /// assert_eq!(values, [10, 20, 3, 40, 50, 600, 7, 80, 900, 10, 11]);
     /// ```
-    pub fn bfs_mut(&self) -> BfsIterMut<NodeVal<NodeValueData>, V, M, P> {
+    pub fn bfs_mut(&self) -> BfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
@@ -1008,7 +1008,7 @@ where
     /// ```
     pub fn bfs_mut_over<K: IterMutOver>(
         &'a self,
-    ) -> BfsIterMut<'a, K::IterKind<'a, V, M, P>, V, M, P> {
+    ) -> BfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 

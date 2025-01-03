@@ -2,6 +2,8 @@ use crate::{helpers::N, Node, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
+pub enum Never {}
+
 // traits
 
 /// Part of the iterator item that is obtained from the tree node.
@@ -26,6 +28,29 @@ where
 
 // impl
 
+/// Returns the node pointer.
+pub struct NodeValuePtr;
+
+impl<'a, V, M, P> NodeValue<'a, V, M, P> for NodeValuePtr
+where
+    V: TreeVariant + 'a,
+    M: MemoryPolicy<V> + 'a,
+    P: PinnedVec<N<V>> + 'a,
+{
+    type Value = NodePtr<V>;
+
+    type ValueMut = Never;
+
+    #[inline(always)]
+    fn value(_: &'a SelfRefCol<V, M, P>, node: &'a N<V>) -> Self::Value {
+        NodePtr::new(node)
+    }
+
+    fn value_mut(_: &'a SelfRefCol<V, M, P>, _: &'a mut N<V>) -> Self::ValueMut {
+        unreachable!("cannot iterate over mutable nodes")
+    }
+}
+
 /// Returns the entire node.
 pub struct NodeValueNode;
 
@@ -37,7 +62,7 @@ where
 {
     type Value = Node<'a, V, M, P>;
 
-    type ValueMut = ();
+    type ValueMut = Never;
 
     #[inline(always)]
     fn value(col: &'a SelfRefCol<V, M, P>, node: &'a N<V>) -> Self::Value {

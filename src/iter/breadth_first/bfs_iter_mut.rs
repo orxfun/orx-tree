@@ -1,5 +1,5 @@
 use super::BfsIter;
-use crate::iter::IterKindCore;
+use crate::iter::DfsBfsIterKind;
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},
@@ -18,9 +18,9 @@ pub struct BfsIterMut<
     V,
     M = DefaultMemory<V>,
     P = DefaultPinVec<V>,
-    S = VecDeque<<K as IterKindCore<'a, V, M, P>>::QueueElement>,
+    S = VecDeque<<K as DfsBfsIterKind<'a, V, M, P>>::QueueElement>,
 > where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
@@ -31,7 +31,7 @@ pub struct BfsIterMut<
 
 impl<'a, K, V, M, P, S> From<BfsIter<'a, K, V, M, P, S>> for BfsIterMut<'a, K, V, M, P, S>
 where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
@@ -44,7 +44,7 @@ where
 
 impl<'a, K, V, M, P, S> Iterator for BfsIterMut<'a, K, V, M, P, S>
 where
-    K: IterKindCore<'a, V, M, P>,
+    K: DfsBfsIterKind<'a, V, M, P>,
     V: TreeVariant + 'a,
     M: MemoryPolicy<V> + 'a,
     P: PinnedVec<N<V>> + 'a,

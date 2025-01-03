@@ -544,7 +544,7 @@ impl Dfs {
 
 /// An iterable which can create depth-first iterators over and over, using the same only-once allocated stack.
 pub struct DfsCore<V: TreeVariant, K: IterOver> {
-    stack: Vec<K::QueueElement<V>>,
+    stack: Vec<K::DfsBfsQueueElement<V>>,
 }
 
 impl<V, K> Default for DfsCore<V, K>
@@ -577,7 +577,7 @@ where
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a,
     {
-        DfsIter::new_with_queue(root.col(), root.node_ptr().clone(), &mut self.stack)
+        DfsIter::new_using(root.col(), root.node_ptr().clone(), &mut self.stack)
     }
 
     /// Creates a mutable depth-first iterator for the tree rooted at the given `root` node.
@@ -596,7 +596,7 @@ where
         P: PinnedVec<N<V>> + 'a,
         K: IterMutOver,
     {
-        DfsIter::new_with_queue(root.col(), root.node_ptr().clone(), &mut self.stack).into()
+        DfsIter::new_using(root.col(), root.node_ptr().clone(), &mut self.stack).into()
     }
 }
 
@@ -662,18 +662,18 @@ pub type DfsOverDepthSiblingNode<V> = DfsCore<V, OverDepthSiblingNode>;
 
 type DfsIterOf<'a, V, K, M, P> = DfsIter<
     'a,
-    <K as IterOver>::IterKind<'a, V, M, P>,
+    <K as IterOver>::DfsBfsIterKind<'a, V, M, P>,
     V,
     M,
     P,
-    &'a mut Vec<<K as IterOver>::QueueElement<V>>,
+    &'a mut Vec<<K as IterOver>::DfsBfsQueueElement<V>>,
 >;
 
 type DfsIterMutOf<'a, V, K, M, P> = DfsIterMut<
     'a,
-    <K as IterOver>::IterKind<'a, V, M, P>,
+    <K as IterOver>::DfsBfsIterKind<'a, V, M, P>,
     V,
     M,
     P,
-    &'a mut Vec<<K as IterOver>::QueueElement<V>>,
+    &'a mut Vec<<K as IterOver>::DfsBfsQueueElement<V>>,
 >;
