@@ -13,6 +13,8 @@ use orx_selfref_col::MemoryPolicy;
 /// * [`OverDepthNode`] yields (depth, node) pairs where the first element is a usize representing the depth of the node in the tree
 /// * [`OverDepthSiblingNode`] yields (depth, sibling_idx, node) tuples where the second element is a usize representing the index of the node among its siblings
 ///
+/// Finally, if we require to iterate over pointers to the nodes, we can use [`OverPtr`], [`OverDepthPtr`] and [`OverDepthSiblingPtr`].
+///
 /// [`data`]: crate::NodeRef::data
 /// [`data_mut`]: crate::NodeMut::data_mut
 /// [`Node`]: crate::Node
@@ -22,6 +24,9 @@ use orx_selfref_col::MemoryPolicy;
 /// [`OverNode`]: crate::iter::OverNode
 /// [`OverDepthNode`]: crate::iter::OverDepthNode
 /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
+/// [`OverPtr`]: crate::iter::OverPtr
+/// [`OverDepthPtr`]: crate::iter::OverDepthPtr
+/// [`OverDepthSiblingPtr`]: crate::iter::OverDepthSiblingPtr
 pub trait IterOver {
     /// Core iteration kind for stack/queue based iterators such as dfs & bfs.
     type DfsBfsIterKind<'a, V, M, P>: DfsBfsIterKind<

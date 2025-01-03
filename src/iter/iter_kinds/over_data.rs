@@ -1,4 +1,4 @@
-use super::{DfsBfsNodeVal, NodeValueData, NodeValueNode};
+use super::{node_value::NodeValuePtr, DfsBfsNodeVal, NodeValueData, NodeValueNode};
 use crate::{
     helpers::N,
     iter::{IterMutOver, IterOver, PostNodeVal},
@@ -180,6 +180,30 @@ impl IterOver for OverNode {
 
     type PostOrderKind<'a, V, M, P>
         = PostNodeVal<NodeValueNode>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type DfsBfsQueueElement<V>
+        = NodePtr<V>
+    where
+        V: TreeVariant;
+}
+
+/// Iterator over the pointers to the tree nodes.
+pub struct OverPtr;
+
+impl IterOver for OverPtr {
+    type DfsBfsIterKind<'a, V, M, P>
+        = DfsBfsNodeVal<NodeValuePtr>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type PostOrderKind<'a, V, M, P>
+        = PostNodeVal<NodeValuePtr>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,

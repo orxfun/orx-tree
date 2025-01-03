@@ -900,8 +900,8 @@ where
     /// }
     /// ```
     fn post_order_over<O: IterOver>(
-        &'a self,
-    ) -> PostOrderIter<'a, O::PostOrderKind<'a, V, M, P>, V, M, P> {
+        &self,
+    ) -> PostOrderIter<O::PostOrderKind<'_, V, M, P>, V, M, P> {
         PostOrderIter::new(self.col(), self.node_ptr().clone())
     }
 }

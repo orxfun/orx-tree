@@ -1,4 +1,4 @@
-use super::{DfsBfsNodeDepthVal, NodeValueData, NodeValueNode};
+use super::{node_value::NodeValuePtr, DfsBfsNodeDepthVal, NodeValueData, NodeValueNode};
 use crate::{
     helpers::N,
     iter::{IterMutOver, IterOver, PostNodeDepthVal},
@@ -188,6 +188,30 @@ impl IterOver for OverDepthNode {
 
     type PostOrderKind<'a, V, M, P>
         = PostNodeDepthVal<NodeValueNode>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type DfsBfsQueueElement<V>
+        = (usize, NodePtr<V>)
+    where
+        V: TreeVariant;
+}
+
+/// Iterator over (node depth, node pointer) pairs.
+pub struct OverDepthPtr;
+
+impl IterOver for OverDepthPtr {
+    type DfsBfsIterKind<'a, V, M, P>
+        = DfsBfsNodeDepthVal<NodeValuePtr>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a;
+
+    type PostOrderKind<'a, V, M, P>
+        = PostNodeDepthVal<NodeValuePtr>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,

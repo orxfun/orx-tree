@@ -1,5 +1,5 @@
 use orx_selfref_col::{
-    references::iter::ArrayLeftMostPtrIter, MemoryReclaimer, NodePtr, RefsArrayLeftMost,
+    references::iter::ArrayLeftMostPtrIter, MemoryReclaimer, NodePtr, Refs, RefsArrayLeftMost,
     RefsSingle, RefsVec, Variant,
 };
 
@@ -11,7 +11,7 @@ pub trait TreeVariant:
     type Reclaimer: MemoryReclaimer<Self>;
 
     /// Children references of the tree nodes.
-    type Children: RefsChildren<Self>;
+    type Children: RefsChildren<Self> + Refs;
 }
 
 // children
