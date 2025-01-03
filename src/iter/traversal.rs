@@ -1,5 +1,7 @@
 use super::{BfsIterable, DfsIterable, IterOver, OverData};
-use crate::TreeVariant;
+use crate::{helpers::N, TreeVariant};
+use orx_pinned_vec::PinnedVec;
+use orx_selfref_col::MemoryPolicy;
 
 /// Type to create iterables which are capable of repeatedly creating iterators
 /// corresponding to different kinds of traversals starting from different tree nodes
@@ -52,9 +54,9 @@ use crate::TreeVariant;
 /// [`post_order_mut`]: crate::NodeMut::post_order_mut
 /// [`post_order_over`]: crate::NodeRef::post_order_over
 /// [`post_order_mut_over`]: crate::NodeMut::post_order_mut_over
-pub struct Traversals;
+pub struct Traversal;
 
-impl Traversals {
+impl Traversal {
     /// Creates a depth-first-search iterable internally using a stack (alloc::vec::Vec).
     ///
     /// Created iterable can be used repeatedly without allocation to create iterators
@@ -69,7 +71,8 @@ impl Traversals {
     /// [`iter_mut`]: crate::iter::DfsIterable::iter_mut
     /// [`dfs_over`]: Self::dfs_over
     /// [`OverData`]: crate::iter::OverData
-    pub fn dfs<V: TreeVariant>() -> DfsIterable<V, OverData> {
+    pub fn dfs<V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
+    ) -> DfsIterable<OverData, V, M, P> {
         Default::default()
     }
 
@@ -96,7 +99,8 @@ impl Traversals {
     /// [`OverNode`]: crate::iter::OverNode
     /// [`OverDepthNode`]: crate::iter::OverDepthNode
     /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
-    pub fn dfs_over<V: TreeVariant, O: IterOver>() -> DfsIterable<V, O> {
+    pub fn dfs_over<O: IterOver, V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
+    ) -> DfsIterable<O, V, M, P> {
         Default::default()
     }
 
@@ -114,7 +118,8 @@ impl Traversals {
     /// [`iter_mut`]: crate::iter::DfsIterable::iter_mut
     /// [`bfs_over`]: Self::bfs_over
     /// [`OverData`]: crate::iter::OverData
-    pub fn bfs<V: TreeVariant>() -> BfsIterable<V, OverData> {
+    pub fn bfs<V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
+    ) -> BfsIterable<OverData, V, M, P> {
         Default::default()
     }
 
@@ -141,7 +146,8 @@ impl Traversals {
     /// [`OverNode`]: crate::iter::OverNode
     /// [`OverDepthNode`]: crate::iter::OverDepthNode
     /// [`OverDepthSiblingNode`]: crate::iter::OverDepthSiblingNode
-    pub fn bfs_over<V: TreeVariant, O: IterOver>() -> BfsIterable<V, O> {
+    pub fn bfs_over<O: IterOver, V: TreeVariant, M: MemoryPolicy<V>, P: PinnedVec<N<V>>>(
+    ) -> BfsIterable<O, V, M, P> {
         Default::default()
     }
 }
