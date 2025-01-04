@@ -10,21 +10,21 @@ pub trait Traverser {
 
     type NodeDataMut;
 
-    fn iter<'a, V, M, P>(
-        &mut self,
-        node: &impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = <Self::ItemKind as Element>::Item<Self::NodeData>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy<V> + 'a,
-        P: PinnedVec<N<V>> + 'a;
+    // fn iter<'a, V, M, P>(
+    //     &mut self,
+    //     node: &impl NodeRef<'a, V, M, P>,
+    // ) -> impl Iterator<Item = <Self::ItemKind as Element>::Item<Self::NodeData>>
+    // where
+    //     V: TreeVariant + 'a,
+    //     M: MemoryPolicy<V> + 'a,
+    //     P: PinnedVec<N<V>> + 'a;
 
-    fn iter_mut<'a, V, M, P>(
-        &mut self,
-        node_mut: &mut NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = <Self::ItemKind as Element>::Item<Self::NodeDataMut>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy<V> + 'a,
-        P: PinnedVec<N<V>> + 'a;
+    // fn iter_mut<'a, V, M, P>(
+    //     &mut self,
+    //     node_mut: &mut NodeMut<'a, V, M, P>,
+    // ) -> impl Iterator<Item = <Self::ItemKind as Element>::Item<Self::NodeDataMut>>
+    // where
+    //     V: TreeVariant + 'a,
+    //     M: MemoryPolicy<V> + 'a,
+    //     P: PinnedVec<N<V>> + 'a;
 }
