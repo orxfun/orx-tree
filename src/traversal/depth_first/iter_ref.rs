@@ -51,6 +51,7 @@ where
     P: PinnedVec<N<V>>,
     E: Element,
     D: NodeItem<'a, V, M, P>,
+    Item<V, E>: Clone,
 {
     fn clone(&self) -> Self {
         Self {

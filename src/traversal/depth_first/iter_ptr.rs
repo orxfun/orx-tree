@@ -51,6 +51,7 @@ impl<V, E> Clone for DfsIterPtr<V, E, Stack<V, E>>
 where
     E: Element,
     V: TreeVariant,
+    Item<V, E>: Clone,
 {
     fn clone(&self) -> Self {
         Self {

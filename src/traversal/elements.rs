@@ -5,10 +5,7 @@ use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
 pub struct Val;
 impl Element for Val {
-    type Item<D>
-        = D
-    where
-        D: Clone;
+    type Item<D> = D;
 
     fn from_root<D: Clone>(root: D) -> Self::Item<D> {
         root
@@ -38,10 +35,7 @@ impl Element for Val {
 
 pub struct DepthVal;
 impl Element for DepthVal {
-    type Item<D>
-        = (usize, D)
-    where
-        D: Clone;
+    type Item<D> = (usize, D);
 
     fn from_root<D: Clone>(root: D) -> Self::Item<D> {
         (0, root)
@@ -72,10 +66,7 @@ impl Element for DepthVal {
 
 pub struct SiblingIdxVal;
 impl Element for SiblingIdxVal {
-    type Item<D>
-        = (usize, D)
-    where
-        D: Clone;
+    type Item<D> = (usize, D);
 
     fn from_root<D: Clone>(root: D) -> Self::Item<D> {
         (0, root)
@@ -107,10 +98,7 @@ impl Element for SiblingIdxVal {
 
 pub struct DepthSiblingIdxVal;
 impl Element for DepthSiblingIdxVal {
-    type Item<D>
-        = (usize, usize, D)
-    where
-        D: Clone;
+    type Item<D> = (usize, usize, D);
 
     fn from_root<D: Clone>(root: D) -> Self::Item<D> {
         (0, 0, root)

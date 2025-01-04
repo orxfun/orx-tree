@@ -4,9 +4,7 @@ use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
 pub trait Element {
-    type Item<D>: Clone
-    where
-        D: Clone;
+    type Item<D>;
 
     fn from_root<D: Clone>(root: D) -> Self::Item<D>;
 
