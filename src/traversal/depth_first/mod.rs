@@ -2,8 +2,9 @@
 mod tests;
 
 mod dfs_core;
-mod dfs_iter;
-mod dfs_iter_ptr;
+mod iter_mut;
+mod iter_ptr;
+mod iter_ref;
 
 pub use dfs_core::DfsCore;
-pub use dfs_iter_ptr::DfsIterPtr;
+pub use iter_ptr::DfsIterPtr;

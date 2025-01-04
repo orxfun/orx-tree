@@ -1,7 +1,7 @@
 use crate::{
     node_ref::NodeRefCore,
     traversal::{
-        depth_first::dfs_iter::DfsIter, node_item::NodeItem, DepthSiblingIdxVal, DepthVal,
+        depth_first::iter_ref::DfsIterRef, node_item::NodeItem, DepthSiblingIdxVal, DepthVal,
         DfsIterPtr, SiblingIdxVal, Val,
     },
     AsTreeNode, Dyn, DynTree, Node, NodeRef,
@@ -62,19 +62,19 @@ where
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = DfsIter::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
     assert_eq!(data(iter), [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
 
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = DfsIter::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
     assert_eq!(data(iter), [3, 6, 9, 7, 10, 11]);
 
     let n7 = n3.child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((stack, ptr));
-    let iter = DfsIter::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
     assert_eq!(data(iter), [7, 10, 11]);
 }
 
@@ -101,7 +101,7 @@ fn dfs_iter_depth() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
-    let iter = DfsIter::<_, _, _, DepthVal, _, &i32>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, DepthVal, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.map(|x| x.0).collect::<Vec<_>>(),
         [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]
@@ -110,7 +110,7 @@ fn dfs_iter_depth() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
-    let iter = DfsIter::<_, _, _, DepthVal, _, &i32>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, DepthVal, _, &i32>::from((root.col(), iter));
     assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 1, 2, 1, 2, 2]);
 }
 
@@ -122,7 +122,7 @@ fn dfs_iter_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
-    let iter = DfsIter::<_, _, _, SiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, SiblingIdxVal, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.map(|x| x.0).collect::<Vec<_>>(),
         [0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1]
@@ -131,7 +131,7 @@ fn dfs_iter_sibling() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
-    let iter = DfsIter::<_, _, _, SiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, SiblingIdxVal, _, &i32>::from((root.col(), iter));
     assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 0, 1, 0, 1]);
 }
 
@@ -142,7 +142,7 @@ fn dfs_iter_depth_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
-    let iter = DfsIter::<_, _, _, DepthSiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, DepthSiblingIdxVal, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.clone().map(|x| x.0).collect::<Vec<_>>(),
         [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]
@@ -156,7 +156,7 @@ fn dfs_iter_depth_sibling() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
-    let iter = DfsIter::<_, _, _, DepthSiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter = DfsIterRef::<_, _, _, DepthSiblingIdxVal, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.clone().map(|x| x.0).collect::<Vec<_>>(),
         [0, 1, 2, 1, 2, 2]

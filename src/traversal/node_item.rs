@@ -1,6 +1,6 @@
 use crate::tree::{DefaultMemory, DefaultPinVec};
+use crate::TreeVariant;
 use crate::{helpers::N, Node};
-use crate::{NodeRef, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
@@ -12,6 +12,7 @@ where
 {
     fn from_ptr(col: &'a SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self;
 
+    #[cfg(test)]
     fn node_data(&self) -> &V::Item;
 }
 
@@ -26,8 +27,10 @@ where
         Node::new(col, node_ptr)
     }
 
+    #[cfg(test)]
     #[inline(always)]
-    fn node_data(&self) -> &<V>::Item {
+    fn node_data(&self) -> &V::Item {
+        use crate::NodeRef;
         self.data()
     }
 }
@@ -44,8 +47,9 @@ where
         node.data().expect("active tree node has data")
     }
 
+    #[cfg(test)]
     #[inline(always)]
-    fn node_data(&self) -> &<V>::Item {
+    fn node_data(&self) -> &V::Item {
         self
     }
 }
@@ -61,8 +65,9 @@ where
         node_ptr
     }
 
+    #[cfg(test)]
     #[inline(always)]
-    fn node_data(&self) -> &<V>::Item {
+    fn node_data(&self) -> &V::Item {
         unsafe { &*self.ptr() }
             .data()
             .expect("active tree node has data")

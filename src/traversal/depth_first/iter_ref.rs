@@ -11,7 +11,7 @@ use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 type Item<V, E> = <E as Element>::Item<NodePtr<V>>;
 type Stack<V, E> = Vec<Item<V, E>>;
 
-pub struct DfsIter<'a, V, M, P, E, S, D>
+pub struct DfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -26,7 +26,7 @@ where
 }
 
 impl<'a, V, M, P, E, S, D> From<(&'a SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)>
-    for DfsIter<'a, V, M, P, E, S, D>
+    for DfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -44,7 +44,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, D> Clone for DfsIter<'a, V, M, P, E, Stack<V, E>, D>
+impl<'a, V, M, P, E, D> Clone for DfsIterRef<'a, V, M, P, E, Stack<V, E>, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -61,7 +61,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, S, D> Iterator for DfsIter<'a, V, M, P, E, S, D>
+impl<'a, V, M, P, E, S, D> Iterator for DfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
