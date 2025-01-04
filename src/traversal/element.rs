@@ -43,7 +43,7 @@ pub trait Element {
         P: PinnedVec<N<V>>,
         E: NodeItemMut<'a, V, M, P>,
     {
-        let map = |ptr| E::from_ptr(col, ptr);
+        let map = |ptr: NodePtr<V>| E::from_ptr(col, ptr);
         Self::map(element_ptr, map)
     }
 }

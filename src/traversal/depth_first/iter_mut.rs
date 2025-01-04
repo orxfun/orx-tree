@@ -59,10 +59,8 @@ where
     type Item = E::Item<D>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        return None;
-
         self.iter
             .next()
-            .map(|element: Item<V, E>| E::from_element_ptr(self.col, element))
+            .map(move |element: Item<V, E>| E::from_element_ptr(self.col, element))
     }
 }
