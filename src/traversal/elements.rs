@@ -7,17 +7,17 @@ pub struct Val;
 impl Element for Val {
     type Item<D> = D;
 
-    fn from_root<D: Clone>(root: D) -> Self::Item<D> {
+    fn from_root<D>(root: D) -> Self::Item<D> {
         root
     }
 
     #[inline(always)]
-    fn node_value<D: Clone>(element: &Self::Item<D>) -> &D {
+    fn node_value<D>(element: &Self::Item<D>) -> &D {
         element
     }
 
     #[inline(always)]
-    fn children<D: Clone>(
+    fn children<D>(
         _: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
     ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
@@ -37,17 +37,17 @@ pub struct DepthVal;
 impl Element for DepthVal {
     type Item<D> = (usize, D);
 
-    fn from_root<D: Clone>(root: D) -> Self::Item<D> {
+    fn from_root<D>(root: D) -> Self::Item<D> {
         (0, root)
     }
 
     #[inline(always)]
-    fn node_value<D: Clone>(element: &Self::Item<D>) -> &D {
+    fn node_value<D>(element: &Self::Item<D>) -> &D {
         &element.1
     }
 
     #[inline(always)]
-    fn children<D: Clone>(
+    fn children<D>(
         parent: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
     ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
@@ -68,17 +68,17 @@ pub struct SiblingIdxVal;
 impl Element for SiblingIdxVal {
     type Item<D> = (usize, D);
 
-    fn from_root<D: Clone>(root: D) -> Self::Item<D> {
+    fn from_root<D>(root: D) -> Self::Item<D> {
         (0, root)
     }
 
     #[inline(always)]
-    fn node_value<D: Clone>(element: &Self::Item<D>) -> &D {
+    fn node_value<D>(element: &Self::Item<D>) -> &D {
         &element.1
     }
 
     #[inline(always)]
-    fn children<D: Clone>(
+    fn children<D>(
         _: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
     ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
@@ -100,17 +100,17 @@ pub struct DepthSiblingIdxVal;
 impl Element for DepthSiblingIdxVal {
     type Item<D> = (usize, usize, D);
 
-    fn from_root<D: Clone>(root: D) -> Self::Item<D> {
+    fn from_root<D>(root: D) -> Self::Item<D> {
         (0, 0, root)
     }
 
     #[inline(always)]
-    fn node_value<D: Clone>(element: &Self::Item<D>) -> &D {
+    fn node_value<D>(element: &Self::Item<D>) -> &D {
         &element.2
     }
 
     #[inline(always)]
-    fn children<D: Clone>(
+    fn children<D>(
         parent: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
     ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {

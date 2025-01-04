@@ -6,11 +6,11 @@ use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 pub trait Element {
     type Item<D>;
 
-    fn from_root<D: Clone>(root: D) -> Self::Item<D>;
+    fn from_root<D>(root: D) -> Self::Item<D>;
 
-    fn node_value<D: Clone>(element: &Self::Item<D>) -> &D;
+    fn node_value<D>(element: &Self::Item<D>) -> &D;
 
-    fn children<D: Clone>(
+    fn children<D>(
         parent: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
     ) -> impl DoubleEndedIterator<Item = Self::Item<D>>;
