@@ -8,7 +8,7 @@ use core::marker::PhantomData;
 use orx_self_or::SoM;
 use orx_selfref_col::NodePtr;
 
-type Item<V, E> = <E as Element>::Item<NodePtr<V>>;
+pub type Item<V, E> = <E as Element>::Item<NodePtr<V>>;
 
 pub struct PostOrderIterPtr<V, E, S = States<V>>
 where
