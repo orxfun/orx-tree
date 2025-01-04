@@ -15,7 +15,7 @@ pub trait Element {
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
     ) -> impl DoubleEndedIterator<Item = Self::Item<D>>;
 
-    fn map<D: Clone, M, E: Clone>(element: Self::Item<D>, map: M) -> Self::Item<E>
+    fn map<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
     where
         M: FnOnce(D) -> E;
 

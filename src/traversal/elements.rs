@@ -25,7 +25,7 @@ impl Element for Val {
     }
 
     #[inline(always)]
-    fn map<D: Clone, M, E: Clone>(element: Self::Item<D>, map: M) -> Self::Item<E>
+    fn map<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
     where
         M: FnOnce(D) -> E,
     {
@@ -56,7 +56,7 @@ impl Element for DepthVal {
     }
 
     #[inline(always)]
-    fn map<D: Clone, M, E: Clone>(element: Self::Item<D>, map: M) -> Self::Item<E>
+    fn map<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
     where
         M: FnOnce(D) -> E,
     {
@@ -88,7 +88,7 @@ impl Element for SiblingIdxVal {
     }
 
     #[inline(always)]
-    fn map<D: Clone, M, E: Clone>(element: Self::Item<D>, map: M) -> Self::Item<E>
+    fn map<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
     where
         M: FnOnce(D) -> E,
     {
@@ -121,7 +121,7 @@ impl Element for DepthSiblingIdxVal {
     }
 
     #[inline(always)]
-    fn map<D: Clone, M, E: Clone>(element: Self::Item<D>, map: M) -> Self::Item<E>
+    fn map<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
     where
         M: FnOnce(D) -> E,
     {
