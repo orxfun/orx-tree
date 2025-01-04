@@ -19,7 +19,7 @@ pub trait Element {
     where
         M: FnOnce(D) -> E;
 
-    fn from_element_ptr<'a, V, M, P, E: Clone>(
+    fn from_element_ptr<'a, V, M, P, E>(
         col: &'a SelfRefCol<V, M, P>,
         element_ptr: Self::Item<NodePtr<V>>,
     ) -> Self::Item<E>
@@ -33,7 +33,7 @@ pub trait Element {
         Self::map(element_ptr, map)
     }
 
-    fn from_element_ptr_mut<'a, V, M, P, E: Clone>(
+    fn from_element_ptr_mut<'a, V, M, P, E>(
         col: &'a mut SelfRefCol<V, M, P>,
         element_ptr: Self::Item<NodePtr<V>>,
     ) -> Self::Item<E>
