@@ -34,7 +34,7 @@ pub trait Element {
     }
 
     fn from_element_ptr_mut<'a, V, M, P, E>(
-        col: &'a mut SelfRefCol<V, M, P>,
+        col: &'a SelfRefCol<V, M, P>,
         element_ptr: Self::Item<NodePtr<V>>,
     ) -> Self::Item<E>
     where

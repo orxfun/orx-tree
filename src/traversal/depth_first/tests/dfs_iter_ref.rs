@@ -40,8 +40,10 @@ fn tree() -> DynTree<i32> {
 }
 
 #[test]
-fn dfs_iter_empty() {
-    let mut iter = DfsIterPtr::<Dyn<i32>, Val>::default();
+fn dfs_iter_ref_empty() {
+    let tree = DynTree::<i32>::empty();
+    let iter = DfsIterPtr::<Dyn<i32>, Val>::default();
+    let mut iter = DfsIterRef::<_, _, _, Val, _, NodePtr<_>>::from((&tree.0, iter));
     assert_eq!(iter.next(), None);
 }
 
@@ -79,22 +81,22 @@ where
 }
 
 #[test]
-fn dfs_iter_ptr() {
+fn dfs_iter_ref_ptr() {
     dfs_iter_for::<'_, NodePtr<Dyn<i32>>>();
 }
 
 #[test]
-fn dfs_iter_val() {
+fn dfs_iter_ref_val() {
     dfs_iter_for::<'_, Node<'_, Dyn<i32>>>();
 }
 
 #[test]
-fn dfs_iter_node() {
+fn dfs_iter_ref_node() {
     dfs_iter_for::<'_, &i32>();
 }
 
 #[test]
-fn dfs_iter_depth() {
+fn dfs_iter_ref_depth() {
     let tree = tree();
     let mut stack = Vec::default();
 
@@ -115,7 +117,7 @@ fn dfs_iter_depth() {
 }
 
 #[test]
-fn dfs_iter_sibling() {
+fn dfs_iter_ref_sibling() {
     let tree = tree();
     let mut stack = Vec::default();
 
@@ -136,7 +138,7 @@ fn dfs_iter_sibling() {
 }
 
 #[test]
-fn dfs_iter_depth_sibling() {
+fn dfs_iter_ref_depth_sibling() {
     let tree = tree();
 
     let root = tree.root().unwrap();
