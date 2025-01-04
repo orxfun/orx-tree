@@ -1,5 +1,8 @@
-use super::depth_nodes::{DepthNode, DepthNodes};
-use crate::TreeVariant;
+use super::{
+    depth_nodes::{DepthNode, DepthNodes},
+    element::PostOrderElement,
+};
+use crate::{iter::Enumerator, TreeVariant};
 use core::marker::PhantomData;
 use orx_self_or::SoM;
 use orx_selfref_col::NodePtr;
@@ -8,19 +11,21 @@ use orx_selfref_col::NodePtr;
 /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
 ///
 /// Yields node pointers; i.e., `NodePtr<V>` pointing to the traversed nodes.
-pub struct PostOrderIterPtr<V, D = DepthNodes<V>>
+pub struct PostOrderIterPtr<V, D, E>
 where
     V: TreeVariant,
     D: SoM<DepthNodes<V>>,
+    E: PostOrderElement,
 {
     pub(super) depth_nodes: D,
     pub(super) depth: usize,
-    phantom: PhantomData<V>,
+    phantom: PhantomData<(V, E)>,
 }
 
-impl<V> PostOrderIterPtr<V, DepthNodes<V>>
+impl<V, E> PostOrderIterPtr<V, DepthNodes<V>, E>
 where
     V: TreeVariant,
+    E: PostOrderElement,
 {
     pub(crate) fn new(root_ptr: NodePtr<V>) -> Self {
         let mut depth_nodes = DepthNodes::default();
@@ -33,9 +38,10 @@ where
     }
 }
 
-impl<'a, V> PostOrderIterPtr<V, &'a mut DepthNodes<V>>
+impl<'a, V, E> PostOrderIterPtr<V, &'a mut DepthNodes<V>, E>
 where
     V: TreeVariant,
+    E: PostOrderElement,
 {
     pub(crate) fn new_using(root_ptr: NodePtr<V>, depth_nodes: &'a mut DepthNodes<V>) -> Self {
         depth_nodes.init(root_ptr);
@@ -49,10 +55,11 @@ where
 
 // iterator
 
-impl<V, D> PostOrderIterPtr<V, D>
+impl<V, D, E> PostOrderIterPtr<V, D, E>
 where
     V: TreeVariant,
     D: SoM<DepthNodes<V>>,
+    E: PostOrderElement,
 {
     pub(super) fn current(&self) -> Option<&DepthNode<V>> {
         match self.depth < usize::MAX {
@@ -78,12 +85,13 @@ where
     }
 }
 
-impl<V, D> Iterator for PostOrderIterPtr<V, D>
+impl<V, D, E> Iterator for PostOrderIterPtr<V, D, E>
 where
     V: TreeVariant,
     D: SoM<DepthNodes<V>>,
+    E: PostOrderElement,
 {
-    type Item = NodePtr<V>;
+    type Item = <E::Enumerator as Enumerator>::Output<NodePtr<V>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -93,8 +101,10 @@ where
                     Some(child) => self.move_deeper(child),
                     _ => {
                         let ptr = current.ptr();
+                        let output =
+                            Some(E::element_ptr(ptr, self.depth, self.depth_nodes.get_ref()));
                         self.move_shallower();
-                        return Some(ptr);
+                        return output;
                     }
                 },
             }

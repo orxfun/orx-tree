@@ -28,6 +28,7 @@ mod helpers;
 mod node;
 mod node_mut;
 mod node_ref;
+mod traversal;
 mod tree;
 mod tree_variant;
 
