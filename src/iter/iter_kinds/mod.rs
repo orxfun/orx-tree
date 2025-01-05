@@ -2,7 +2,6 @@ mod dfs_bfs_data;
 mod dfs_bfs_depth_data;
 mod dfs_bfs_depth_sibling_data;
 mod dfs_bfs_kind;
-mod element;
 mod enumerator;
 mod node_data;
 mod node_value;
