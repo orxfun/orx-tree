@@ -20,5 +20,39 @@ pub struct PostOrder<V>
 where
     V: TreeVariant,
 {
-    stack: States<V>,
+    states: States<V>,
+}
+
+impl<V> Default for PostOrder<V>
+where
+    V: TreeVariant,
+{
+    fn default() -> Self {
+        Self {
+            states: Default::default(),
+        }
+    }
+}
+
+impl<V, O> Traverser<V, O> for PostOrder<V>
+where
+    V: TreeVariant,
+    O: Over<V>,
+    O::Enumeration: PostOrderEnumeration,
+{
+    fn iter<'a, M, P>(
+        &mut self,
+        node: &'a impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a,
+        O: 'a,
+        Self: 'a,
+    {
+        let root = node.node_ptr().clone();
+        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
+        PostOrderIterRef::from((node.col(), iter_ptr))
+    }
 }
