@@ -899,12 +899,9 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn post_order_over<K: IterOver>(
+    fn post_order_over<K: IterOver + 'a>(
         &'a self,
-    ) -> PostOrderIter<'a, K::PostOrderKind<'a, V, M, P>, V, M, P>
-    where
-        K: 'a,
-    {
+    ) -> PostOrderIter<'a, K::PostOrderKind<'a, V, M, P>, V, M, P> {
         PostOrderIter::new(self.col(), self.node_ptr().clone())
     }
 }

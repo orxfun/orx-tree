@@ -30,10 +30,10 @@ pub trait PostOrderElement {
     }
 
     #[inline(always)]
-    fn element<'a, V, M, P>(
-        col: &'a SelfRefCol<V, M, P>,
+    fn element<V, M, P>(
+        col: &SelfRefCol<V, M, P>,
         output_ptr: <Self::Enumerator as Enumerator>::Output<NodePtr<V>>,
-    ) -> <Self::Enumerator as Enumerator>::Output<<Self::NodeData as NodeData>::Value<'a, V, M, P>>
+    ) -> <Self::Enumerator as Enumerator>::Output<<Self::NodeData as NodeData>::Value<'_, V, M, P>>
     where
         V: TreeVariant,
         M: MemoryPolicy<V>,
@@ -45,10 +45,10 @@ pub trait PostOrderElement {
     }
 
     #[inline(always)]
-    fn element_mut<'a, V, M, P>(
-        col: &'a mut SelfRefCol<V, M, P>,
+    fn element_mut<V, M, P>(
+        col: &mut SelfRefCol<V, M, P>,
         output_ptr: <Self::Enumerator as Enumerator>::Output<NodePtr<V>>,
-    ) -> <Self::Enumerator as Enumerator>::Output<<Self::NodeData as NodeData>::ValueMut<'a, V, M, P>>
+    ) -> <Self::Enumerator as Enumerator>::Output<<Self::NodeData as NodeData>::ValueMut<'_, V, M, P>>
     where
         V: TreeVariant,
         M: MemoryPolicy<V>,

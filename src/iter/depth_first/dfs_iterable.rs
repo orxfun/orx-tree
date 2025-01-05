@@ -11,10 +11,10 @@ use orx_split_vec::PinnedVec;
 ///
 /// # Examples
 ///
-/// The following example demonstrates how the iterable created from [`Traversal`] can be used
+/// The following example demonstrates how the iterable created from [`TraversalDepr`] can be used
 /// to repeatedly iterate over trees without requiring new allocation.
 ///
-/// [`Traversal`]: crate::Traversal
+/// [`TraversalDepr`]: crate::TraversalDepr
 ///
 /// ```
 /// use orx_tree::*;
@@ -47,7 +47,7 @@ use orx_split_vec::PinnedVec;
 /// // create the iterable for dfs traversal
 /// // that creates the internal stack once
 ///
-/// let mut dfs = Traversal::dfs();
+/// let mut dfs = TraversalDepr::dfs();
 ///
 /// // repeatedly create iterators from it, without allocation
 ///

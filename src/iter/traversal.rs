@@ -18,8 +18,8 @@ use orx_selfref_col::MemoryPolicy;
 /// * A dfs iterator can be created from a tree node using [`dfs`], [`dfs_mut`],
 ///   [`dfs_over`] or [`dfs_mut_over`]. Each time these methods are called a
 ///   stack will be created and dropped at the end of the iteration.
-/// * Alternatively, one can create a dfs iterable using [`Traversal::dfs`] or
-///   [`Traversal::over`] methods. These iterables allocate the stack only
+/// * Alternatively, one can create a dfs iterable using [`TraversalDepr::dfs`] or
+///   [`TraversalDepr::over`] methods. These iterables allocate the stack only
 ///   once and can be used to repeatedly create iterators without new allocations.
 ///
 /// ## bfs (breadth first search)
@@ -28,8 +28,8 @@ use orx_selfref_col::MemoryPolicy;
 /// * A bfs iterator can be created from a tree node using [`bfs`], [`bfs_mut`],
 ///   [`bfs_over`] or [`bfs_mut_over`]. Each time these methods are called a
 ///   queue will be created and dropped at the end of the iteration.
-/// * Alternatively, one can create a bfs iterable using [`Traversal::bfs`] or
-///   [`Traversal::over`] methods. These iterables allocate the queue only
+/// * Alternatively, one can create a bfs iterable using [`TraversalDepr::bfs`] or
+///   [`TraversalDepr::over`] methods. These iterables allocate the queue only
 ///   once and can be used to repeatedly create iterators without new allocations.
 ///
 /// ## post-order
@@ -39,7 +39,7 @@ use orx_selfref_col::MemoryPolicy;
 /// * A post order iterator can be created from a tree node using [`post_order`], [`post_order_mut`],
 ///   [`post_order_over`] or [`post_order_mut_over`]. Each time these methods are called a
 ///   vector will be created and dropped at the end of the iteration.
-/// * Alternatively, one can create a post order iterable using [`Traversal::post_order`] method.
+/// * Alternatively, one can create a post order iterable using [`TraversalDepr::post_order`] method.
 ///   This iterable allocates the vector only once and can be used to repeatedly create iterators
 ///   without new allocations.
 ///
@@ -56,9 +56,9 @@ use orx_selfref_col::MemoryPolicy;
 /// [`post_order_over`]: crate::NodeRef::post_order_over
 /// [`post_order_mut_over`]: crate::NodeMut::post_order_mut_over
 #[derive(Default)]
-pub struct Traversal;
+pub struct TraversalDepr;
 
-impl Traversal {
+impl TraversalDepr {
     /// Creates a depth-first-search iterable internally using a stack (alloc::vec::Vec).
     ///
     /// Created iterable can be used repeatedly without allocation to create iterators
@@ -67,16 +67,16 @@ impl Traversal {
     ///
     /// Created iterators traverse [`OverData`]; i.e., yield a reference or a mutable
     /// reference to the data of the nodes.
-    /// See also [`Traversal::over`] for other variants.
+    /// See also [`TraversalDepr::over`] for other variants.
     ///
     /// [`iter`]: crate::iter::DfsIterable::iter
     /// [`iter_mut`]: crate::iter::DfsIterable::iter_mut
-    /// [`Traversal::over`]: Self::over
+    /// [`TraversalDepr::over`]: Self::over
     /// [`OverData`]: crate::iter::OverData
     ///
     /// # Examples
     ///
-    /// The following example demonstrates how the iterable created from [`Traversal`] can be used
+    /// The following example demonstrates how the iterable created from [`TraversalDepr`] can be used
     /// to repeatedly iterate over trees without requiring new allocation.
     ///
     /// ```
@@ -110,7 +110,7 @@ impl Traversal {
     /// // create the iterable for dfs traversal
     /// // that creates the internal stack once
     ///
-    /// let mut dfs = Traversal::dfs();
+    /// let mut dfs = TraversalDepr::dfs();
     ///
     /// // repeatedly create iterators from it, without allocation
     ///
@@ -144,16 +144,16 @@ impl Traversal {
     ///
     /// Created iterators traverse [`OverData`]; i.e., yield a reference or a mutable
     /// reference to the data of the nodes.
-    /// See also [`Traversal::over`] for other variants.
+    /// See also [`TraversalDepr::over`] for other variants.
     ///
     /// [`iter`]: crate::iter::DfsIterable::iter
     /// [`iter_mut`]: crate::iter::DfsIterable::iter_mut
-    /// [`Traversal::over`]: Self::over
+    /// [`TraversalDepr::over`]: Self::over
     /// [`OverData`]: crate::iter::OverData
     ///
     /// # Examples
     ///
-    /// The following example demonstrates how the iterable created from [`Traversal`] can be used
+    /// The following example demonstrates how the iterable created from [`TraversalDepr`] can be used
     /// to repeatedly iterate over trees without requiring new allocation.
     ///
     /// ```
@@ -187,7 +187,7 @@ impl Traversal {
     /// // create the iterable for bfs traversal
     /// // that creates the internal queue once
     ///
-    /// let mut bfs = Traversal::bfs();
+    /// let mut bfs = TraversalDepr::bfs();
     ///
     /// // repeatedly create iterators from it, without allocation
     ///
@@ -232,7 +232,7 @@ impl Traversal {
     ///
     /// # Examples
     ///
-    /// The following example demonstrates how the iterable created from [`Traversal`] can be used
+    /// The following example demonstrates how the iterable created from [`TraversalDepr`] can be used
     /// to repeatedly iterate over trees without requiring new allocation.
     ///
     /// ```
@@ -267,7 +267,7 @@ impl Traversal {
     /// // create the iterable for post-order traversal
     /// // that creates the internal vector once
     ///
-    /// let mut po = Traversal::post_order();
+    /// let mut po = TraversalDepr::post_order();
     ///
     /// // repeatedly create iterators from it, without allocation
     ///
@@ -381,7 +381,7 @@ impl<O: IterOver> TraversalOver<O> {
     /// // create the iterable for dfs traversal over (depth, sibling, data)
     /// // that creates the internal stack once
     ///
-    /// let mut dfs = Traversal::over::<OverDepthSiblingData>().dfs();
+    /// let mut dfs = TraversalDepr::over::<OverDepthSiblingData>().dfs();
     ///
     /// // repeatedly create iterators from it, without allocation
     ///
@@ -483,7 +483,7 @@ impl<O: IterOver> TraversalOver<O> {
     /// // create the iterable for bfs traversal over (depth, sibling, data)
     /// // that creates the internal stack once
     ///
-    /// let mut bfs = Traversal::over::<OverDepthSiblingData>().bfs();
+    /// let mut bfs = TraversalDepr::over::<OverDepthSiblingData>().bfs();
     ///
     /// // repeatedly create iterators from it, without allocation
     ///

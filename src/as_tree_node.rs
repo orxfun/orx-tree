@@ -31,11 +31,17 @@ where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>;
 
+    /// # Safety
+    ///
+    /// TODO
     unsafe fn node_unchecked<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
     where
         M: MemoryPolicy<V>,
         P: PinnedVec<N<V>>;
 
+    /// # Safety
+    ///
+    /// TODO
     unsafe fn node_mut_unchecked<'a, M, P>(
         &self,
         tree: &'a mut Tree<V, M, P>,

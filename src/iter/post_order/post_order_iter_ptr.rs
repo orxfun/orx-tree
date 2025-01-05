@@ -38,20 +38,20 @@ where
     }
 }
 
-impl<'a, V, E> PostOrderIterPtr<V, &'a mut DepthNodes<V>, E>
-where
-    V: TreeVariant,
-    E: PostOrderElement,
-{
-    pub(crate) fn new_using(root_ptr: NodePtr<V>, depth_nodes: &'a mut DepthNodes<V>) -> Self {
-        depth_nodes.init(root_ptr);
-        Self {
-            depth_nodes,
-            depth: 0,
-            phantom: PhantomData,
-        }
-    }
-}
+// impl<'a, V, E> PostOrderIterPtr<V, &'a mut DepthNodes<V>, E>
+// where
+//     V: TreeVariant,
+//     E: PostOrderElement,
+// {
+//     pub(crate) fn new_using(root_ptr: NodePtr<V>, depth_nodes: &'a mut DepthNodes<V>) -> Self {
+//         depth_nodes.init(root_ptr);
+//         Self {
+//             depth_nodes,
+//             depth: 0,
+//             phantom: PhantomData,
+//         }
+//     }
+// }
 
 // iterator
 

@@ -2,9 +2,10 @@ use crate::{
     helpers::N,
     iter::{
         BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, DfsIter, DfsIterMut, IterMutOver,
-        NodeValueData, OverPtr, PostNodeVal, PostOrderIter, PostOrderIterMut, PostOrderIterPtr,
+        NodeValueData, PostNodeVal, PostOrderIter, PostOrderIterMut,
     },
     node_ref::NodeRefCore,
+    traversal::{post_order::iter_ptr::PostOrderIterPtr, Val},
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
     TreeVariant,
@@ -477,7 +478,7 @@ where
         // taking its data out and emptying all of its previous and next links.
         // Close operation is lazy and does not invalidate the pointers that we the
         // shared reference to create.
-        let iter = PostOrderIterPtr::<_, _, OverPtr>::new(self.node_ptr.clone());
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr.clone()));
         for ptr in iter {
             if ptr != self.node_ptr {
                 self.col.close(&ptr);
@@ -488,7 +489,7 @@ where
         if let Some(parent) = node.prev_mut().get() {
             let parent = unsafe { &mut *parent.ptr_mut() };
             let sibling_idx = parent.next_mut().remove(self.node_ptr.ptr() as usize);
-            assert!(sibling_idx.is_some())
+            debug_assert!(sibling_idx.is_some());
         }
 
         let root_ptr = self.col.ends().get().expect("tree is not empty");
