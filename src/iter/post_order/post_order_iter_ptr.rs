@@ -22,21 +22,21 @@ where
     phantom: PhantomData<(V, E)>,
 }
 
-impl<V, E> PostOrderIterPtr<V, DepthNodes<V>, E>
-where
-    V: TreeVariant,
-    E: PostOrderElement,
-{
-    pub(crate) fn new(root_ptr: NodePtr<V>) -> Self {
-        let mut depth_nodes = DepthNodes::default();
-        depth_nodes.init(root_ptr);
-        Self {
-            depth_nodes,
-            depth: 0,
-            phantom: PhantomData,
-        }
-    }
-}
+// impl<V, E> PostOrderIterPtr<V, DepthNodes<V>, E>
+// where
+//     V: TreeVariant,
+//     E: PostOrderElement,
+// {
+//     pub(crate) fn new(root_ptr: NodePtr<V>) -> Self {
+//         let mut depth_nodes = DepthNodes::default();
+//         depth_nodes.init(root_ptr);
+//         Self {
+//             depth_nodes,
+//             depth: 0,
+//             phantom: PhantomData,
+//         }
+//     }
+// }
 
 // impl<'a, V, E> PostOrderIterPtr<V, &'a mut DepthNodes<V>, E>
 // where

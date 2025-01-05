@@ -766,7 +766,7 @@ where
     /// assert_eq!(values, [10, 11, 7]);
     /// ```
     fn post_order(&self) -> PostOrderIter<PostNodeVal<NodeValueData>, V, M, P> {
-        PostOrderIter::new(self.col(), self.node_ptr().clone()).into()
+        PostOrderIter::new(self.col(), self.node_ptr().clone())
     }
 
     /// Creates an iterator for post-order traversal rooted at this node over different values of the nodes

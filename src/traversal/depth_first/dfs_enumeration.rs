@@ -67,9 +67,7 @@ impl DepthFirstEnumeration for SiblingIdxVal {
         _: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
     ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
-        children_data
-            .enumerate()
-            .map(|(sibling_idx, data)| (sibling_idx, data))
+        children_data.enumerate()
     }
 }
 

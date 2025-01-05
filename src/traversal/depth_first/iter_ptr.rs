@@ -55,7 +55,7 @@ where
     fn clone(&self) -> Self {
         Self {
             stack: self.stack.clone(),
-            phantom: self.phantom.clone(),
+            phantom: PhantomData,
         }
     }
 }
@@ -69,13 +69,12 @@ where
     type Item = Item<V, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.stack.get_mut().pop().map(|element| {
+        self.stack.get_mut().pop().inspect(|element| {
             let node_ptr = E::node_value(&element);
             let parent = unsafe { &*node_ptr.ptr() };
             let children_ptr = parent.next().children_ptr().cloned();
             let children = E::children(&element, children_ptr).rev();
             self.stack.get_mut().extend(children);
-            element
         })
     }
 }

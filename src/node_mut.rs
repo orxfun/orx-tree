@@ -468,6 +468,7 @@ where
     /// assert_eq!(tree.len(), 0);
     /// assert_eq!(tree.root(), None);
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     pub fn remove(self) -> V::Item {
         // TODO: we have the option to choose any traversal here; they are all safe
         // with SelfRefCol. We can pick the fastest one after benchmarks.
