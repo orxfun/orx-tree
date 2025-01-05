@@ -18,8 +18,7 @@ pub use iter_kinds::{
 };
 pub use post_order::{
     DepthNodes, PostNodeDepthSiblingVal, PostNodeDepthVal, PostNodeVal, PostOrderElement,
-    PostOrderIter, PostOrderIter2, PostOrderIterMut, PostOrderIterPtr, PostOrderIterable,
-    PostOrderKind,
+    PostOrderIter, PostOrderIterMut, PostOrderIterPtr, PostOrderIterable, PostOrderKind,
 };
 
 pub use iter_over::{IterMutOver, IterOver};

@@ -1,9 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{
-        BfsIter, DepthNodes, DfsBfsNodeVal, DfsIter, IterOver, NodeValueData, OverData,
-        PostOrderElement, PostOrderIter2, PostOrderIterPtr,
-    },
+    iter::{BfsIter, DfsBfsNodeVal, DfsIter, IterOver, NodeValueData, PostNodeVal, PostOrderIter},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -768,9 +765,8 @@ where
     /// let values: Vec<_> = n7.post_order().copied().collect();
     /// assert_eq!(values, [10, 11, 7]);
     /// ```
-    fn post_order(&self) -> PostOrderIter2<V, M, P, DepthNodes<V>, OverData> {
-        let iter_ptr = PostOrderIterPtr::<_, _, OverData>::new(self.node_ptr().clone());
-        PostOrderIter2::new(self.col(), iter_ptr)
+    fn post_order(&self) -> PostOrderIter<PostNodeVal<NodeValueData>, V, M, P> {
+        PostOrderIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
     /// Creates an iterator for post-order traversal rooted at this node over different values of the nodes
@@ -903,8 +899,12 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn post_order_over<O: PostOrderElement>(&self) -> PostOrderIter2<V, M, P, DepthNodes<V>, O> {
-        let iter_ptr = PostOrderIterPtr::<_, _, O>::new(self.node_ptr().clone());
-        PostOrderIter2::new(self.col(), iter_ptr)
+    fn post_order_over<K: IterOver>(
+        &'a self,
+    ) -> PostOrderIter<'a, K::PostOrderKind<'a, V, M, P>, V, M, P>
+    where
+        K: 'a,
+    {
+        PostOrderIter::new(self.col(), self.node_ptr().clone())
     }
 }

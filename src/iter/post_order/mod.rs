@@ -15,7 +15,7 @@ pub use depth_data::PostNodeDepthVal;
 pub use depth_nodes::DepthNodes;
 pub use depth_sibling_data::PostNodeDepthSiblingVal;
 pub use element::PostOrderElement;
-pub use post_order_iter::{PostOrderIter, PostOrderIter2};
+pub use post_order_iter::PostOrderIter;
 pub use post_order_iter_mut::PostOrderIterMut;
 pub use post_order_iter_ptr::PostOrderIterPtr;
 pub use post_order_iterable::PostOrderIterable;
