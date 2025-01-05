@@ -3,7 +3,7 @@ use crate::{
         depth_first::traverser::Dfs,
         over::{OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
         traverser_mut::TraverserMut,
-        Traverser,
+        Traversal, Traverser,
     },
     AsTreeNode, Dyn, DynTree,
 };
@@ -86,6 +86,8 @@ fn dfs_iter_mut_depth() {
             .over_nodes()
             .over_data(),
     );
+
+    test(Traversal.dfs().with_depth());
 }
 
 #[test]
@@ -116,6 +118,8 @@ fn dfs_iter_mut_sibling() {
             .over_nodes()
             .over_data(),
     );
+
+    test(Traversal.dfs().with_sibling_idx());
 }
 
 #[test]
@@ -156,4 +160,7 @@ fn dfs_iter_mut_depth_sibling() {
             .over_nodes()
             .over_data(),
     );
+
+    test(Traversal.dfs().with_depth().with_sibling_idx());
+    test(Traversal.dfs().with_sibling_idx().with_depth());
 }

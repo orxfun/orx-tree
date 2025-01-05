@@ -12,4 +12,5 @@ mod traverser_mut;
 
 pub use enumeration::Enumeration;
 pub use enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
+pub use traversal::Traversal;
 pub use traverser::Traverser;

@@ -6,7 +6,7 @@ use crate::{
             OverSiblingIdxData,
         },
         post_order::{post_enumeration::PostOrderEnumeration, traverser::PostOrder},
-        Traverser, Val,
+        Traversal, Traverser, Val,
     },
     tree::{DefaultMemory, DefaultPinVec},
     AsTreeNode, Dyn, DynTree, NodeRef,
@@ -114,6 +114,8 @@ fn dfs_iter_ref_depth() {
             .over_nodes()
             .over_data(),
     );
+
+    test(Traversal.post_order().with_depth());
 }
 
 #[test]
@@ -142,6 +144,8 @@ fn dfs_iter_ref_sibling() {
             .over_nodes()
             .over_data(),
     );
+
+    test(Traversal.post_order().with_sibling_idx());
 }
 
 #[test]
@@ -187,4 +191,7 @@ fn dfs_iter_ref_depth_sibling() {
             .over_nodes()
             .over_data(),
     );
+
+    test(Traversal.post_order().with_depth().with_sibling_idx());
+    test(Traversal.post_order().with_sibling_idx().with_depth());
 }
