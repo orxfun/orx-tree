@@ -1,7 +1,7 @@
-use super::DfsIterPtr;
-use crate::helpers::N;
+use super::{dfs_element::DepthFirstElement, DfsIterPtr};
 use crate::traversal::node_item_mut::NodeItemMut;
-use crate::{traversal::element::Element, TreeVariant};
+use crate::TreeVariant;
+use crate::{helpers::N, traversal::Element};
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
@@ -16,7 +16,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: Element,
+    E: DepthFirstElement,
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {
@@ -31,7 +31,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: Element,
+    E: DepthFirstElement,
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {
@@ -49,7 +49,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: Element,
+    E: DepthFirstElement,
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {

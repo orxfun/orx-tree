@@ -1,3 +1,4 @@
+use super::dfs_element::DepthFirstElement;
 use super::DfsIterPtr;
 use crate::helpers::N;
 use crate::traversal::node_item::NodeItem;
@@ -16,7 +17,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: Element,
+    E: DepthFirstElement,
     S: SoM<Stack<V, E>>,
     D: NodeItem<'a, V, M, P>,
 {
@@ -31,7 +32,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: Element,
+    E: DepthFirstElement,
     S: SoM<Stack<V, E>>,
     D: NodeItem<'a, V, M, P>,
 {
@@ -49,7 +50,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: Element,
+    E: DepthFirstElement,
     D: NodeItem<'a, V, M, P>,
     Item<V, E>: Clone,
 {
@@ -67,7 +68,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: Element,
+    E: DepthFirstElement,
     S: SoM<Stack<V, E>>,
     D: NodeItem<'a, V, M, P>,
 {

@@ -1,5 +1,7 @@
+use super::dfs_element::DepthFirstElement;
+use crate::traversal::Element;
 use crate::tree_variant::RefsChildren;
-use crate::{traversal::element::Element, TreeVariant};
+use crate::TreeVariant;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;
@@ -10,7 +12,7 @@ type Stack<V, E> = Vec<Item<V, E>>;
 
 pub struct DfsIterPtr<V, E, S = Stack<V, E>>
 where
-    E: Element,
+    E: DepthFirstElement,
     V: TreeVariant,
     S: SoM<Stack<V, E>>,
 {
@@ -20,7 +22,7 @@ where
 
 impl<V, E, S> From<(S, NodePtr<V>)> for DfsIterPtr<V, E, S>
 where
-    E: Element,
+    E: DepthFirstElement,
     V: TreeVariant,
     S: SoM<Stack<V, E>>,
 {
@@ -36,7 +38,7 @@ where
 
 impl<V, E> Default for DfsIterPtr<V, E, Stack<V, E>>
 where
-    E: Element,
+    E: DepthFirstElement,
     V: TreeVariant,
 {
     fn default() -> Self {
@@ -49,7 +51,7 @@ where
 
 impl<V, E> Clone for DfsIterPtr<V, E, Stack<V, E>>
 where
-    E: Element,
+    E: DepthFirstElement,
     V: TreeVariant,
     Item<V, E>: Clone,
 {
@@ -63,7 +65,7 @@ where
 
 impl<V, E, S> Iterator for DfsIterPtr<V, E, S>
 where
-    E: Element,
+    E: DepthFirstElement,
     V: TreeVariant,
     S: SoM<Stack<V, E>>,
 {
