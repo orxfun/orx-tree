@@ -1,8 +1,8 @@
 use super::states::States;
-use crate::traversal::{DepthSiblingIdxVal, DepthVal, Element, SiblingIdxVal, Val};
+use crate::traversal::{DepthSiblingIdxVal, DepthVal, Enumeration, SiblingIdxVal, Val};
 use crate::TreeVariant;
 
-pub trait PostOrderElement: Element {
+pub trait PostOrderEnumeration: Enumeration {
     fn create_post_item<D, V>(node_value: D, depth: usize, states: &States<V>) -> Self::Item<D>
     where
         V: TreeVariant;
@@ -10,7 +10,7 @@ pub trait PostOrderElement: Element {
 
 // impl
 
-impl PostOrderElement for Val {
+impl PostOrderEnumeration for Val {
     fn create_post_item<D, V>(node_value: D, _: usize, _: &States<V>) -> Self::Item<D>
     where
         V: TreeVariant,
@@ -19,7 +19,7 @@ impl PostOrderElement for Val {
     }
 }
 
-impl PostOrderElement for DepthVal {
+impl PostOrderEnumeration for DepthVal {
     fn create_post_item<D, V>(node_value: D, depth: usize, _: &States<V>) -> Self::Item<D>
     where
         V: TreeVariant,
@@ -28,7 +28,7 @@ impl PostOrderElement for DepthVal {
     }
 }
 
-impl PostOrderElement for SiblingIdxVal {
+impl PostOrderEnumeration for SiblingIdxVal {
     fn create_post_item<D, V>(node_value: D, depth: usize, states: &States<V>) -> Self::Item<D>
     where
         V: TreeVariant,
@@ -41,7 +41,7 @@ impl PostOrderElement for SiblingIdxVal {
     }
 }
 
-impl PostOrderElement for DepthSiblingIdxVal {
+impl PostOrderEnumeration for DepthSiblingIdxVal {
     fn create_post_item<D, V>(node_value: D, depth: usize, states: &States<V>) -> Self::Item<D>
     where
         V: TreeVariant,

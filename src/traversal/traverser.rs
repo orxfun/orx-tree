@@ -1,10 +1,10 @@
-use super::{element::Element, node_item::NodeItem, node_item_mut::NodeItemMut};
+use super::{enumeration::Enumeration, node_item::NodeItem, node_item_mut::NodeItemMut};
 use crate::{helpers::N, NodeMut, NodeRef, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
 pub trait Traverser<V: TreeVariant> {
-    type ItemKind: Element;
+    type ItemKind: Enumeration;
 
     type NodeItem<'a, M, P>: NodeItem<'a, V, M, P>
     where
@@ -16,7 +16,7 @@ pub trait Traverser<V: TreeVariant> {
     fn iter<'a, M, P>(
         &mut self,
         node: &impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = <Self::ItemKind as Element>::Item<Self::NodeItem<'a, M, P>>>
+    ) -> impl Iterator<Item = <Self::ItemKind as Enumeration>::Item<Self::NodeItem<'a, M, P>>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
@@ -35,7 +35,7 @@ pub trait TraverserMut<V: TreeVariant>: Traverser<V> {
     fn iter_mut<'a, M, P>(
         &mut self,
         node_mut: &mut NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = <Self::ItemKind as Element>::Item<Self::NodeItemMut<'a, M, P>>>
+    ) -> impl Iterator<Item = <Self::ItemKind as Enumeration>::Item<Self::NodeItemMut<'a, M, P>>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,

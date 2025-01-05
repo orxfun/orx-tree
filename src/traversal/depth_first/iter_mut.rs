@@ -1,4 +1,4 @@
-use super::{dfs_element::DepthFirstElement, DfsIterPtr};
+use super::{dfs_enumeration::DepthFirstEnumeration, DfsIterPtr};
 use super::{Item, Stack};
 use crate::helpers::N;
 use crate::traversal::node_item_mut::NodeItemMut;
@@ -13,7 +13,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: DepthFirstElement,
+    E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {
@@ -28,7 +28,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: DepthFirstElement,
+    E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {
@@ -46,7 +46,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: DepthFirstElement,
+    E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {

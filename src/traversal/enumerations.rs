@@ -1,7 +1,7 @@
-use super::Element;
+use super::Enumeration;
 
 pub struct Val;
-impl Element for Val {
+impl Enumeration for Val {
     type Item<D> = D;
 
     #[inline(always)]
@@ -14,7 +14,7 @@ impl Element for Val {
 }
 
 pub struct DepthVal;
-impl Element for DepthVal {
+impl Enumeration for DepthVal {
     type Item<D> = (usize, D);
 
     #[inline(always)]
@@ -27,7 +27,7 @@ impl Element for DepthVal {
 }
 
 pub struct SiblingIdxVal;
-impl Element for SiblingIdxVal {
+impl Enumeration for SiblingIdxVal {
     type Item<D> = (usize, D);
 
     #[inline(always)]
@@ -40,7 +40,7 @@ impl Element for SiblingIdxVal {
 }
 
 pub struct DepthSiblingIdxVal;
-impl Element for DepthSiblingIdxVal {
+impl Enumeration for DepthSiblingIdxVal {
     type Item<D> = (usize, usize, D);
 
     #[inline(always)]

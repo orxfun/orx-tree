@@ -1,5 +1,5 @@
 use super::iter_ptr::Item;
-use super::post_element::PostOrderElement;
+use super::post_enumeration::PostOrderEnumeration;
 use super::states::States;
 use super::PostOrderIterPtr;
 use crate::helpers::N;
@@ -15,7 +15,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: PostOrderElement,
+    E: PostOrderEnumeration,
     S: SoM<States<V>>,
     D: NodeItem<'a, V, M, P>,
 {
@@ -30,7 +30,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: PostOrderElement,
+    E: PostOrderEnumeration,
     S: SoM<States<V>>,
     D: NodeItem<'a, V, M, P>,
 {
@@ -48,7 +48,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: PostOrderElement,
+    E: PostOrderEnumeration,
     D: NodeItem<'a, V, M, P>,
     Item<V, E>: Clone,
 {
@@ -66,7 +66,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: PostOrderElement,
+    E: PostOrderEnumeration,
     S: SoM<States<V>>,
     D: NodeItem<'a, V, M, P>,
 {

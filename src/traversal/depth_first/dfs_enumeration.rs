@@ -1,6 +1,6 @@
-use crate::traversal::{DepthSiblingIdxVal, DepthVal, Element, SiblingIdxVal, Val};
+use crate::traversal::{DepthSiblingIdxVal, DepthVal, Enumeration, SiblingIdxVal, Val};
 
-pub trait DepthFirstElement: Element {
+pub trait DepthFirstEnumeration: Enumeration {
     fn from_root<D>(root: D) -> Self::Item<D>;
 
     fn node_value<D>(element: &Self::Item<D>) -> &D;
@@ -13,7 +13,7 @@ pub trait DepthFirstElement: Element {
 
 // impl
 
-impl DepthFirstElement for Val {
+impl DepthFirstEnumeration for Val {
     fn from_root<D>(root: D) -> Self::Item<D> {
         root
     }
@@ -32,7 +32,7 @@ impl DepthFirstElement for Val {
     }
 }
 
-impl DepthFirstElement for DepthVal {
+impl DepthFirstEnumeration for DepthVal {
     fn from_root<D>(root: D) -> Self::Item<D> {
         (0, root)
     }
@@ -52,7 +52,7 @@ impl DepthFirstElement for DepthVal {
     }
 }
 
-impl DepthFirstElement for SiblingIdxVal {
+impl DepthFirstEnumeration for SiblingIdxVal {
     fn from_root<D>(root: D) -> Self::Item<D> {
         (0, root)
     }
@@ -73,7 +73,7 @@ impl DepthFirstElement for SiblingIdxVal {
     }
 }
 
-impl DepthFirstElement for DepthSiblingIdxVal {
+impl DepthFirstEnumeration for DepthSiblingIdxVal {
     fn from_root<D>(root: D) -> Self::Item<D> {
         (0, 0, root)
     }

@@ -1,6 +1,6 @@
 use super::states::States;
 use super::PostOrderIterPtr;
-use super::{iter_ptr::Item, post_element::PostOrderElement};
+use super::{iter_ptr::Item, post_enumeration::PostOrderEnumeration};
 use crate::helpers::N;
 use crate::traversal::node_item_mut::NodeItemMut;
 use crate::TreeVariant;
@@ -14,7 +14,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: PostOrderElement,
+    E: PostOrderEnumeration,
     S: SoM<States<V>>,
     D: NodeItemMut<'a, V, M, P>,
 {
@@ -29,7 +29,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: PostOrderElement,
+    E: PostOrderEnumeration,
     S: SoM<States<V>>,
     D: NodeItemMut<'a, V, M, P>,
 {
@@ -47,7 +47,7 @@ where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    E: PostOrderElement,
+    E: PostOrderEnumeration,
     S: SoM<States<V>>,
     D: NodeItemMut<'a, V, M, P>,
 {

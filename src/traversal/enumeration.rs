@@ -3,7 +3,7 @@ use crate::{helpers::N, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-pub trait Element {
+pub trait Enumeration {
     type Item<D>;
 
     fn map_node_data<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
