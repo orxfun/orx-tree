@@ -42,7 +42,7 @@ fn tree() -> DynTree<i32> {
 fn dfs_iter_ref_empty() {
     let tree = DynTree::<i32>::empty();
     let iter = DfsIterPtr::<Dyn<i32>, Val>::default();
-    let mut iter = DfsIterMut::<_, _, _, Val, _, &mut i32>::from((&tree.0, iter));
+    let mut iter = unsafe { DfsIterMut::<_, _, _, Val, _, &mut i32>::from((&tree.0, iter)) };
     assert_eq!(iter.next(), None);
 }
 
@@ -54,7 +54,7 @@ fn dfs_iter_mut_val() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = DfsIterMut::<_, _, _, Val, _, &mut i32>::from((&tree.0, iter));
+    let iter = unsafe { DfsIterMut::<_, _, _, Val, _, &mut i32>::from((&tree.0, iter)) };
 
     for (i, x) in iter.enumerate() {
         *x += 100 * i as i32;
@@ -78,7 +78,7 @@ fn dfs_iter_mut_depth() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
-    let iter = DfsIterMut::<_, _, _, DepthVal, _, &mut i32>::from((&tree.0, iter));
+    let iter = unsafe { DfsIterMut::<_, _, _, DepthVal, _, &mut i32>::from((&tree.0, iter)) };
 
     for (d, x) in iter {
         *x += 100 * d as i32;
@@ -102,7 +102,7 @@ fn dfs_iter_mut_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
-    let iter = DfsIterMut::<_, _, _, SiblingIdxVal, _, &mut i32>::from((&tree.0, iter));
+    let iter = unsafe { DfsIterMut::<_, _, _, SiblingIdxVal, _, &mut i32>::from((&tree.0, iter)) };
 
     for (s, x) in iter {
         *x += 100 * s as i32;
@@ -126,7 +126,8 @@ fn dfs_iter_mut_depth_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr));
-    let iter = DfsIterMut::<_, _, _, DepthSiblingIdxVal, _, &mut i32>::from((&tree.0, iter));
+    let iter =
+        unsafe { DfsIterMut::<_, _, _, DepthSiblingIdxVal, _, &mut i32>::from((&tree.0, iter)) };
 
     for (d, s, x) in iter {
         *x += 10000 * d as i32 + 100 * s as i32;

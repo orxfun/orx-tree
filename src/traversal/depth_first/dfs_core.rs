@@ -67,6 +67,6 @@ where
     {
         let root = node_mut.node_ptr().clone();
         let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((&mut self.stack, root));
-        DfsIterMut::from((node_mut.col(), iter_ptr))
+        unsafe { DfsIterMut::from((node_mut.col(), iter_ptr)) }
     }
 }
