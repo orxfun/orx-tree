@@ -8,5 +8,4 @@ mod post_enumeration;
 mod states;
 mod traverser;
 
-pub use iter_ptr::PostOrderIterPtr;
 pub use traverser::PostOrder;

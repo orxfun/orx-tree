@@ -1,7 +1,7 @@
 use super::iter_ptr::Item;
+use super::iter_ptr::PostOrderIterPtr;
 use super::post_enumeration::PostOrderEnumeration;
 use super::states::States;
-use super::PostOrderIterPtr;
 use crate::helpers::N;
 use crate::traversal::node_item::NodeItem;
 use crate::TreeVariant;

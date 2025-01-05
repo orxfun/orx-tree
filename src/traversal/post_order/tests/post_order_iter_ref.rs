@@ -3,7 +3,7 @@ use crate::{
     traversal::{
         node_item::NodeItem,
         over::{Over, OverData, OverNode, OverPtr},
-        post_order::{iter_ref::PostOrderIterRef, PostOrderIterPtr},
+        post_order::{iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef},
         DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
     },
     tree::{DefaultMemory, DefaultPinVec},

@@ -1,6 +1,6 @@
 use crate::{
     node_ref::NodeRefCore,
-    traversal::{post_order::PostOrderIterPtr, Val},
+    traversal::{post_order::iter_ptr::PostOrderIterPtr, Val},
     AsTreeNode, Dyn, DynTree, NodeRef, TreeVariant,
 };
 use alloc::vec::Vec;
