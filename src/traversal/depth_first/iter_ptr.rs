@@ -1,14 +1,11 @@
 use super::dfs_element::DepthFirstElement;
-use crate::traversal::Element;
+use super::{Item, Stack};
 use crate::tree_variant::RefsChildren;
 use crate::TreeVariant;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;
 use orx_selfref_col::NodePtr;
-
-type Item<V, E> = <E as Element>::Item<NodePtr<V>>;
-type Stack<V, E> = Vec<Item<V, E>>;
 
 pub struct DfsIterPtr<V, E, S = Stack<V, E>>
 where

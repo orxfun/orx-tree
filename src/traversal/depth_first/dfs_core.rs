@@ -1,8 +1,9 @@
-// pub struct DfsCore<D, E = Val>
-// where
-//     E: Element,
-// {
-//     queue: Vec<E::Item<D>>,
-// }
+use crate::{helpers::N, traversal::Element, NodeMut, NodeRef, TreeVariant};
+use alloc::vec::Vec;
+use core::marker::PhantomData;
+use orx_pinned_vec::PinnedVec;
+use orx_selfref_col::{MemoryPolicy, NodePtr};
 
-pub struct DfsCore;
+pub struct Dfs<V: TreeVariant> {
+    phantom: PhantomData<V>,
+}

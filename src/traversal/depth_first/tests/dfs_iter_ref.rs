@@ -1,8 +1,9 @@
 use crate::{
     node_ref::NodeRefCore,
     traversal::{
-        depth_first::iter_ref::DfsIterRef, node_item::NodeItem, DepthSiblingIdxVal, DepthVal,
-        DfsIterPtr, SiblingIdxVal, Val,
+        depth_first::{iter_ref::DfsIterRef, DfsIterPtr},
+        node_item::NodeItem,
+        DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
     },
     AsTreeNode, Dyn, DynTree, Node, NodeRef,
 };

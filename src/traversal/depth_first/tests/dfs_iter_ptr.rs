@@ -1,6 +1,6 @@
 use crate::{
     node_ref::NodeRefCore,
-    traversal::{DfsIterPtr, Val},
+    traversal::{depth_first::DfsIterPtr, Val},
     AsTreeNode, Dyn, DynTree, NodeRef, TreeVariant,
 };
 use alloc::vec::Vec;

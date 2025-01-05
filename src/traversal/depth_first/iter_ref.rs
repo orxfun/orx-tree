@@ -1,16 +1,12 @@
 use super::dfs_element::DepthFirstElement;
-use super::DfsIterPtr;
+use super::{DfsIterPtr, Item, Stack};
 use crate::helpers::N;
 use crate::traversal::node_item::NodeItem;
-use crate::{traversal::element::Element, TreeVariant};
-use alloc::vec::Vec;
+use crate::TreeVariant;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
-
-type Item<V, E> = <E as Element>::Item<NodePtr<V>>;
-type Stack<V, E> = Vec<Item<V, E>>;
+use orx_selfref_col::{MemoryPolicy, SelfRefCol};
 
 pub struct DfsIterRef<'a, V, M, P, E, S, D>
 where
