@@ -8,8 +8,8 @@ use crate::{
     traversal::{
         over::{Over, OverItem},
         over_mut::{OverItemMut, OverMut},
+        traverser::Traverser,
         traverser_mut::TraverserMut,
-        Traverser,
     },
     NodeMut, NodeRef, TreeVariant,
 };
@@ -38,22 +38,21 @@ where
     }
 }
 
-impl<V, O> Traverser<V> for Dfs<V, O>
+impl<V, O> Traverser<V, O> for Dfs<V, O>
 where
     V: TreeVariant,
     O: Over<V>,
     O::Enumeration: DepthFirstEnumeration,
 {
-    type Over = O;
-
     fn iter<'a, M, P>(
         &mut self,
         node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, Self::Over, M, P>>
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a,
+        O: 'a,
         Self: 'a,
     {
         let root = node.node_ptr().clone();
@@ -62,7 +61,7 @@ where
     }
 }
 
-impl<V, O> TraverserMut<V> for Dfs<V, O>
+impl<V, O> TraverserMut<V, O> for Dfs<V, O>
 where
     V: TreeVariant,
     O: OverMut<V>,
@@ -71,11 +70,12 @@ where
     fn iter_mut<'a, M, P>(
         &mut self,
         node_mut: &'a mut NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, Self::Over, M, P>>
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a,
+        O: 'a,
         Self: 'a,
     {
         let root = node_mut.node_ptr().clone();

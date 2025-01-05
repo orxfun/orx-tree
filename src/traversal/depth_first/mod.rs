@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests;
 
-mod dfs;
 mod dfs_enumeration;
 mod iter_mut;
 mod iter_ptr;
 mod iter_ref;
+mod traverser;
 
 pub use iter_ptr::DfsIterPtr;
 

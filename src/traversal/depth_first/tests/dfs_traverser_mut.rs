@@ -1,6 +1,6 @@
 use crate::{
     traversal::{
-        depth_first::dfs::Dfs,
+        depth_first::traverser::Dfs,
         over::{OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
         traverser_mut::TraverserMut,
         Traverser,
