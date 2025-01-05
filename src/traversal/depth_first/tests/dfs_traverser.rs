@@ -1,12 +1,13 @@
 use crate::{
     traversal::{
         depth_first::{dfs_enumeration::DepthFirstEnumeration, traverser::Dfs},
+        enumerations::Val,
         node_item::NodeItem,
         over::{
             Over, OverData, OverDepthData, OverDepthSiblingIdxData, OverNode, OverPtr,
             OverSiblingIdxData,
         },
-        Traversal, Traverser, Val,
+        Traversal, Traverser,
     },
     tree::{DefaultMemory, DefaultPinVec},
     AsTreeNode, Dyn, DynTree, NodeRef,

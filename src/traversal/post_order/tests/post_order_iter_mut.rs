@@ -1,10 +1,8 @@
 use crate::{
     node_ref::NodeRefCore,
-    traversal::{
-        post_order::{
-            iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
-        },
-        DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
+    traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
+    traversal::post_order::{
+        iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
     },
     AsTreeNode, Dyn, DynTree,
 };

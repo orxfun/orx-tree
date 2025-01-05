@@ -1,5 +1,6 @@
 use super::states::States;
-use crate::traversal::{DepthSiblingIdxVal, DepthVal, Enumeration, SiblingIdxVal, Val};
+use crate::traversal::enumeration::Enumeration;
+use crate::traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
 use crate::TreeVariant;
 
 pub trait PostOrderEnumeration: Enumeration {

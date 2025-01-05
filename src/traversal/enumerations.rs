@@ -1,4 +1,4 @@
-use super::Enumeration;
+use super::enumeration::Enumeration;
 
 #[derive(Clone)]
 pub struct Val;

@@ -1,4 +1,5 @@
-use crate::traversal::{DepthSiblingIdxVal, DepthVal, Enumeration, SiblingIdxVal, Val};
+use crate::traversal::enumeration::Enumeration;
+use crate::traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
 
 pub trait DepthFirstEnumeration: Enumeration {
     fn from_root<D>(root: D) -> Self::Item<D>;

@@ -1,4 +1,6 @@
-use super::{node_item::NodeItem, DepthSiblingIdxVal, DepthVal, Enumeration, SiblingIdxVal, Val};
+use super::node_item::NodeItem;
+use crate::traversal::enumeration::Enumeration;
+use crate::traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
 use crate::{
     helpers::N,
     tree::{DefaultMemory, DefaultPinVec},

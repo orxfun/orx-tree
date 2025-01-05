@@ -20,6 +20,9 @@ extern crate alloc;
 /// Module defining tree traversal iterators.
 pub mod iter;
 
+/// Module defining tree traversal iterators.
+pub mod traversal;
+
 mod as_tree_node;
 mod common_traits;
 mod dary;
@@ -28,7 +31,6 @@ mod helpers;
 mod node;
 mod node_mut;
 mod node_ref;
-mod traversal;
 mod tree;
 mod tree_variant;
 

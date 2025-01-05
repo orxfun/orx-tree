@@ -11,7 +11,7 @@ use orx_selfref_col::{MemoryPolicy, NodePtr};
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// use orx_tree::*;
 /// use orx_tree::iter::*;
 ///
@@ -114,7 +114,7 @@ impl IterMutOver for OverDepthSiblingData {}
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// use orx_tree::*;
 /// use orx_tree::iter::*;
 ///

@@ -1,9 +1,7 @@
 use crate::{
     node_ref::NodeRefCore,
-    traversal::{
-        depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef},
-        DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
-    },
+    traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef},
+    traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
     AsTreeNode, Dyn, DynTree,
 };
 use alloc::vec::Vec;

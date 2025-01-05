@@ -1,10 +1,10 @@
 use crate::{
     node_ref::NodeRefCore,
+    traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
     traversal::{
         node_item::NodeItem,
         over::{Over, OverData, OverNode, OverPtr},
         post_order::{iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef},
-        DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
     },
     tree::{DefaultMemory, DefaultPinVec},
     AsTreeNode, Dyn, DynTree, NodeRef,

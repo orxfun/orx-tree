@@ -5,7 +5,7 @@ use crate::{
         NodeValueData, PostNodeVal, PostOrderIter, PostOrderIterMut,
     },
     node_ref::NodeRefCore,
-    traversal::{post_order::iter_ptr::PostOrderIterPtr, Val},
+    traversal::{enumerations::Val, post_order::iter_ptr::PostOrderIterPtr},
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
     TreeVariant,
