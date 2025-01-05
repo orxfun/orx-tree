@@ -56,3 +56,26 @@ where
         PostOrderIterRef::from((node.col(), iter_ptr))
     }
 }
+
+impl<V, O> TraverserMut<V, O> for PostOrder<V>
+where
+    V: TreeVariant,
+    O: OverMut<V>,
+    O::Enumeration: PostOrderEnumeration,
+{
+    fn iter_mut<'a, M, P>(
+        &mut self,
+        node_mut: &'a mut NodeMut<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a,
+        O: 'a,
+        Self: 'a,
+    {
+        let root = node_mut.node_ptr().clone();
+        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
+        unsafe { PostOrderIterMut::from((node_mut.col(), iter_ptr)) }
+    }
+}
