@@ -8,7 +8,7 @@ pub trait Traverser<V: TreeVariant> {
 
     fn iter<'a, M, P>(
         &mut self,
-        node: &impl NodeRef<'a, V, M, P>,
+        node: &'a impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, Self::Over, M, P>>
     where
         V: TreeVariant + 'a,

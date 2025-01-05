@@ -22,7 +22,7 @@ where
     phantom: PhantomData<D>,
 }
 
-impl<'a, V, M, P, E, S, D> From<(&'a mut SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)>
+impl<'a, V, M, P, E, S, D> From<(&'a SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)>
     for DfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
@@ -32,7 +32,7 @@ where
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {
-    fn from((col, iter): (&'a mut SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)) -> Self {
+    fn from((col, iter): (&'a SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)) -> Self {
         Self {
             col,
             iter,

@@ -12,7 +12,7 @@ where
 {
     fn iter_mut<'a, M, P>(
         &mut self,
-        node_mut: &mut NodeMut<'a, V, M, P>,
+        node_mut: &'a mut NodeMut<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, Self::Over, M, P>>
     where
         V: TreeVariant + 'a,
