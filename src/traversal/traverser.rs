@@ -1,4 +1,4 @@
-use super::element::Element;
+use super::{element::Element, node_item::NodeItem, node_item_mut::NodeItemMut};
 use crate::{helpers::N, Node, NodeMut, NodeRef, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
@@ -6,9 +6,9 @@ use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 pub trait Traverser {
     type ItemKind: Element;
 
-    type NodeData;
+    // type NodeItem: NodeItem;
 
-    type NodeDataMut;
+    // type NodeItemMut: NodeItemMut;
 
     // fn iter<'a, V, M, P>(
     //     &mut self,

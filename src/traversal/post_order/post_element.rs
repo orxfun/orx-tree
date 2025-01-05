@@ -1,26 +1,8 @@
 use super::states::States;
-use crate::traversal::node_item::NodeItem;
 use crate::traversal::{DepthSiblingIdxVal, DepthVal, Element, SiblingIdxVal, Val};
-use crate::{helpers::N, TreeVariant};
-use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
+use crate::TreeVariant;
 
 pub trait PostOrderElement: Element {
-    fn create_post_item_from_state<'a, V, M, P, E>(
-        col: &'a SelfRefCol<V, M, P>,
-        node_ptr: NodePtr<V>,
-        depth: usize,
-        states: &States<V>,
-    ) -> Self::Item<E>
-    where
-        V: TreeVariant,
-        M: MemoryPolicy<V>,
-        P: PinnedVec<N<V>>,
-        E: NodeItem<'a, V, M, P>,
-    {
-        Self::create_post_item(E::from_ptr(col, node_ptr), depth, states)
-    }
-
     fn create_post_item<D, V>(node_value: D, depth: usize, states: &States<V>) -> Self::Item<D>
     where
         V: TreeVariant;
