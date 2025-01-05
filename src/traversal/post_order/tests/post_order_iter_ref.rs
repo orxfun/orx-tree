@@ -2,10 +2,12 @@ use crate::{
     node_ref::NodeRefCore,
     traversal::{
         node_item::NodeItem,
+        over::{Over, OverData, OverNode, OverPtr},
         post_order::{iter_ref::PostOrderIterRef, PostOrderIterPtr},
         DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
     },
-    AsTreeNode, Dyn, DynTree, Node, NodeRef,
+    tree::{DefaultMemory, DefaultPinVec},
+    AsTreeNode, Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
 use orx_selfref_col::{NodePtr, Variant};
@@ -48,14 +50,13 @@ fn post_order_iter_ref_empty() {
     assert_eq!(iter.next(), None);
 }
 
-fn post_order_iter_for<'a, D>()
-where
-    D: NodeItem<'a, Dyn<i32>> + 'a,
-{
-    fn data<'a, D>(iter: impl Iterator<Item = D>) -> Vec<<Dyn<i32> as Variant>::Item>
-    where
-        D: NodeItem<'a, Dyn<i32>> + 'a,
-    {
+type Item<'a, O> =
+    <O as Over<Dyn<i32>>>::NodeItem<'a, DefaultMemory<Dyn<i32>>, DefaultPinVec<Dyn<i32>>>;
+
+fn post_order_iter_for<O: Over<Dyn<i32>>>() {
+    fn data<'a, O: Over<Dyn<i32>> + 'a>(
+        iter: impl Iterator<Item = Item<'a, O>>,
+    ) -> Vec<<Dyn<i32> as Variant>::Item> {
         iter.map(|x| x.node_data().clone()).collect()
     }
 
@@ -65,35 +66,35 @@ where
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = PostOrderIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
-    assert_eq!(data(iter), [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+    let iter = PostOrderIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    assert_eq!(data::<'_, O>(iter), [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
 
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = PostOrderIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
-    assert_eq!(data(iter), [9, 6, 10, 11, 7, 3]);
+    let iter = PostOrderIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    assert_eq!(data::<'_, O>(iter), [9, 6, 10, 11, 7, 3]);
 
     let n7 = n3.child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((stack, ptr));
-    let iter = PostOrderIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
-    assert_eq!(data(iter), [10, 11, 7]);
+    let iter = PostOrderIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    assert_eq!(data::<'_, O>(iter), [10, 11, 7]);
 }
 
 #[test]
 fn post_order_iter_ref_ptr() {
-    post_order_iter_for::<'_, NodePtr<Dyn<i32>>>();
+    post_order_iter_for::<OverPtr>();
 }
 
 #[test]
 fn post_order_iter_ref_val() {
-    post_order_iter_for::<'_, Node<'_, Dyn<i32>>>();
+    post_order_iter_for::<OverNode>();
 }
 
 #[test]
 fn post_order_iter_ref_node() {
-    post_order_iter_for::<'_, &i32>();
+    post_order_iter_for::<OverData>();
 }
 
 #[test]
