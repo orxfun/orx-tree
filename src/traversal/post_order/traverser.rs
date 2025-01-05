@@ -13,28 +13,35 @@ use crate::{
     },
     NodeMut, NodeRef, TreeVariant,
 };
+use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
-pub struct PostOrder<V>
+pub struct PostOrder<V, O>
 where
     V: TreeVariant,
+    O: Over<V>,
+    O::Enumeration: PostOrderEnumeration,
 {
     states: States<V>,
+    phantom: PhantomData<O>,
 }
 
-impl<V> Default for PostOrder<V>
+impl<V, O> Default for PostOrder<V, O>
 where
     V: TreeVariant,
+    O: Over<V>,
+    O::Enumeration: PostOrderEnumeration,
 {
     fn default() -> Self {
         Self {
             states: Default::default(),
+            phantom: PhantomData,
         }
     }
 }
 
-impl<V, O> Traverser<V, O> for PostOrder<V>
+impl<V, O> Traverser<V, O> for PostOrder<V, O>
 where
     V: TreeVariant,
     O: Over<V>,
@@ -57,7 +64,7 @@ where
     }
 }
 
-impl<V, O> TraverserMut<V, O> for PostOrder<V>
+impl<V, O> TraverserMut<V, O> for PostOrder<V, O>
 where
     V: TreeVariant,
     O: OverMut<V>,
