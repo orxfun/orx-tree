@@ -31,6 +31,17 @@ where
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {
+    /// # Safety
+    ///
+    /// We are creating a mutable iterator over nodes of the collection `col`.
+    /// This is safe only when the second argument `iter` makes sure that there exists only one mutable
+    /// reference to the collection.
+    ///
+    /// This is the case how this method is used, as follows:
+    /// * Mutable iterators are created through the `Dfs` traverser's `TraverserMut::iter_mut` method.
+    /// * This method requires a mutable reference to a mutable node `NodeMut` which is guaranteed to
+    ///   be the only reference to the collection.
+    /// * Finally, this iterator's lifetime is equal to the borrow duration of the mutable node.
     pub(crate) unsafe fn from((col, iter): (&'a SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)) -> Self {
         Self {
             col,
