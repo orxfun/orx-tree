@@ -19,7 +19,7 @@ use crate::{
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
-pub struct Dfs<V, O>
+pub struct Dfs<V, O = OverData>
 where
     V: TreeVariant,
     O: Over<V>,

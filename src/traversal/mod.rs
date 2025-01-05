@@ -6,6 +6,7 @@ mod node_item_mut;
 mod over;
 mod over_mut;
 mod post_order;
+mod traversal;
 mod traverser;
 mod traverser_mut;
 
