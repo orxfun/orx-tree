@@ -4,6 +4,7 @@ mod enumerations;
 mod node_item;
 mod node_item_mut;
 mod over;
+mod over_mut;
 mod post_order;
 mod traverser;
 

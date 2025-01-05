@@ -1,7 +1,14 @@
 use super::{node_item::NodeItem, DepthSiblingIdxVal, DepthVal, Enumeration, SiblingIdxVal, Val};
-use crate::{helpers::N, Node, TreeVariant};
+use crate::{
+    helpers::N,
+    tree::{DefaultMemory, DefaultPinVec},
+    Node, TreeVariant,
+};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
+
+pub type OverItem<'a, V, O, M = DefaultMemory<V>, P = DefaultPinVec<V>> =
+    <<O as Over<V>>::Enumeration as Enumeration>::Item<<O as Over<V>>::NodeItem<'a, M, P>>;
 
 pub trait Over<V: TreeVariant> {
     type Enumeration: Enumeration;
