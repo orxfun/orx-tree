@@ -60,57 +60,100 @@ fn dfs_iter_mut_val() {
 
 #[test]
 fn dfs_iter_mut_depth() {
-    let mut tree = tree();
-    let mut traverser = Dfs::<Dyn<i32>, OverDepthData>::default();
+    fn test(mut traverser: Dfs<Dyn<i32>, OverDepthData>) {
+        let mut tree = tree();
 
-    let mut root = tree.root_mut().unwrap();
-    let iter = traverser.iter_mut(&mut root);
-    for (d, x) in iter {
-        *x += 100 * d as i32;
+        let mut root = tree.root_mut().unwrap();
+        let iter = traverser.iter_mut(&mut root);
+        for (d, x) in iter {
+            *x += 100 * d as i32;
+        }
+
+        let root = tree.root().unwrap();
+        let iter = traverser.iter(&root);
+        assert_eq!(
+            iter.map(|x| *x.1).collect::<Vec<_>>(),
+            [1, 102, 204, 308, 205, 103, 206, 309, 207, 310, 311]
+        );
     }
 
-    let root = tree.root().unwrap();
-    let iter = traverser.iter(&root);
-    assert_eq!(
-        iter.map(|x| *x.1).collect::<Vec<_>>(),
-        [1, 102, 204, 308, 205, 103, 206, 309, 207, 310, 311]
+    test(Dfs::<Dyn<i32>, OverDepthData>::default());
+    test(Dfs::default());
+    test(Dfs::<_, OverData>::default().with_depth());
+    test(
+        Dfs::<_, OverData>::default()
+            .with_depth()
+            .over_nodes()
+            .over_data(),
     );
 }
 
 #[test]
 fn dfs_iter_mut_sibling() {
-    let mut tree = tree();
-    let mut traverser = Dfs::<Dyn<i32>, OverSiblingIdxData>::default();
+    fn test(mut traverser: Dfs<Dyn<i32>, OverSiblingIdxData>) {
+        let mut tree = tree();
 
-    let mut root = tree.root_mut().unwrap();
-    let iter = traverser.iter_mut(&mut root);
-    for (s, x) in iter {
-        *x += 100 * s as i32;
+        let mut root = tree.root_mut().unwrap();
+        let iter = traverser.iter_mut(&mut root);
+        for (s, x) in iter {
+            *x += 100 * s as i32;
+        }
+
+        let root = tree.root().unwrap();
+        let iter = traverser.iter(&root);
+        assert_eq!(
+            iter.map(|x| *x.1).collect::<Vec<_>>(),
+            [1, 2, 4, 8, 105, 103, 6, 9, 107, 10, 111]
+        );
     }
 
-    let root = tree.root().unwrap();
-    let iter = traverser.iter(&root);
-    assert_eq!(
-        iter.map(|x| *x.1).collect::<Vec<_>>(),
-        [1, 2, 4, 8, 105, 103, 6, 9, 107, 10, 111]
+    test(Dfs::<Dyn<i32>, OverSiblingIdxData>::default());
+    test(Dfs::default());
+    test(Dfs::<_, OverData>::default().with_sibling_idx());
+    test(
+        Dfs::<_, OverData>::default()
+            .with_sibling_idx()
+            .over_nodes()
+            .over_data(),
     );
 }
 
 #[test]
 fn dfs_iter_mut_depth_sibling() {
-    let mut tree = tree();
-    let mut traverser = Dfs::<Dyn<i32>, OverDepthSiblingIdxData>::default();
+    fn test(mut traverser: Dfs<Dyn<i32>, OverDepthSiblingIdxData>) {
+        let mut tree = tree();
 
-    let mut root = tree.root_mut().unwrap();
-    let iter = traverser.iter_mut(&mut root);
-    for (d, s, x) in iter {
-        *x += 10000 * d as i32 + 100 * s as i32;
+        let mut root = tree.root_mut().unwrap();
+        let iter = traverser.iter_mut(&mut root);
+        for (d, s, x) in iter {
+            *x += 10000 * d as i32 + 100 * s as i32;
+        }
+
+        let root = tree.root().unwrap();
+        let iter = traverser.iter(&root);
+        assert_eq!(
+            iter.map(|x| *x.2).collect::<Vec<_>>(),
+            [1, 10002, 20004, 30008, 20105, 10103, 20006, 30009, 20107, 30010, 30111]
+        );
     }
 
-    let root = tree.root().unwrap();
-    let iter = traverser.iter(&root);
-    assert_eq!(
-        iter.map(|x| *x.2).collect::<Vec<_>>(),
-        [1, 10002, 20004, 30008, 20105, 10103, 20006, 30009, 20107, 30010, 30111]
+    test(Dfs::<Dyn<i32>, OverDepthSiblingIdxData>::default());
+    test(Dfs::default());
+    test(
+        Dfs::<_, OverData>::default()
+            .with_sibling_idx()
+            .with_depth(),
+    );
+    test(
+        Dfs::<_, OverData>::default()
+            .with_depth()
+            .with_sibling_idx(),
+    );
+    test(
+        Dfs::<_, OverData>::default()
+            .with_sibling_idx()
+            .with_depth()
+            .over_nodes()
+            .over_data(),
     );
 }
