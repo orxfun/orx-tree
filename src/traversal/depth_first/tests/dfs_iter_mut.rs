@@ -1,7 +1,7 @@
 use crate::{
     node_ref::NodeRefCore,
     traversal::{
-        depth_first::{iter_mut::DfsIterMut, iter_ref::DfsIterRef, DfsIterPtr},
+        depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef},
         DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
     },
     AsTreeNode, Dyn, DynTree,

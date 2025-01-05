@@ -1,4 +1,5 @@
-use super::{dfs_enumeration::DepthFirstEnumeration, DfsIterPtr};
+use super::dfs_enumeration::DepthFirstEnumeration;
+use super::iter_ptr::DfsIterPtr;
 use super::{Item, Stack};
 use crate::helpers::N;
 use crate::traversal::node_item_mut::NodeItemMut;

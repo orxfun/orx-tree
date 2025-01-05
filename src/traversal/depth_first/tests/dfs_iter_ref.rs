@@ -1,13 +1,13 @@
 use crate::{
     node_ref::NodeRefCore,
     traversal::{
-        depth_first::{iter_ref::DfsIterRef, DfsIterPtr},
+        depth_first::{iter_ptr::DfsIterPtr, iter_ref::DfsIterRef},
         node_item::NodeItem,
         over::{Over, OverData, OverNode, OverPtr},
         DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
     },
     tree::{DefaultMemory, DefaultPinVec},
-    AsTreeNode, Dyn, DynTree, Node, NodeRef,
+    AsTreeNode, Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
 use orx_selfref_col::{NodePtr, Variant};
