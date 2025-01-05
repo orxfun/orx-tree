@@ -5,7 +5,10 @@ use crate::{
             dfs::Dfs, dfs_enumeration::DepthFirstEnumeration, iter_ref::DfsIterRef, DfsIterPtr,
         },
         node_item::NodeItem,
-        over::{Over, OverData, OverNode, OverPtr},
+        over::{
+            Over, OverData, OverDepthData, OverDepthSiblingIdxData, OverNode, OverPtr,
+            OverSiblingIdxData,
+        },
         DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Traverser, Val,
     },
     tree::{DefaultMemory, DefaultPinVec},
@@ -86,4 +89,62 @@ fn dfs_traverser_val() {
 #[test]
 fn dfs_traverser_node() {
     dfs_iter_for::<OverData>();
+}
+
+#[test]
+fn dfs_iter_ref_depth() {
+    let tree = tree();
+    let mut traverser = Dfs::<Dyn<i32>, OverDepthData>::default();
+
+    let root = tree.root().unwrap();
+    let iter = traverser.iter(&root);
+    assert_eq!(
+        iter.map(|x| x.0).collect::<Vec<_>>(),
+        [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]
+    );
+
+    let n3 = root.child(1).unwrap();
+    let iter = traverser.iter(&n3);
+    assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 1, 2, 1, 2, 2]);
+}
+
+#[test]
+fn dfs_iter_ref_sibling() {
+    let tree = tree();
+    let mut traverser = Dfs::<Dyn<i32>, OverSiblingIdxData>::default();
+
+    let root = tree.root().unwrap();
+    let iter = traverser.iter(&root);
+    assert_eq!(
+        iter.map(|x| x.0).collect::<Vec<_>>(),
+        [0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1]
+    );
+
+    let n3 = root.child(1).unwrap();
+    let iter = traverser.iter(&n3);
+    assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 0, 1, 0, 1]);
+}
+
+#[test]
+fn dfs_iter_ref_depth_sibling() {
+    let tree = tree();
+    let mut traverser = Dfs::<Dyn<i32>, OverDepthSiblingIdxData>::default();
+
+    let root = tree.root().unwrap();
+    let iter = traverser.iter(&root);
+    assert_eq!(
+        iter.map(|x| x.0).collect::<Vec<_>>(),
+        [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]
+    );
+    let iter = traverser.iter(&root);
+    assert_eq!(
+        iter.map(|x| x.1).collect::<Vec<_>>(),
+        [0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1]
+    );
+
+    let n3 = root.child(1).unwrap();
+    let iter = traverser.iter(&n3);
+    assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 1, 2, 1, 2, 2]);
+    let iter = traverser.iter(&n3);
+    assert_eq!(iter.map(|x| x.1).collect::<Vec<_>>(), [0, 0, 0, 1, 0, 1]);
 }
