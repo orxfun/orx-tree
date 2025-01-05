@@ -7,6 +7,7 @@ mod over;
 mod over_mut;
 mod post_order;
 mod traverser;
+mod traverser_mut;
 
 pub use enumeration::Enumeration;
 pub use enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
