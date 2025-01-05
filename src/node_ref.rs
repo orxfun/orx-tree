@@ -1,6 +1,7 @@
 use crate::{
     helpers::N,
     iter::{BfsIter, DfsBfsNodeVal, DfsIter, IterOver, NodeValueData, PostNodeVal, PostOrderIter},
+    traversal::Val,
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -303,6 +304,8 @@ where
     ///
     /// # Allocation
     ///
+    /// TODO: revise after traversal refactoring
+    ///
     /// Note that depth first search requires a stack (alloc::vec::Vec) to be allocated.
     /// Each time this method is called, a stack is allocated, used and dropped.
     ///
@@ -359,8 +362,18 @@ where
     /// let values: Vec<_> = n7.dfs().copied().collect();
     /// assert_eq!(values, [7, 10, 11]);
     /// ```
-    fn dfs(&self) -> DfsIter<DfsBfsNodeVal<NodeValueData>, V, M, P> {
-        DfsIter::new(self.col(), self.node_ptr().clone())
+    fn dfs<'b>(&'b self) -> impl Iterator<Item = &'b V::Item> + 'b
+    where
+        Self: Sized,
+        V::Item: 'b,
+        P: 'b,
+        M: 'b,
+        V: 'b,
+    {
+        use crate::traversal::depth_first::*;
+        let root = self.node_ptr().clone();
+        let iter = iter_ptr::DfsIterPtr::<_, Val>::from((Default::default(), root));
+        iter_ref::DfsIterRef::from((self.col(), iter))
     }
 
     /// Creates a depth first search iterator over different values of nodes;

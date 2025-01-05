@@ -2,9 +2,9 @@
 mod tests;
 
 mod dfs_enumeration;
-mod iter_mut;
-mod iter_ptr;
-mod iter_ref;
+pub(crate) mod iter_mut;
+pub(crate) mod iter_ptr;
+pub(crate) mod iter_ref;
 mod traverser;
 
 pub type Item<V, E> = <E as crate::traversal::Enumeration>::Item<orx_selfref_col::NodePtr<V>>;
