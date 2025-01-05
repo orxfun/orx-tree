@@ -25,6 +25,19 @@ where
     stack: Stack<V, O::Enumeration>,
 }
 
+impl<V, O> Default for Dfs<V, O>
+where
+    V: TreeVariant,
+    O: Over<V>,
+    O::Enumeration: DepthFirstEnumeration,
+{
+    fn default() -> Self {
+        Self {
+            stack: Default::default(),
+        }
+    }
+}
+
 impl<V, O> Traverser<V> for Dfs<V, O>
 where
     V: TreeVariant,

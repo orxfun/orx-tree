@@ -5,7 +5,7 @@ use crate::{
     Node, TreeVariant,
 };
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::MemoryPolicy;
+use orx_selfref_col::{MemoryPolicy, NodePtr};
 
 pub type OverItem<'a, V, O, M = DefaultMemory<V>, P = DefaultPinVec<V>> =
     <<O as Over<V>>::Enumeration as Enumeration>::Item<<O as Over<V>>::NodeItem<'a, M, P>>;
@@ -44,6 +44,20 @@ impl<V: TreeVariant> Over<V> for OverNode {
 
     type NodeItem<'a, M, P>
         = Node<'a, V, M, P>
+    where
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a,
+        V: 'a,
+        Self: 'a;
+}
+
+pub(crate) struct OverPtr;
+
+impl<V: TreeVariant> Over<V> for OverPtr {
+    type Enumeration = Val;
+
+    type NodeItem<'a, M, P>
+        = NodePtr<V>
     where
         M: MemoryPolicy<V> + 'a,
         P: PinnedVec<N<V>> + 'a,

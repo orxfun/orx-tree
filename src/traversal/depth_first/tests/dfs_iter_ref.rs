@@ -3,8 +3,10 @@ use crate::{
     traversal::{
         depth_first::{iter_ref::DfsIterRef, DfsIterPtr},
         node_item::NodeItem,
+        over::{Over, OverData, OverNode, OverPtr},
         DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val,
     },
+    tree::{DefaultMemory, DefaultPinVec},
     AsTreeNode, Dyn, DynTree, Node, NodeRef,
 };
 use alloc::vec::Vec;
@@ -48,14 +50,13 @@ fn dfs_iter_ref_empty() {
     assert_eq!(iter.next(), None);
 }
 
-fn dfs_iter_for<'a, D>()
-where
-    D: NodeItem<'a, Dyn<i32>> + 'a,
-{
-    fn data<'a, D>(iter: impl Iterator<Item = D>) -> Vec<<Dyn<i32> as Variant>::Item>
-    where
-        D: NodeItem<'a, Dyn<i32>> + 'a,
-    {
+type Item<'a, O> =
+    <O as Over<Dyn<i32>>>::NodeItem<'a, DefaultMemory<Dyn<i32>>, DefaultPinVec<Dyn<i32>>>;
+
+fn dfs_iter_for<O: Over<Dyn<i32>>>() {
+    fn data<'a, O: Over<Dyn<i32>> + 'a>(
+        iter: impl Iterator<Item = Item<'a, O>>,
+    ) -> Vec<<Dyn<i32> as Variant>::Item> {
         iter.map(|x| x.node_data().clone()).collect()
     }
 
@@ -65,35 +66,35 @@ where
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = DfsIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
-    assert_eq!(data(iter), [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    let iter = DfsIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    assert_eq!(data::<'_, O>(iter), [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
 
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = DfsIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
-    assert_eq!(data(iter), [3, 6, 9, 7, 10, 11]);
+    let iter = DfsIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    assert_eq!(data::<'_, O>(iter), [3, 6, 9, 7, 10, 11]);
 
     let n7 = n3.child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((stack, ptr));
-    let iter = DfsIterRef::<_, _, _, Val, _, NodePtr<_>>::from((root.col(), iter));
-    assert_eq!(data(iter), [7, 10, 11]);
+    let iter = DfsIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    assert_eq!(data::<'_, O>(iter), [7, 10, 11]);
 }
 
 #[test]
 fn dfs_iter_ref_ptr() {
-    dfs_iter_for::<'_, NodePtr<Dyn<i32>>>();
+    dfs_iter_for::<OverPtr>();
 }
 
 #[test]
 fn dfs_iter_ref_val() {
-    dfs_iter_for::<'_, Node<'_, Dyn<i32>>>();
+    dfs_iter_for::<OverNode>();
 }
 
 #[test]
 fn dfs_iter_ref_node() {
-    dfs_iter_for::<'_, &i32>();
+    dfs_iter_for::<OverData>();
 }
 
 #[test]

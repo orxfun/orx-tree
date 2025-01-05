@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests;
 
-mod dfs_core;
+mod dfs;
 mod dfs_enumeration;
 mod iter_mut;
 mod iter_ptr;

@@ -1,5 +1,6 @@
 use super::Enumeration;
 
+#[derive(Clone)]
 pub struct Val;
 impl Enumeration for Val {
     type Item<D> = D;
@@ -13,6 +14,7 @@ impl Enumeration for Val {
     }
 }
 
+#[derive(Clone)]
 pub struct DepthVal;
 impl Enumeration for DepthVal {
     type Item<D> = (usize, D);
@@ -26,6 +28,7 @@ impl Enumeration for DepthVal {
     }
 }
 
+#[derive(Clone)]
 pub struct SiblingIdxVal;
 impl Enumeration for SiblingIdxVal {
     type Item<D> = (usize, D);
@@ -39,6 +42,7 @@ impl Enumeration for SiblingIdxVal {
     }
 }
 
+#[derive(Clone)]
 pub struct DepthSiblingIdxVal;
 impl Enumeration for DepthSiblingIdxVal {
     type Item<D> = (usize, usize, D);
