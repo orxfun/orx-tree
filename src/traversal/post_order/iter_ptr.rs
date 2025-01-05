@@ -61,7 +61,7 @@ where
         Self {
             states: self.states.clone(),
             depth: self.depth,
-            phantom: self.phantom.clone(),
+            phantom: PhantomData,
         }
     }
 }
