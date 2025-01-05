@@ -20,7 +20,7 @@ use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
-pub struct PostOrder<V, O>
+pub struct PostOrder<V, O = OverData>
 where
     V: TreeVariant,
     O: Over<V>,
@@ -144,6 +144,44 @@ where
     V: TreeVariant,
 {
     pub fn over_nodes(self) -> PostOrder<V, OverDepthSiblingIdxNode> {
+        self.transform()
+    }
+}
+
+// transform: over_data
+
+impl<V> PostOrder<V, OverNode>
+where
+    V: TreeVariant,
+{
+    pub fn over_data(self) -> PostOrder<V, OverData> {
+        self.transform()
+    }
+}
+
+impl<V> PostOrder<V, OverDepthNode>
+where
+    V: TreeVariant,
+{
+    pub fn over_data(self) -> PostOrder<V, OverDepthData> {
+        self.transform()
+    }
+}
+
+impl<V> PostOrder<V, OverSiblingIdxNode>
+where
+    V: TreeVariant,
+{
+    pub fn over_data(self) -> PostOrder<V, OverSiblingIdxData> {
+        self.transform()
+    }
+}
+
+impl<V> PostOrder<V, OverDepthSiblingIdxNode>
+where
+    V: TreeVariant,
+{
+    pub fn over_data(self) -> PostOrder<V, OverDepthSiblingIdxData> {
         self.transform()
     }
 }

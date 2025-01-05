@@ -90,58 +90,101 @@ fn dfs_traverser_node() {
 
 #[test]
 fn dfs_iter_ref_depth() {
-    let tree = tree();
-    let mut traverser = PostOrder::<Dyn<i32>, OverDepthData>::default();
+    fn test(mut traverser: PostOrder<Dyn<i32>, OverDepthData>) {
+        let tree = tree();
 
-    let root = tree.root().unwrap();
-    let iter = traverser.iter(&root);
-    assert_eq!(
-        iter.map(|x| x.0).collect::<Vec<_>>(),
-        [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
+        let root = tree.root().unwrap();
+        let iter = traverser.iter(&root);
+        assert_eq!(
+            iter.map(|x| x.0).collect::<Vec<_>>(),
+            [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
+        );
+
+        let n3 = root.child(1).unwrap();
+        let iter = traverser.iter(&n3);
+        assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
+    }
+
+    test(PostOrder::<Dyn<i32>, OverDepthData>::default());
+    test(PostOrder::default());
+    test(PostOrder::<_, OverData>::default().with_depth());
+    test(
+        PostOrder::<_, OverData>::default()
+            .with_depth()
+            .over_nodes()
+            .over_data(),
     );
-
-    let n3 = root.child(1).unwrap();
-    let iter = traverser.iter(&n3);
-    assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
 }
 
 #[test]
 fn dfs_iter_ref_sibling() {
-    let tree = tree();
-    let mut traverser = PostOrder::<Dyn<i32>, OverSiblingIdxData>::default();
+    fn test(mut traverser: PostOrder<Dyn<i32>, OverSiblingIdxData>) {
+        let tree = tree();
 
-    let root = tree.root().unwrap();
-    let iter = traverser.iter(&root);
-    assert_eq!(
-        iter.map(|x| x.0).collect::<Vec<_>>(),
-        [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
+        let root = tree.root().unwrap();
+        let iter = traverser.iter(&root);
+        assert_eq!(
+            iter.map(|x| x.0).collect::<Vec<_>>(),
+            [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
+        );
+
+        let n3 = root.child(1).unwrap();
+        let iter = traverser.iter(&n3);
+        assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
+    }
+
+    test(PostOrder::<Dyn<i32>, OverSiblingIdxData>::default());
+    test(PostOrder::default());
+    test(PostOrder::<_, OverData>::default().with_sibling_idx());
+    test(
+        PostOrder::<_, OverData>::default()
+            .with_sibling_idx()
+            .over_nodes()
+            .over_data(),
     );
-
-    let n3 = root.child(1).unwrap();
-    let iter = traverser.iter(&n3);
-    assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
 }
 
 #[test]
 fn dfs_iter_ref_depth_sibling() {
-    let tree = tree();
-    let mut traverser = PostOrder::<Dyn<i32>, OverDepthSiblingIdxData>::default();
+    fn test(mut traverser: PostOrder<Dyn<i32>, OverDepthSiblingIdxData>) {
+        let tree = tree();
 
-    let root = tree.root().unwrap();
-    let iter = traverser.iter(&root);
-    assert_eq!(
-        iter.map(|x| x.0).collect::<Vec<_>>(),
-        [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
-    );
-    let iter = traverser.iter(&root);
-    assert_eq!(
-        iter.map(|x| x.1).collect::<Vec<_>>(),
-        [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
-    );
+        let root = tree.root().unwrap();
+        let iter = traverser.iter(&root);
+        assert_eq!(
+            iter.map(|x| x.0).collect::<Vec<_>>(),
+            [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
+        );
+        let iter = traverser.iter(&root);
+        assert_eq!(
+            iter.map(|x| x.1).collect::<Vec<_>>(),
+            [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
+        );
 
-    let n3 = root.child(1).unwrap();
-    let iter = traverser.iter(&n3);
-    assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
-    let iter = traverser.iter(&n3);
-    assert_eq!(iter.map(|x| x.1).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
+        let n3 = root.child(1).unwrap();
+        let iter = traverser.iter(&n3);
+        assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
+        let iter = traverser.iter(&n3);
+        assert_eq!(iter.map(|x| x.1).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
+    }
+
+    test(PostOrder::<Dyn<i32>, OverDepthSiblingIdxData>::default());
+    test(PostOrder::default());
+    test(
+        PostOrder::<_, OverData>::default()
+            .with_sibling_idx()
+            .with_depth(),
+    );
+    test(
+        PostOrder::<_, OverData>::default()
+            .with_depth()
+            .with_sibling_idx(),
+    );
+    test(
+        PostOrder::<_, OverData>::default()
+            .with_sibling_idx()
+            .with_depth()
+            .over_nodes()
+            .over_data(),
+    );
 }
