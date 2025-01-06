@@ -790,24 +790,24 @@ where
     ///
     /// // dfs from any node
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = id3.node_mut(&mut tree);
     /// for x in n3.dfs_mut() {
     ///     *x /= 10;
     /// }
-    /// let values: Vec<_> = n3.dfs().copied().collect();
+    /// let values: Vec<_> = id3.node(&tree).dfs().copied().collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     ///
-    /// let n6 = id6.node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.dfs_mut() {
     ///     *x *= 100;
     /// }
-    /// let values: Vec<_> = n6.dfs().copied().collect();
+    /// let values: Vec<_> = id6.node(&tree).dfs().copied().collect();
     /// assert_eq!(values, [600, 900]);
     ///
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
-    pub fn dfs_mut(&'a self) -> impl Iterator<Item = &'a mut V::Item> {
+    pub fn dfs_mut(&'a mut self) -> impl Iterator<Item = &'a mut V::Item> {
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
@@ -871,7 +871,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// // equivalent to `root.dfs_mut()`
     /// for data in root.dfs_mut_over::<OverData>() {
@@ -887,7 +887,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// for (depth, data) in root.dfs_mut_over::<OverDepthData>() {
     ///     *data += depth as i32 * 100;
@@ -902,7 +902,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     /// for (depth, sibling_idx, data) in root.dfs_mut_over::<OverDepthSiblingIdxData>() {
     ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
     /// }
@@ -913,7 +913,7 @@ where
     /// );
     /// ```
     pub fn dfs_mut_over<O: OverMut<V> + 'a>(
-        &'a self,
+        &'a mut self,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> {
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
         let root = self.node_ptr().clone();
@@ -984,24 +984,24 @@ where
     ///
     /// // bfs from any node
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = id3.node_mut(&mut tree);
     /// for x in n3.bfs_mut() {
     ///     *x /= 10;
     /// }
-    /// let values: Vec<_> = n3.bfs().copied().collect();
+    /// let values: Vec<_> = id3.node(&tree).bfs().copied().collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     ///
-    /// let n6 = id6.node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.bfs_mut() {
     ///     *x *= 100;
     /// }
-    /// let values: Vec<_> = n6.bfs().copied().collect();
+    /// let values: Vec<_> = id6.node(&tree).bfs().copied().collect();
     /// assert_eq!(values, [600, 900]);
     ///
     /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
     /// assert_eq!(values, [10, 20, 3, 40, 50, 600, 7, 80, 900, 10, 11]);
     /// ```
-    pub fn bfs_mut(&self) -> BfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
+    pub fn bfs_mut(&mut self) -> BfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
 
@@ -1062,7 +1062,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// // equivalent to `root.bfs_mut()`
     /// for data in root.bfs_mut_over::<OverData>() {
@@ -1078,7 +1078,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// for (depth, data) in root.bfs_mut_over::<OverDepthData>() {
     ///     *data += depth as i32 * 100;
@@ -1093,7 +1093,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     /// for (depth, sibling_idx, data) in root.bfs_mut_over::<OverDepthSiblingData>() {
     ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
     /// }
@@ -1104,7 +1104,7 @@ where
     /// );
     /// ```
     pub fn bfs_mut_over<K: IterMutOver>(
-        &'a self,
+        &'a mut self,
     ) -> BfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
         BfsIter::new(self.col(), self.node_ptr().clone()).into()
     }
@@ -1177,24 +1177,24 @@ where
     ///
     /// // traversal from any node
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = id3.node_mut(&mut tree);
     /// for x in n3.bfs_mut() {
     ///     *x /= 10;
     /// }
-    /// let values: Vec<_> = n3.post_order().copied().collect();
+    /// let values: Vec<_> = id3.node(&tree).post_order().copied().collect();
     /// assert_eq!(values, [9, 6, 10, 11, 7, 3]);
     ///
-    /// let n6 = id6.node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.bfs_mut() {
     ///     *x *= 100;
     /// }
-    /// let values: Vec<_> = n6.post_order().copied().collect();
+    /// let values: Vec<_> = id6.node(&tree).post_order().copied().collect();
     /// assert_eq!(values, [900, 600]);
     ///
     /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
     /// assert_eq!(values, [80, 40, 50, 20, 900, 600, 10, 11, 7, 3, 10]);
     /// ```
-    pub fn post_order_mut(&'a self) -> impl Iterator<Item = &'a mut V::Item> {
+    pub fn post_order_mut(&'a mut self) -> impl Iterator<Item = &'a mut V::Item> {
         use crate::traversal::post_order::{
             iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
         };
@@ -1265,7 +1265,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// // equivalent to `root.post_order_mut()`
     /// for data in root.post_order_mut_over::<OverData>() {
@@ -1281,7 +1281,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// for (depth, data) in root.post_order_mut_over::<OverDepthData>() {
     ///     *data += depth as i32 * 100;
@@ -1296,7 +1296,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     /// for (depth, sibling_idx, data) in root.post_order_mut_over::<OverDepthSiblingIdxData>() {
     ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
     /// }
@@ -1307,7 +1307,7 @@ where
     /// );
     /// ```
     pub fn post_order_mut_over<O: OverMut<V> + 'a>(
-        &'a self,
+        &'a mut self,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> {
         use crate::traversal::post_order::{
             iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
