@@ -731,19 +731,19 @@ where
     ///
     /// See also [`dfs_mut_over`] for variants yielding different values for each traversed node.
     ///
+    /// [`dfs_mut_over`]: crate::NodeMut::dfs_mut_over
+    /// [`data_mut`]: crate::NodeMut::data_mut
+    ///
     /// # Allocation
     ///
     /// Note that depth first search requires a stack (alloc::vec::Vec) to be allocated.
     /// Each time this method is called, a stack is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Traversal::dfs`] to optimize performance, which will create the stack only once
-    /// and re-use it to create many iterators.
+    /// it is recommended to use the [`Dfs`] traverser, which can be created using [`Traversal::dfs`] method.
+    /// By this, we would allocate the stack only once and re-use it to create many iterators.
     ///
-    /// [`dfs_mut_over`]: crate::NodeMut::dfs_mut_over
-    /// [`data_mut`]: crate::NodeMut::data_mut
-    /// [`dfs_over`]: crate::NodeRef::dfs_over
-    /// [`Dfs`]: crate::Dfs
+    /// [`Dfs`]: crate::traversal::depth_first::Dfs
     /// [`Traversal::dfs`]: crate::Traversal::dfs
     ///
     /// # Examples
@@ -813,7 +813,7 @@ where
     /// Creates a mutable depth first search iterator over different values of nodes;
     /// also known as "pre-order traversal" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)).
     ///
-    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`IterMutOver`] type parameter `O`.
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`OverMut`] type parameter `O`.
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
@@ -823,10 +823,11 @@ where
     /// Each time this method is called, a stack is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Traversal::over`] to optimize performance, which will create the stack only once
-    /// and re-use it to create many iterators.
+    /// it is recommended to use the [`Dfs`] traverser, which can be created using [`Traversal::dfs`] method.
+    /// By this, we would allocate the stack only once and re-use it to create many iterators.
     ///
-    /// [`Traversal::over`]: crate::Traversal::over
+    /// [`Dfs`]: crate::traversal::depth_first::Dfs
+    /// [`Traversal::dfs`]: crate::Traversal::dfs
     ///
     /// # Examples
     ///
@@ -935,9 +936,10 @@ where
     /// Each time this method is called, a queue is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Traversal::bfs`] to optimize performance, which will create the queue only once
-    /// and re-use it to create many iterators.
+    /// it is recommended to use the [`Bfs`] traverser, which can be created using [`Traversal::bfs`] method.
+    /// By this, we would allocate the queue only once and re-use it to create many iterators.
     ///
+    /// [`Bfs`]: crate::traversal::breadth_first::Bfs
     /// [`Traversal::bfs`]: crate::Traversal::bfs
     ///
     /// # Examples
@@ -1007,7 +1009,7 @@ where
     /// Creates a mutable breadth first search iterator over different values of nodes.
     /// This traversal also known as "level-order" ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
     ///
-    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`IterMutOver`] type parameter `O`.
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`OverMut`] type parameter `O`.
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
@@ -1017,10 +1019,11 @@ where
     /// Each time this method is called, a queue is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Traversal::over`] to optimize performance, which will create the queue only once
-    /// and re-use it to create many iterators.
+    /// it is recommended to use the [`Bfs`] traverser, which can be created using [`Traversal::bfs`] method.
+    /// By this, we would allocate the queue only once and re-use it to create many iterators.
     ///
-    /// [`Traversal::over`]: crate::Traversal::over
+    /// [`Bfs`]: crate::traversal::breadth_first::Bfs
+    /// [`Traversal::bfs`]: crate::Traversal::bfs
     ///
     /// # Examples
     ///
@@ -1122,21 +1125,22 @@ where
     ///
     /// Return value is an `Iterator` which yields [`data_mut`] of each traversed node.
     ///
-    /// See also [`bfs_mut_over`] for variants yielding different values for each traversed node.
+    /// See also [`post_order_mut_over`] for variants yielding different values for each traversed node.
     ///
     /// [`data_mut`]: crate::NodeMut::data_mut
-    /// [`bfs_mut_over`]: crate::NodeMut::bfs_mut_over
+    /// [`post_order_mut_over`]: crate::NodeMut::post_order_mut_over
     ///
     /// # Allocation
     ///
-    /// Note that post-order traversal requires a vector (alloc::vec::Vec) of size **D** to be allocated, where D is
-    /// the maximum depth of the nodes traversed.
+    /// Note that post  order traversal requires a vector (alloc::vec::Vec) to be allocated, with a length equal to
+    /// the max depth of the traversed nodes.
     /// Each time this method is called, a vector is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Traversal::post_order`] to optimize performance, which will create only the vector only once
-    /// and re-use it to create many iterators.
+    /// it is recommended to use the [`PostOrder`] traverser, which can be created using [`Traversal::post_order`] method.
+    /// By this, we would allocate the vector only once and re-use it to create many iterators.
     ///
+    /// [`PostOrder`]: crate::traversal::post_order::PostOrder
     /// [`Traversal::post_order`]: crate::Traversal::post_order
     ///
     /// # Examples
@@ -1212,20 +1216,21 @@ where
     /// yield; and hence, the root (this) node will be yield at last.
     /// Among other reasons, this makes post-order traversal very useful for pruning or removing nodes from trees.
     ///
-    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`IterMutOver`] type parameter `O`.
+    /// Return value is an `Iterator` with polymorphic element types which are determined by the generic [`OverMut`] type parameter `O`.
     ///
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
     /// # Allocation
     ///
-    /// Note that post-order traversal requires a vector (alloc::vec::Vec) of size **D** to be allocated, where D is
-    /// the maximum depth of the nodes traversed.
+    /// Note that post  order traversal requires a vector (alloc::vec::Vec) to be allocated, with a length equal to
+    /// the max depth of the traversed nodes.
     /// Each time this method is called, a vector is allocated, used and dropped.
     ///
     /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
-    /// it is recommended to use [`Traversal::post_order`] to optimize performance, which will create only the vector only once
-    /// and re-use it to create many iterators.
+    /// it is recommended to use the [`PostOrder`] traverser, which can be created using [`Traversal::post_order`] method.
+    /// By this, we would allocate the vector only once and re-use it to create many iterators.
     ///
+    /// [`PostOrder`]: crate::traversal::post_order::PostOrder
     /// [`Traversal::post_order`]: crate::Traversal::post_order
     ///
     /// # Examples
