@@ -1,4 +1,4 @@
-use super::{depth_first::Dfs, post_order::PostOrder};
+use super::{breadth_first::Bfs, depth_first::Dfs, post_order::PostOrder};
 use crate::TreeVariant;
 
 /// Type with methods allowing to create different [`Traverser`] types with
@@ -29,6 +29,29 @@ impl Traversal {
     /// [`with_depth`]: crate::traversal::Traverser::with_depth
     /// [`with_sibling_idx`]: crate::traversal::Traverser::with_sibling_idx
     pub fn dfs<V: TreeVariant>(self) -> Dfs<V> {
+        Default::default()
+    }
+
+    /// Creates the default breadth-first-search traverser, also known as level-order
+    /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    ///
+    /// The default traverser creates iterators that yield references or mutable references
+    /// to the node data; i.e., [`OverData`].
+    ///
+    /// However, item type of the iterators that the traverser creates can be transformed
+    /// any time using the transformation methods:
+    ///
+    /// * [`over_data`]
+    /// * [`over_nodes`]
+    /// * [`with_depth`]
+    /// * [`with_sibling_idx`]
+    ///
+    /// [`OverData`]: crate::traversal::OverData
+    /// [`over_data`]: crate::traversal::Traverser::over_data
+    /// [`over_nodes`]: crate::traversal::Traverser::over_nodes
+    /// [`with_depth`]: crate::traversal::Traverser::with_depth
+    /// [`with_sibling_idx`]: crate::traversal::Traverser::with_sibling_idx
+    pub fn bfs<V: TreeVariant>(self) -> Bfs<V> {
         Default::default()
     }
 

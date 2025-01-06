@@ -9,3 +9,4 @@ mod queue;
 mod traverser;
 
 pub use bfs_enumeration::BreadthFirstEnumeration;
+pub use traverser::Bfs;

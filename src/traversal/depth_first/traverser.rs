@@ -13,7 +13,7 @@ use crate::{
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
-/// A depth first traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
+/// A depth first search traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
 ///
 /// A traverser can be created once and used to traverse over trees multiple times without
 /// requiring additional memory allocation.

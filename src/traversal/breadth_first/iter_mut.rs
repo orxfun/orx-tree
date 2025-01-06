@@ -9,7 +9,7 @@ use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
 use orx_selfref_col::{MemoryPolicy, SelfRefCol};
 
-pub struct DfsIterMut<'a, V, M, P, E, S, D>
+pub struct BfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -23,7 +23,7 @@ where
     phantom: PhantomData<D>,
 }
 
-impl<'a, V, M, P, E, S, D> DfsIterMut<'a, V, M, P, E, S, D>
+impl<'a, V, M, P, E, S, D> BfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -52,7 +52,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, S, D> Iterator for DfsIterMut<'a, V, M, P, E, S, D>
+impl<'a, V, M, P, E, S, D> Iterator for BfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,

@@ -9,7 +9,7 @@ use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
 use orx_selfref_col::{MemoryPolicy, SelfRefCol};
 
-pub struct DfsIterRef<'a, V, M, P, E, S, D>
+pub struct BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -24,7 +24,7 @@ where
 }
 
 impl<'a, V, M, P, E, S, D> From<(&'a SelfRefCol<V, M, P>, BfsIterPtr<V, E, S>)>
-    for DfsIterRef<'a, V, M, P, E, S, D>
+    for BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -42,7 +42,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, D> Clone for DfsIterRef<'a, V, M, P, E, Queue<V, E>, D>
+impl<'a, V, M, P, E, D> Clone for BfsIterRef<'a, V, M, P, E, Queue<V, E>, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
@@ -60,7 +60,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, S, D> Iterator for DfsIterRef<'a, V, M, P, E, S, D>
+impl<'a, V, M, P, E, S, D> Iterator for BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,

@@ -11,6 +11,7 @@ pub(crate) mod post_order;
 mod traverser;
 mod traverser_mut;
 
+pub use breadth_first::Bfs;
 pub use depth_first::Dfs;
 pub use factory::Traversal;
 pub use over::{
