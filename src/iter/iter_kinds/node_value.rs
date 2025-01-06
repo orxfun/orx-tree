@@ -1,8 +1,9 @@
-use crate::{helpers::N, Node, TreeVariant};
+use crate::{
+    helpers::{Never, N},
+    Node, TreeVariant,
+};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
-
-pub enum Never {}
 
 // traits
 

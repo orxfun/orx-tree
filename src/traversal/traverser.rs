@@ -42,6 +42,7 @@ use orx_selfref_col::MemoryPolicy;
 /// | [`OverSiblingIdxNode`] | (sibling_idx, Node) | `Traversal.dfs().over_nodes().with_sibling_idx()` |
 /// | [`OverDepthSiblingIdxNode`] | (depth, sibling_idx, Node) | `Traversal.dfs().over_nodes().with_depth().with_sibling_idx()` |
 ///
+/// [`Traversal`]: crate::traversal::Traversal
 /// [`Over`]: crate::traversal::Over
 /// [`OverData`]: crate::traversal::OverData
 /// [`OverDepthData`]: crate::traversal::OverDepthData
@@ -145,6 +146,7 @@ where
     /// | [`OverSiblingIdxNode`] | (sibling_idx, Node) | `Traversal.dfs().over_nodes().with_sibling_idx()` |
     /// | [`OverDepthSiblingIdxNode`] | (depth, sibling_idx, Node) | `Traversal.dfs().over_nodes().with_depth().with_sibling_idx()` |
     ///
+    /// [`Traversal`]: crate::traversal::Traversal
     /// [`OverData`]: crate::traversal::OverData
     /// [`OverDepthData`]: crate::traversal::OverDepthData
     /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
