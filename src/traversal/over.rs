@@ -36,6 +36,22 @@ pub trait Over<V: TreeVariant> {
 
     /// Transformed version of the over item where it yields Node rather than data.
     type IntoOverNode: Over<V>;
+
+    /// Transformed version of the over item where it yields
+    ///
+    /// * (depth, x) rather than x, or
+    /// * (depth, sibling_idx, x) rather than (sibling_idx, x)
+    ///
+    /// where x might be data or Node.
+    type IntoWithDepth: Over<V>;
+
+    /// Transformed version of the over item where it yields
+    ///
+    /// * (sibling_idx, x) rather than x, or
+    /// * (depth, sibling_idx, x) rather than (depth, x)
+    ///
+    /// where x might be data or Node.
+    type IntoWithSiblingIdx: Over<V>;
 }
 
 // val
@@ -59,6 +75,8 @@ impl<V: TreeVariant> Over<V> for OverData {
 
     type IntoOverData = Self;
     type IntoOverNode = OverNode;
+    type IntoWithDepth = OverDepthData;
+    type IntoWithSiblingIdx = OverSiblingIdxData;
 }
 
 /// Yields a reference to the nodes; i.e., [`Node`].
@@ -79,6 +97,8 @@ impl<V: TreeVariant> Over<V> for OverNode {
 
     type IntoOverData = OverData;
     type IntoOverNode = Self;
+    type IntoWithDepth = OverDepthNode;
+    type IntoWithSiblingIdx = OverSiblingIdxNode;
 }
 
 pub(crate) struct OverPtr;
@@ -96,6 +116,8 @@ impl<V: TreeVariant> Over<V> for OverPtr {
 
     type IntoOverData = OverData;
     type IntoOverNode = OverNode;
+    type IntoWithDepth = OverDepthPtr;
+    type IntoWithSiblingIdx = OverSiblingIdxPtr;
 }
 
 // depth & val
@@ -123,6 +145,8 @@ impl<V: TreeVariant> Over<V> for OverDepthData {
 
     type IntoOverData = Self;
     type IntoOverNode = OverDepthNode;
+    type IntoWithDepth = OverDepthData;
+    type IntoWithSiblingIdx = OverDepthSiblingIdxData;
 }
 
 /// Yields (depth, [`Node`]) tuple of the nodes.
@@ -147,6 +171,27 @@ impl<V: TreeVariant> Over<V> for OverDepthNode {
 
     type IntoOverData = OverDepthData;
     type IntoOverNode = Self;
+    type IntoWithDepth = OverDepthNode;
+    type IntoWithSiblingIdx = OverDepthSiblingIdxNode;
+}
+
+pub(crate) struct OverDepthPtr;
+
+impl<V: TreeVariant> Over<V> for OverDepthPtr {
+    type Enumeration = Val;
+
+    type NodeItem<'a, M, P>
+        = NodePtr<V>
+    where
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a,
+        V: 'a,
+        Self: 'a;
+
+    type IntoOverData = OverData;
+    type IntoOverNode = OverNode;
+    type IntoWithDepth = OverDepthPtr;
+    type IntoWithSiblingIdx = OverDepthSiblingIdxPtr;
 }
 
 // sibling & val
@@ -176,6 +221,8 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxData {
 
     type IntoOverData = Self;
     type IntoOverNode = OverSiblingIdxNode;
+    type IntoWithDepth = OverDepthSiblingIdxData;
+    type IntoWithSiblingIdx = OverSiblingIdxData;
 }
 
 /// Yields (sibling_idx, [`Node`]) tuple of the nodes.
@@ -202,6 +249,27 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxNode {
 
     type IntoOverData = OverSiblingIdxData;
     type IntoOverNode = Self;
+    type IntoWithDepth = OverDepthSiblingIdxNode;
+    type IntoWithSiblingIdx = OverSiblingIdxNode;
+}
+
+pub(crate) struct OverSiblingIdxPtr;
+
+impl<V: TreeVariant> Over<V> for OverSiblingIdxPtr {
+    type Enumeration = Val;
+
+    type NodeItem<'a, M, P>
+        = NodePtr<V>
+    where
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a,
+        V: 'a,
+        Self: 'a;
+
+    type IntoOverData = OverData;
+    type IntoOverNode = OverNode;
+    type IntoWithDepth = OverDepthSiblingIdxPtr;
+    type IntoWithSiblingIdx = OverSiblingIdxPtr;
 }
 
 // depth & sibling & val
@@ -235,6 +303,8 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxData {
 
     type IntoOverData = Self;
     type IntoOverNode = OverDepthSiblingIdxNode;
+    type IntoWithDepth = Self;
+    type IntoWithSiblingIdx = Self;
 }
 
 /// Yields (depth, sibling_idx, [`Node`]) tuple of the nodes.
@@ -265,4 +335,24 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxNode {
 
     type IntoOverData = OverDepthSiblingIdxData;
     type IntoOverNode = Self;
+    type IntoWithDepth = Self;
+    type IntoWithSiblingIdx = Self;
+}
+pub(crate) struct OverDepthSiblingIdxPtr;
+
+impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxPtr {
+    type Enumeration = Val;
+
+    type NodeItem<'a, M, P>
+        = NodePtr<V>
+    where
+        M: MemoryPolicy<V> + 'a,
+        P: PinnedVec<N<V>> + 'a,
+        V: 'a,
+        Self: 'a;
+
+    type IntoOverData = OverData;
+    type IntoOverNode = OverNode;
+    type IntoWithDepth = Self;
+    type IntoWithSiblingIdx = Self;
 }

@@ -1,7 +1,4 @@
-use super::{
-    dfs_enumeration::DepthFirstEnumeration, iter_mut::DfsIterMut, iter_ptr::DfsIterPtr,
-    iter_ref::DfsIterRef, Stack,
-};
+use super::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef, Stack};
 use crate::{
     helpers::N,
     node_ref::NodeRefCore,
@@ -109,21 +106,6 @@ where
         let root = node_mut.node_ptr().clone();
         let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((&mut self.stack, root));
         unsafe { DfsIterMut::from((node_mut.col(), iter_ptr)) }
-    }
-}
-
-// transform
-
-impl<V, O> Dfs<V, O>
-where
-    V: TreeVariant,
-    O: Over<V>,
-{
-    fn transform<P>(self) -> Dfs<V, P>
-    where
-        P: Over<V, Enumeration = O::Enumeration>,
-    {
-        Dfs { stack: self.stack }
     }
 }
 
