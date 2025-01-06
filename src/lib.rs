@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![warn(
-    missing_docs,
+    // missing_docs,
     clippy::unwrap_in_result,
     clippy::unwrap_used,
     clippy::panic,
@@ -20,6 +20,9 @@ extern crate alloc;
 /// Module defining tree traversal iterators.
 pub mod iter;
 
+/// Module defining tree traversal iterators.
+pub mod traversal;
+
 mod as_tree_node;
 mod common_traits;
 mod dary;
@@ -33,10 +36,11 @@ mod tree_variant;
 
 pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
-pub use iter::Traversal;
+pub use iter::TraversalDepr;
 pub use node::Node;
 pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
 pub use node_ref::NodeRef;
 pub use r#dyn::{Dyn, DynNode, DynTree};
+pub use traversal::{Traversal, Traverser, TraverserMut};
 pub use tree::Tree;
 pub use tree_variant::TreeVariant;

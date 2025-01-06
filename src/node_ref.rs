@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{BfsIter, DfsBfsNodeVal, DfsIter, IterOver, NodeValueData, PostNodeVal, PostOrderIter},
+    traversal::{enumerations::Val, over::OverItem, Over},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -303,6 +303,8 @@ where
     ///
     /// # Allocation
     ///
+    /// TODO: revise after traversal refactoring
+    ///
     /// Note that depth first search requires a stack (alloc::vec::Vec) to be allocated.
     /// Each time this method is called, a stack is allocated, used and dropped.
     ///
@@ -359,8 +361,11 @@ where
     /// let values: Vec<_> = n7.dfs().copied().collect();
     /// assert_eq!(values, [7, 10, 11]);
     /// ```
-    fn dfs(&self) -> DfsIter<DfsBfsNodeVal<NodeValueData>, V, M, P> {
-        DfsIter::new(self.col(), self.node_ptr().clone())
+    fn dfs(&'a self) -> impl Iterator<Item = &'a V::Item> {
+        use crate::traversal::depth_first::{iter_ptr::DfsIterPtr, iter_ref::DfsIterRef};
+        let root = self.node_ptr().clone();
+        let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
+        DfsIterRef::from((self.col(), iter))
     }
 
     /// Creates a depth first search iterator over different values of nodes;
@@ -371,6 +376,8 @@ where
     /// You may see below how to conveniently create iterators yielding possible element types using above-mentioned generic parameters.
     ///
     /// # Allocation
+    ///
+    /// TODO: revise documentation
     ///
     /// Note that depth first search requires a stack (alloc::vec::Vec) to be allocated.
     /// Each time this method is called, a stack is allocated, used and dropped.
@@ -387,7 +394,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// //      1
     /// //     ╱ ╲
@@ -440,7 +447,7 @@ where
     ///
     /// // dfs over (depth, sibling index, data)
     ///
-    /// let mut iter = root.dfs_over::<OverDepthSiblingData>();
+    /// let mut iter = root.dfs_over::<OverDepthSiblingIdxData>();
     /// assert_eq!(iter.next(), Some((0, 0, &1))); // (depth, sibling idx, data)
     /// assert_eq!(iter.next(), Some((1, 0, &2)));
     /// assert_eq!(iter.next(), Some((2, 0, &4)));
@@ -448,7 +455,7 @@ where
     /// assert_eq!(iter.next(), Some((2, 1, &5)));
     /// assert_eq!(iter.next(), Some((1, 1, &3))); // ...
     ///
-    /// let all: Vec<(usize, usize, &i32)> = root.dfs_over::<OverDepthSiblingData>().collect();
+    /// let all: Vec<(usize, usize, &i32)> = root.dfs_over::<OverDepthSiblingIdxData>().collect();
     ///
     /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]);
@@ -476,7 +483,7 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     ///
-    /// let nodes: Vec<(usize, usize, Node<_>)> = root.dfs_over::<OverDepthSiblingNode>().collect();
+    /// let nodes: Vec<(usize, usize, Node<_>)> = root.dfs_over::<OverDepthSiblingIdxNode>().collect();
     /// for ((depth, sibling_idx, node), (expected_depth, (expected_sibling_idx, expected_value))) in
     ///     nodes
     ///         .iter()
@@ -488,8 +495,14 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn dfs_over<O: IterOver>(&'a self) -> DfsIter<'a, O::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
-        DfsIter::new(self.col(), self.node_ptr().clone())
+    fn dfs_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    where
+        O: Over<V> + 'a,
+    {
+        use crate::traversal::depth_first::{iter_ptr::DfsIterPtr, iter_ref::DfsIterRef};
+        let root = self.node_ptr().clone();
+        let iter = DfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        DfsIterRef::from((self.col(), iter))
     }
 
     // bfs
@@ -559,8 +572,11 @@ where
     /// let values: Vec<_> = n7.bfs().copied().collect();
     /// assert_eq!(values, [7, 10, 11]);
     /// ```
-    fn bfs(&self) -> BfsIter<DfsBfsNodeVal<NodeValueData>, V, M, P> {
-        BfsIter::new(self.col(), self.node_ptr().clone())
+    fn bfs(&'a self) -> impl Iterator<Item = &'a V::Item> {
+        use crate::traversal::breadth_first::{iter_ptr::BfsIterPtr, iter_ref::BfsIterRef};
+        let root = self.node_ptr().clone();
+        let iter = BfsIterPtr::<_, Val>::from((Default::default(), root));
+        BfsIterRef::from((self.col(), iter))
     }
 
     /// Creates a breadth first search iterator over different values of nodes.
@@ -587,7 +603,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// //      1
     /// //     ╱ ╲
@@ -641,7 +657,7 @@ where
     ///
     /// // bfs over (depth, sibling index, data)
     ///
-    /// let mut iter = root.bfs_over::<OverDepthSiblingData>();
+    /// let mut iter = root.bfs_over::<OverDepthSiblingIdxData>();
     /// assert_eq!(iter.next(), Some((0, 0, &1))); // (depth, sibling idx, data)
     /// assert_eq!(iter.next(), Some((1, 0, &2)));
     /// assert_eq!(iter.next(), Some((1, 1, &3)));
@@ -649,7 +665,7 @@ where
     /// assert_eq!(iter.next(), Some((2, 1, &5)));
     /// assert_eq!(iter.next(), Some((2, 0, &6))); // ...
     ///
-    /// let all: Vec<(usize, usize, &i32)> = root.bfs_over::<OverDepthSiblingData>().collect();
+    /// let all: Vec<(usize, usize, &i32)> = root.bfs_over::<OverDepthSiblingIdxData>().collect();
     ///
     /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
     /// assert_eq!(depths, [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]);
@@ -677,7 +693,7 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     ///
-    /// let nodes: Vec<(usize, usize, Node<_>)> = root.bfs_over::<OverDepthSiblingNode>().collect();
+    /// let nodes: Vec<(usize, usize, Node<_>)> = root.bfs_over::<OverDepthSiblingIdxNode>().collect();
     /// for ((depth, sibling_idx, node), (expected_depth, (expected_sibling_idx, expected_value))) in
     ///     nodes
     ///         .iter()
@@ -689,8 +705,14 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn bfs_over<O: IterOver>(&'a self) -> BfsIter<'a, O::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
-        BfsIter::new(self.col(), self.node_ptr().clone())
+    fn bfs_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    where
+        O: Over<V> + 'a,
+    {
+        use crate::traversal::breadth_first::{iter_ptr::BfsIterPtr, iter_ref::BfsIterRef};
+        let root = self.node_ptr().clone();
+        let iter = BfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        BfsIterRef::from((self.col(), iter))
     }
 
     // post-order
@@ -710,6 +732,8 @@ where
     /// [`dfs_over`]: crate::NodeRef::dfs_over
     ///
     /// # Allocation
+    ///
+    /// TODO: revise after traversal refactoring
     ///
     /// Note that post-order traversal requires a vector (alloc::vec::Vec) of size **D** to be allocated, where D is
     /// the maximum depth of the nodes traversed.
@@ -765,8 +789,13 @@ where
     /// let values: Vec<_> = n7.post_order().copied().collect();
     /// assert_eq!(values, [10, 11, 7]);
     /// ```
-    fn post_order(&self) -> PostOrderIter<PostNodeVal<NodeValueData>, V, M, P> {
-        PostOrderIter::new(self.col(), self.node_ptr().clone())
+    fn post_order(&'a self) -> impl Iterator<Item = &'a V::Item> {
+        use crate::traversal::post_order::{
+            iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
+        };
+        let root = self.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), root));
+        PostOrderIterRef::from((self.col(), iter))
     }
 
     /// Creates an iterator for post-order traversal rooted at this node over different values of the nodes
@@ -796,7 +825,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// //      1
     /// //     ╱ ╲
@@ -850,7 +879,7 @@ where
     ///
     /// // post-order over (depth, sibling index, data)
     ///
-    /// let mut iter = root.post_order_over::<OverDepthSiblingData>();
+    /// let mut iter = root.post_order_over::<OverDepthSiblingIdxData>();
     /// assert_eq!(iter.next(), Some((3, 0, &8))); // (depth, sibling idx, data)
     /// assert_eq!(iter.next(), Some((2, 0, &4)));
     /// assert_eq!(iter.next(), Some((2, 1, &5)));
@@ -858,7 +887,7 @@ where
     /// assert_eq!(iter.next(), Some((3, 0, &9)));
     /// assert_eq!(iter.next(), Some((2, 0, &6))); // ...
     ///
-    /// let all: Vec<(usize, usize, &i32)> = root.post_order_over::<OverDepthSiblingData>().collect();
+    /// let all: Vec<(usize, usize, &i32)> = root.post_order_over::<OverDepthSiblingIdxData>().collect();
     ///
     /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
     /// assert_eq!(depths, [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]);
@@ -887,7 +916,7 @@ where
     /// }
     ///
     /// let nodes: Vec<(usize, usize, Node<_>)> =
-    ///     root.post_order_over::<OverDepthSiblingNode>().collect();
+    ///     root.post_order_over::<OverDepthSiblingIdxNode>().collect();
     /// for ((depth, sibling_idx, node), (expected_depth, (expected_sibling_idx, expected_value))) in
     ///     nodes
     ///         .iter()
@@ -899,9 +928,15 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn post_order_over<O: IterOver>(
-        &self,
-    ) -> PostOrderIter<O::PostOrderKind<'_, V, M, P>, V, M, P> {
-        PostOrderIter::new(self.col(), self.node_ptr().clone())
+    fn post_order_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    where
+        O: Over<V> + 'a,
+    {
+        use crate::traversal::post_order::{
+            iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
+        };
+        let root = self.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        PostOrderIterRef::from((self.col(), iter))
     }
 }

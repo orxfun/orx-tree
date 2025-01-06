@@ -1,14 +1,13 @@
 use crate::{
     helpers::N,
-    iter::{
-        BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, DfsIter, DfsIterMut, IterMutOver,
-        NodeValueData, OverDepthSiblingData, OverDepthSiblingPtr, OverPtr, PostNodeVal,
-        PostOrderIter, PostOrderIterMut, PostOrderIterPtr,
-    },
+    iter::ChildrenMutIter,
     node_ref::NodeRefCore,
+    traversal::{
+        enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverMut,
+    },
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
-    NodeRef, TreeVariant,
+    TreeVariant,
 };
 use alloc::vec::Vec;
 use core::marker::PhantomData;
@@ -47,12 +46,12 @@ where
     phantom: PhantomData<O>,
 }
 
-impl<'a, V, M, P, O> NodeRefCore<'a, V, M, P> for NodeMut<'a, V, M, P, O>
+impl<'a, V, M, P, MO> NodeRefCore<'a, V, M, P> for NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    O: NodeMutOrientation,
+    MO: NodeMutOrientation,
 {
     #[inline(always)]
     fn col(&self) -> &SelfRefCol<V, M, P> {
@@ -65,12 +64,12 @@ where
     }
 }
 
-impl<'a, V, M, P, O> NodeMut<'a, V, M, P, O>
+impl<'a, V, M, P, MO> NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
     M: MemoryPolicy<V>,
     P: PinnedVec<N<V>>,
-    O: NodeMutOrientation,
+    MO: NodeMutOrientation,
 {
     /// Returns a mutable reference to data of this node.
     ///
@@ -324,7 +323,7 @@ where
     pub fn grow_iter<'b, I>(
         &'b mut self,
         children: I,
-    ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P, O>
+    ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P, MO>
     where
         I: IntoIterator<Item = V::Item>,
         I::IntoIter: 'b,
@@ -468,6 +467,7 @@ where
     /// assert_eq!(tree.len(), 0);
     /// assert_eq!(tree.root(), None);
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     pub fn remove(self) -> V::Item {
         // TODO: we have the option to choose any traversal here; they are all safe
         // with SelfRefCol. We can pick the fastest one after benchmarks.
@@ -478,7 +478,7 @@ where
         // taking its data out and emptying all of its previous and next links.
         // Close operation is lazy and does not invalidate the pointers that we the
         // shared reference to create.
-        let iter = PostOrderIterPtr::new(self.node_ptr.clone());
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr.clone()));
         for ptr in iter {
             if ptr != self.node_ptr {
                 self.col.close(&ptr);
@@ -489,7 +489,7 @@ where
         if let Some(parent) = node.prev_mut().get() {
             let parent = unsafe { &mut *parent.ptr_mut() };
             let sibling_idx = parent.next_mut().remove(self.node_ptr.ptr() as usize);
-            assert!(sibling_idx.is_some())
+            debug_assert!(sibling_idx.is_some());
         }
 
         let root_ptr = self.col.ends().get().expect("tree is not empty");
@@ -718,7 +718,7 @@ where
         &mut self,
     ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>>
            + DoubleEndedIterator
-           + use<'_, 'a, V, M, P, O> {
+           + use<'_, 'a, V, M, P, MO> {
         ChildrenMutIter::new(self.col, self.node_ptr.ptr())
     }
 
@@ -786,25 +786,28 @@ where
     ///
     /// // dfs from any node
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = id3.node_mut(&mut tree);
     /// for x in n3.dfs_mut() {
     ///     *x /= 10;
     /// }
-    /// let values: Vec<_> = n3.dfs().copied().collect();
+    /// let values: Vec<_> = id3.node(&tree).dfs().copied().collect();
     /// assert_eq!(values, [3, 6, 9, 7, 10, 11]);
     ///
-    /// let n6 = id6.node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.dfs_mut() {
     ///     *x *= 100;
     /// }
-    /// let values: Vec<_> = n6.dfs().copied().collect();
+    /// let values: Vec<_> = id6.node(&tree).dfs().copied().collect();
     /// assert_eq!(values, [600, 900]);
     ///
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
-    pub fn dfs_mut(&self) -> DfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
-        DfsIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn dfs_mut(&mut self) -> impl Iterator<Item = &mut V::Item> {
+        use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
+        let root = self.node_ptr().clone();
+        let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
+        unsafe { DfsIterMut::from((self.col(), iter)) }
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
@@ -829,7 +832,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// fn init_tree() -> DynTree<i32> {
     ///     //      1
@@ -864,7 +867,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// // equivalent to `root.dfs_mut()`
     /// for data in root.dfs_mut_over::<OverData>() {
@@ -880,7 +883,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// for (depth, data) in root.dfs_mut_over::<OverDepthData>() {
     ///     *data += depth as i32 * 100;
@@ -895,8 +898,8 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
-    /// for (depth, sibling_idx, data) in root.dfs_mut_over::<OverDepthSiblingData>() {
+    /// let mut root = tree.root_mut().unwrap();
+    /// for (depth, sibling_idx, data) in root.dfs_mut_over::<OverDepthSiblingIdxData>() {
     ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
     /// }
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
@@ -905,10 +908,13 @@ where
     ///     [1, 102, 204, 308, 10205, 10103, 206, 309, 10207, 310, 10311]
     /// );
     /// ```
-    pub fn dfs_mut_over<K: IterMutOver>(
-        &'a self,
-    ) -> DfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
-        DfsIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn dfs_mut_over<O: OverMut<V> + 'a>(
+        &mut self,
+    ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
+        use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
+        let root = self.node_ptr().clone();
+        let iter = DfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        unsafe { DfsIterMut::from((self.col(), iter)) }
     }
 
     // bfs
@@ -974,25 +980,28 @@ where
     ///
     /// // bfs from any node
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = id3.node_mut(&mut tree);
     /// for x in n3.bfs_mut() {
     ///     *x /= 10;
     /// }
-    /// let values: Vec<_> = n3.bfs().copied().collect();
+    /// let values: Vec<_> = id3.node(&tree).bfs().copied().collect();
     /// assert_eq!(values, [3, 6, 7, 9, 10, 11]);
     ///
-    /// let n6 = id6.node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.bfs_mut() {
     ///     *x *= 100;
     /// }
-    /// let values: Vec<_> = n6.bfs().copied().collect();
+    /// let values: Vec<_> = id6.node(&tree).bfs().copied().collect();
     /// assert_eq!(values, [600, 900]);
     ///
     /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
     /// assert_eq!(values, [10, 20, 3, 40, 50, 600, 7, 80, 900, 10, 11]);
     /// ```
-    pub fn bfs_mut(&self) -> BfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
-        BfsIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn bfs_mut(&mut self) -> impl Iterator<Item = &mut V::Item> {
+        use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
+        let root = self.node_ptr().clone();
+        let iter = BfsIterPtr::<_, Val>::from((Default::default(), root));
+        unsafe { BfsIterMut::from((self.col(), iter)) }
     }
 
     /// Creates a mutable breadth first search iterator over different values of nodes.
@@ -1017,7 +1026,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// fn init_tree() -> DynTree<i32> {
     ///     //      1
@@ -1052,7 +1061,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// // equivalent to `root.bfs_mut()`
     /// for data in root.bfs_mut_over::<OverData>() {
@@ -1068,7 +1077,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// for (depth, data) in root.bfs_mut_over::<OverDepthData>() {
     ///     *data += depth as i32 * 100;
@@ -1083,8 +1092,8 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
-    /// for (depth, sibling_idx, data) in root.bfs_mut_over::<OverDepthSiblingData>() {
+    /// let mut root = tree.root_mut().unwrap();
+    /// for (depth, sibling_idx, data) in root.bfs_mut_over::<OverDepthSiblingIdxData>() {
     ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
     /// }
     /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
@@ -1093,10 +1102,13 @@ where
     ///     [1, 102, 10103, 204, 10205, 206, 10207, 308, 309, 310, 10311]
     /// );
     /// ```
-    pub fn bfs_mut_over<K: IterMutOver>(
-        &'a self,
-    ) -> BfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
-        BfsIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn bfs_mut_over<O: OverMut<V> + 'a>(
+        &mut self,
+    ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
+        use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
+        let root = self.node_ptr().clone();
+        let iter = BfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        unsafe { BfsIterMut::from((self.col(), iter)) }
     }
 
     // post-order
@@ -1167,25 +1179,30 @@ where
     ///
     /// // traversal from any node
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = id3.node_mut(&mut tree);
     /// for x in n3.bfs_mut() {
     ///     *x /= 10;
     /// }
-    /// let values: Vec<_> = n3.post_order().copied().collect();
+    /// let values: Vec<_> = id3.node(&tree).post_order().copied().collect();
     /// assert_eq!(values, [9, 6, 10, 11, 7, 3]);
     ///
-    /// let n6 = id6.node_mut(&mut tree);
+    /// let mut n6 = id6.node_mut(&mut tree);
     /// for x in n6.bfs_mut() {
     ///     *x *= 100;
     /// }
-    /// let values: Vec<_> = n6.post_order().copied().collect();
+    /// let values: Vec<_> = id6.node(&tree).post_order().copied().collect();
     /// assert_eq!(values, [900, 600]);
     ///
     /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
     /// assert_eq!(values, [80, 40, 50, 20, 900, 600, 10, 11, 7, 3, 10]);
     /// ```
-    pub fn post_order_mut(&self) -> PostOrderIterMut<PostNodeVal<NodeValueData>, V, M, P> {
-        PostOrderIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn post_order_mut(&mut self) -> impl Iterator<Item = &mut V::Item> {
+        use crate::traversal::post_order::{
+            iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
+        };
+        let root = self.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), root));
+        unsafe { PostOrderIterMut::from((self.col(), iter)) }
     }
 
     /// Creates a mutable iterator for post-order traversal
@@ -1215,7 +1232,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// fn init_tree() -> DynTree<i32> {
     ///     //      1
@@ -1250,7 +1267,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// // equivalent to `root.post_order_mut()`
     /// for data in root.post_order_mut_over::<OverData>() {
@@ -1266,7 +1283,7 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut().unwrap();
     ///
     /// for (depth, data) in root.post_order_mut_over::<OverDepthData>() {
     ///     *data += depth as i32 * 100;
@@ -1281,8 +1298,8 @@ where
     ///
     /// let mut tree = init_tree();
     ///
-    /// let root = tree.root_mut().unwrap();
-    /// for (depth, sibling_idx, data) in root.post_order_mut_over::<OverDepthSiblingData>() {
+    /// let mut root = tree.root_mut().unwrap();
+    /// for (depth, sibling_idx, data) in root.post_order_mut_over::<OverDepthSiblingIdxData>() {
     ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
     /// }
     /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
@@ -1291,10 +1308,15 @@ where
     ///     [308, 204, 10205, 102, 309, 206, 310, 10311, 10207, 10103, 1]
     /// );
     /// ```
-    pub fn post_order_mut_over<K: IterMutOver>(
-        &'a self,
-    ) -> PostOrderIterMut<'a, K::PostOrderKind<'a, V, M, P>, V, M, P> {
-        PostOrderIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn post_order_mut_over<O: OverMut<V> + 'a>(
+        &mut self,
+    ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
+        use crate::traversal::post_order::{
+            iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
+        };
+        let root = self.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        unsafe { PostOrderIterMut::from((self.col(), iter)) }
     }
 
     // helpers

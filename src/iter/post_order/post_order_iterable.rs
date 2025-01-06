@@ -14,10 +14,10 @@ use orx_selfref_col::MemoryPolicy;
 ///
 /// # Examples
 ///
-/// The following example demonstrates how the iterable created from [`Traversal`] can be used
+/// The following example demonstrates how the iterable created from [`TraversalDepr`] can be used
 /// to repeatedly iterate over trees without requiring new allocation.
 ///
-/// [`Traversal`]: crate::Traversal
+/// [`TraversalDepr`]: crate::TraversalDepr
 ///
 /// ```
 /// use orx_tree::*;
@@ -51,7 +51,7 @@ use orx_selfref_col::MemoryPolicy;
 /// // create the iterable for post-order traversal
 /// // that creates the internal vector once
 ///
-/// let mut po = Traversal::post_order();
+/// let mut po = TraversalDepr::post_order();
 ///
 /// // repeatedly create iterators from it, without allocation
 ///
