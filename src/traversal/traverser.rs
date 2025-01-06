@@ -8,7 +8,6 @@ use orx_selfref_col::MemoryPolicy;
 /// The only argument of the [`iter`] method is the `node` which is considered to be the root of the
 /// tree composed of the the given node and all of its descendants.
 ///
-///
 /// The order of visited nodes depends on the internal walk strategy of the traverser; depth-first and
 /// breadth-first are the most well-known traversals.
 ///
@@ -43,6 +42,7 @@ use orx_selfref_col::MemoryPolicy;
 /// | [`OverSiblingIdxNode`] | (sibling_idx, Node) | `Traversal.dfs().over_nodes().with_sibling_idx()` |
 /// | [`OverDepthSiblingIdxNode`] | (depth, sibling_idx, Node) | `Traversal.dfs().over_nodes().with_depth().with_sibling_idx()` |
 ///
+/// [`Over`]: crate::traversal::Over
 /// [`OverData`]: crate::traversal::OverData
 /// [`OverDepthData`]: crate::traversal::OverDepthData
 /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
@@ -79,7 +79,7 @@ use orx_selfref_col::MemoryPolicy;
 ///
 /// let mut dfs = Traversal.dfs(); // OR: Dfs::<_, OverData>::default()
 ///
-/// // re-use it multiple times
+/// // re-use it multiple times for iter (or iter_mut methods when possible)
 ///
 /// let root = tree.root().unwrap();
 /// let values: Vec<_> = dfs.iter(&root).copied().collect();
@@ -118,7 +118,7 @@ where
     /// The order of visited nodes depends on the internal walk strategy of the traverser; depth-first and
     /// breadth-first are the most well-known traversals.
     ///
-    /// Typically, the `iter` call a traverser does not require any memory allocation.
+    /// Typically, the `iter` call of a traverser does not require any memory allocation.
     ///
     /// # Yields
     ///
@@ -176,7 +176,7 @@ where
     ///
     /// let mut post_order = Traversal.post_order(); // OR: PostOrder::<_, OverData>::default()
     ///
-    /// // re-use it multiple times
+    /// // re-use it multiple times for iter (or iter_mut methods when possible)
     ///
     /// let root = tree.root().unwrap();
     /// let values: Vec<_> = post_order.iter(&root).copied().collect();
