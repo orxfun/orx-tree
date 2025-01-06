@@ -10,11 +10,13 @@ pub(crate) mod post_order;
 mod traverser;
 mod traverser_mut;
 
+pub use depth_first::Dfs;
 pub use factory::Traversal;
 pub use over::{
     Over, OverData, OverDepthData, OverDepthNode, OverDepthSiblingIdxData, OverDepthSiblingIdxNode,
     OverNode,
 };
 pub use over_mut::OverMut;
+pub use post_order::PostOrder;
 pub use traverser::Traverser;
 pub use traverser_mut::TraverserMut;

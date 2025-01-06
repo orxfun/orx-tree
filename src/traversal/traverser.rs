@@ -3,11 +3,93 @@ use crate::{helpers::N, NodeRef, TreeVariant};
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
-pub trait Traverser<V, O>
+/// A tree traverser which walks over a given node and all of its descendants by its `iter` method.
+///
+/// The only argument of the [`iter`] method is the `node` which is considered to be the root of the
+/// tree composed of the the given node and all of its descendants.
+///
+///
+/// The order of visited nodes depends on the internal walk strategy of the traverser; depth-first and
+/// breadth-first are the most well-known traversals.
+///
+/// All traverser types implement Default, and hence, can be created using the default function.
+/// However, a more convenient to create them is to use the [`Traversal`] factory type.
+///
+/// Typically, a traverser holds its temporary or internal working data, and therefore, it might be
+/// used once or many times to traverse trees without requiring additional allocation.
+/// In other words, a traverser allocates the memory it requires only once when it is created;
+/// and re-uses the same memory over and over for all the `iter` calls.
+///
+/// [`iter`]: crate::traversal::Traverser::iter
+/// [`Traversal`]: crate::Traversal
+///
+/// # Examples
+///
+/// ```
+/// use orx_tree::*;
+///
+/// //     1
+/// //    ╱
+/// //   2
+/// //  ╱ ╲
+/// // 3   4
+/// // |
+/// // 5
+///
+/// let mut tree = DynTree::<i32>::new(1);
+///
+/// let mut root = tree.root_mut().unwrap();
+/// let [id2] = root.grow([2]);
+///
+/// let mut n2 = id2.node_mut(&mut tree);
+/// let [id3, _] = n2.grow([3, 4]);
+///
+/// id3.node_mut(&mut tree).push(5);
+///
+/// // create & allocate traverser once
+///
+/// let mut dfs = Traversal.dfs(); // OR: Dfs::<_, OverData>::default()
+///
+/// // re-use it multiple times
+///
+/// let root = tree.root().unwrap();
+/// let values: Vec<_> = dfs.iter(&root).copied().collect();
+/// assert_eq!(values, [1, 2, 3, 5, 4]);
+///
+/// let n3 = id3.node(&tree);
+/// let values: Vec<_> = dfs.iter(&n3).copied().collect();
+/// assert_eq!(values, [3, 5]);
+///
+/// // create a traverser to yield (depth, node) rather than data
+///
+/// let mut dfs = Traversal.dfs().over_nodes().with_depth();
+///
+/// let mut iter = dfs.iter(&n3);
+///
+/// let (depth3, n3) = iter.next().unwrap();
+/// assert_eq!(n3.data(), &3);
+/// assert_eq!(n3.num_children(), 1);
+/// assert_eq!(n3.parent().map(|x| *x.data()), Some(2));
+/// assert_eq!(depth3, 0); // as it is the root of the traversed subtree
+///
+/// let (depth5, n5) = iter.next().unwrap();
+/// assert_eq!(n5.data(), &5);
+/// assert_eq!(n5.num_children(), 0);
+/// assert_eq!(n5.parent().map(|x| *x.data()), Some(3));
+/// assert_eq!(depth5, 1); // as it is the root of the traversed subtree
+/// ```
+pub trait Traverser<V, O>: Default
 where
     V: TreeVariant,
     O: Over<V>,
 {
+    /// Returns an iterator which yields all nodes including the `node` and all its descendants; i.e.,
+    /// all nodes of the subtree rooted at the given `node`.
+    ///
+    /// The order of visited nodes depends on the internal walk strategy of the traverser; depth-first and
+    /// breadth-first are the most well-known traversals.
+    ///
+    /// Typically, the `iter` call a traverser does not require any memory allocation.
     fn iter<'a, M, P>(
         &mut self,
         node: &'a impl NodeRef<'a, V, M, P>,
