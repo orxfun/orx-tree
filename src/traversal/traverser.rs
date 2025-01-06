@@ -112,6 +112,16 @@ where
     V: TreeVariant,
     O: Over<V>,
 {
+    /// Transformed version of the traverser where it yields:
+    /// * data rather than [`Node`]
+    /// * (depth, data) rather than (depth, [`Node`])
+    /// * (depth, sibling_idx, data) rather than (depth, sibling_idx, [`Node`])
+    ///
+    /// [`Node`]: crate::Node
+    type IntoOver<O2>
+    where
+        O2: Over<V>;
+
     /// Returns an iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
     ///
@@ -227,4 +237,12 @@ where
         P: PinnedVec<N<V>> + 'a,
         O: 'a,
         Self: 'a;
+
+    /// Returns the transformed version of the traverser where it yields:
+    /// * data rather than [`Node`]
+    /// * (depth, data) rather than (depth, [`Node`])
+    /// * (depth, sibling_idx, data) rather than (depth, sibling_idx, [`Node`])
+    ///
+    /// [`Node`]: crate::Node
+    fn over_data(self) -> Self::IntoOver<O::IntoOverData>;
 }

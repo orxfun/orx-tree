@@ -1,4 +1,6 @@
+use super::depth_first::DepthFirstEnumeration;
 use super::node_item::NodeItem;
+use super::post_order::PostOrderEnumeration;
 use crate::traversal::enumeration::Enumeration;
 use crate::traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
 use crate::{
@@ -19,7 +21,7 @@ pub type OverItem<'a, V, O, M = DefaultMemory<V>, P = DefaultPinVec<V>> =
 pub trait Over<V: TreeVariant> {
     /// Enumeration of the traversal, which might be only the node item; or it might include one or both of the
     /// depth and sibling index.
-    type Enumeration: Enumeration;
+    type Enumeration: Enumeration + PostOrderEnumeration + DepthFirstEnumeration;
 
     /// Part of the iterator item which only depends on the node's internal data.
     type NodeItem<'a, M, P>: NodeItem<'a, V, M, P>
@@ -28,6 +30,9 @@ pub trait Over<V: TreeVariant> {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    /// Transformed version of the over item where it yields data rather than Node.
+    type IntoOverData: Over<V>;
 }
 
 // val
@@ -48,6 +53,8 @@ impl<V: TreeVariant> Over<V> for OverData {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = Self;
 }
 
 /// Yields a reference to the nodes; i.e., [`Node`].
@@ -65,6 +72,8 @@ impl<V: TreeVariant> Over<V> for OverNode {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = OverData;
 }
 
 pub(crate) struct OverPtr;
@@ -79,6 +88,8 @@ impl<V: TreeVariant> Over<V> for OverPtr {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = OverData;
 }
 
 // depth & val
@@ -103,6 +114,8 @@ impl<V: TreeVariant> Over<V> for OverDepthData {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = Self;
 }
 
 /// Yields (depth, [`Node`]) tuple of the nodes.
@@ -124,6 +137,8 @@ impl<V: TreeVariant> Over<V> for OverDepthNode {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = OverDepthData;
 }
 
 // sibling & val
@@ -150,6 +165,8 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxData {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = Self;
 }
 
 /// Yields (sibling_idx, [`Node`]) tuple of the nodes.
@@ -173,6 +190,8 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxNode {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = OverSiblingIdxData;
 }
 
 // depth & sibling & val
@@ -203,6 +222,8 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxData {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = Self;
 }
 
 /// Yields (depth, sibling_idx, [`Node`]) tuple of the nodes.
@@ -230,4 +251,6 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxNode {
         P: PinnedVec<N<V>> + 'a,
         V: 'a,
         Self: 'a;
+
+    type IntoOverData = OverDepthSiblingIdxData;
 }
