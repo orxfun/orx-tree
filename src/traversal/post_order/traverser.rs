@@ -1,16 +1,12 @@
 use super::{
     iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
-    post_enumeration::PostOrderEnumeration, states::States,
+    states::States,
 };
 use crate::{
     helpers::N,
     node_ref::NodeRefCore,
     traversal::{
-        depth_first::DepthFirstEnumeration,
-        over::{
-            Over, OverData, OverDepthData, OverDepthNode, OverDepthSiblingIdxData,
-            OverDepthSiblingIdxNode, OverItem, OverNode, OverSiblingIdxData, OverSiblingIdxNode,
-        },
+        over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
         traverser_mut::TraverserMut,
         Traverser,
@@ -92,6 +88,14 @@ where
     fn over_nodes(self) -> Self::IntoOver<O::IntoOverNode> {
         PostOrder::<V, O::IntoOverNode>::default()
     }
+
+    fn with_depth(self) -> Self::IntoOver<O::IntoWithDepth> {
+        PostOrder::<V, O::IntoWithDepth>::default()
+    }
+
+    fn with_sibling_idx(self) -> Self::IntoOver<O::IntoWithSiblingIdx> {
+        PostOrder::<V, O::IntoWithSiblingIdx>::default()
+    }
 }
 
 impl<V, O> TraverserMut<V, O> for PostOrder<V, O>
@@ -113,132 +117,5 @@ where
         let root = node_mut.node_ptr().clone();
         let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
         unsafe { PostOrderIterMut::from((node_mut.col(), iter_ptr)) }
-    }
-}
-
-// transform
-
-impl<V, O> PostOrder<V, O>
-where
-    V: TreeVariant,
-    O: Over<V>,
-{
-    fn transform<P>(self) -> PostOrder<V, P>
-    where
-        P: Over<V>,
-        P::Enumeration: PostOrderEnumeration,
-    {
-        PostOrder {
-            states: self.states,
-            phantom: PhantomData,
-        }
-    }
-}
-
-// transform: with_depth
-
-impl<V> PostOrder<V, OverData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, data) rather than data:
-    ///
-    /// * [`OverData`] => [`OverDepthData`]
-    pub fn with_depth(self) -> PostOrder<V, OverDepthData> {
-        self.transform()
-    }
-}
-
-impl<V> PostOrder<V, OverNode>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, [`Node`]) rather than [`Node`]:
-    ///
-    /// * [`OverNode`] => [`OverDepthNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn with_depth(self) -> PostOrder<V, OverDepthNode> {
-        self.transform()
-    }
-}
-
-impl<V> PostOrder<V, OverSiblingIdxData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, sibling_idx, data) rather than (sibling_idx, data):
-    ///
-    /// * [`OverSiblingIdxData`] => [`OverDepthSiblingIdxData`]
-    pub fn with_depth(self) -> PostOrder<V, OverDepthSiblingIdxData> {
-        self.transform()
-    }
-}
-
-impl<V> PostOrder<V, OverSiblingIdxNode>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, sibling_idx, [`Node`]) rather than (sibling_idx, [`Node`]):
-    ///
-    /// * [`OverSiblingIdxNode`] => [`OverDepthSiblingIdxNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn with_depth(self) -> PostOrder<V, OverDepthSiblingIdxNode> {
-        self.transform()
-    }
-}
-
-// transform: with_sibling_idx
-
-impl<V> PostOrder<V, OverData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (sibling_idx, data) rather than data:
-    ///
-    /// * [`OverData`] => [`OverSiblingIdxData`]
-    pub fn with_sibling_idx(self) -> PostOrder<V, OverSiblingIdxData> {
-        self.transform()
-    }
-}
-
-impl<V> PostOrder<V, OverNode>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (sibling_idx, [`Node`]) rather than [`Node`]:
-    ///
-    /// * [`OverNode`] => [`OverSiblingIdxNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn with_sibling_idx(self) -> PostOrder<V, OverSiblingIdxNode> {
-        self.transform()
-    }
-}
-
-impl<V> PostOrder<V, OverDepthData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, sibling_idx, data) rather than (depth, data):
-    ///
-    /// * [`OverDepthData`] => [`OverDepthSiblingIdxData`]
-    pub fn with_sibling_idx(self) -> PostOrder<V, OverDepthSiblingIdxData> {
-        self.transform()
-    }
-}
-
-impl<V> PostOrder<V, OverDepthNode>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, sibling_idx, [`Node`]) rather than (depth, [`Node`]):
-    ///
-    /// * [`OverDepthNode`] => [`OverDepthSiblingIdxNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn with_sibling_idx(self) -> PostOrder<V, OverDepthSiblingIdxNode> {
-        self.transform()
     }
 }

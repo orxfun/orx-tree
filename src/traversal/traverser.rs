@@ -248,4 +248,24 @@ where
     ///
     /// [`Node`]: crate::Node
     fn over_nodes(self) -> Self::IntoOver<O::IntoOverNode>;
+
+    /// Returns the transformed version of the traverser where it yields:
+    ///
+    /// * (depth, x) rather than x
+    /// * (depth, sibling_idx, x) rather than (sibling_idx, x)
+    ///
+    /// where x might data or [`Node`].
+    ///
+    /// [`Node`]: crate::Node
+    fn with_depth(self) -> Self::IntoOver<O::IntoWithDepth>;
+
+    /// Returns the transformed version of the traverser where it yields:
+    ///
+    /// * (sibling_idx, x) rather than x
+    /// * (depth, sibling_idx, x) rather than (depth, x)
+    ///
+    /// where x might data or [`Node`].
+    ///
+    /// [`Node`]: crate::Node
+    fn with_sibling_idx(self) -> Self::IntoOver<O::IntoWithSiblingIdx>;
 }
