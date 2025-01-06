@@ -23,6 +23,35 @@ use orx_selfref_col::MemoryPolicy;
 /// [`iter`]: crate::traversal::Traverser::iter
 /// [`Traversal`]: crate::Traversal
 ///
+/// # Yields
+///
+/// The return value of the iterations depend on the second generic parameter of the traverser which implements
+/// the [`Over`] trait. The following is the complete list of implementations and the corresponding item type
+/// of the created iterators. For any `Over` implementation, the corresponding traverser can be created by using
+/// the `Default::default()` function; however, it is often more convenient to use the [`Traversal`] type.
+/// The last column of the table demonstrates how to create different traverser types; where the depth first or dfs
+/// is replaceable with any available traversal strategy such as `bfs` or `post_order`.
+///
+/// | Over | Yields | Depth First Example |
+/// |---|---|---|
+/// | [`OverData`] | &data | `Traversal.dfs()` |
+/// | [`OverDepthData`] | (depth, &data) | `Traversal.dfs().with_depth()` |
+/// | [`OverSiblingIdxData`] | (sibling_idx, &data) | `Traversal.dfs().with_sibling_idx()` |
+/// | [`OverDepthSiblingIdxData`] | (depth, sibling_idx, &data) | `Traversal.with_depth().with_sibling_idx()` |
+/// | [`OverNode`] | Node | `Traversal.dfs().over_nodes()` |
+/// | [`OverDepthNode`] | (depth, Node) | `Traversal.dfs().over_nodes().with_depth()` |
+/// | [`OverSiblingIdxNode`] | (sibling_idx, Node) | `Traversal.dfs().over_nodes().with_sibling_idx()` |
+/// | [`OverDepthSiblingIdxNode`] | (depth, sibling_idx, Node) | `Traversal.dfs().over_nodes().with_depth().with_sibling_idx()` |
+///
+/// [`OverData`]: crate::traversal::OverData
+/// [`OverDepthData`]: crate::traversal::OverDepthData
+/// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
+/// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
+/// [`OverNode`]: crate::traversal::OverNode
+/// [`OverDepthNode`]: crate::traversal::OverDepthNode
+/// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
+/// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
+///
 /// # Examples
 ///
 /// ```
@@ -76,7 +105,7 @@ use orx_selfref_col::MemoryPolicy;
 /// assert_eq!(n5.data(), &5);
 /// assert_eq!(n5.num_children(), 0);
 /// assert_eq!(n5.parent().map(|x| *x.data()), Some(3));
-/// assert_eq!(depth5, 1); // as it is the root of the traversed subtree
+/// assert_eq!(depth5, 1);
 /// ```
 pub trait Traverser<V, O>: Default
 where
@@ -90,6 +119,104 @@ where
     /// breadth-first are the most well-known traversals.
     ///
     /// Typically, the `iter` call a traverser does not require any memory allocation.
+    ///
+    /// # Yields
+    ///
+    /// The return value of the iterations depend on the second generic parameter of the traverser which implements
+    /// the [`Over`] trait. The following is the complete list of implementations and the corresponding item type
+    /// of the created iterators. For any `Over` implementation, the corresponding traverser can be created by using
+    /// the `Default::default()` function; however, it is often more convenient to use the [`Traversal`] type.
+    /// The last column of the table demonstrates how to create different traverser types; where the depth first or dfs
+    /// is replaceable with any available traversal strategy such as `bfs` or `post_order`.
+    ///
+    /// | Over | Yields | Depth First Example |
+    /// |---|---|---|
+    /// | [`OverData`] | &data | `Traversal.dfs()` |
+    /// | [`OverDepthData`] | (depth, &data) | `Traversal.dfs().with_depth()` |
+    /// | [`OverSiblingIdxData`] | (sibling_idx, &data) | `Traversal.dfs().with_sibling_idx()` |
+    /// | [`OverDepthSiblingIdxData`] | (depth, sibling_idx, &data) | `Traversal.with_depth().with_sibling_idx()` |
+    /// | [`OverNode`] | Node | `Traversal.dfs().over_nodes()` |
+    /// | [`OverDepthNode`] | (depth, Node) | `Traversal.dfs().over_nodes().with_depth()` |
+    /// | [`OverSiblingIdxNode`] | (sibling_idx, Node) | `Traversal.dfs().over_nodes().with_sibling_idx()` |
+    /// | [`OverDepthSiblingIdxNode`] | (depth, sibling_idx, Node) | `Traversal.dfs().over_nodes().with_depth().with_sibling_idx()` |
+    ///
+    /// [`OverData`]: crate::traversal::OverData
+    /// [`OverDepthData`]: crate::traversal::OverDepthData
+    /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
+    /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
+    /// [`OverNode`]: crate::traversal::OverNode
+    /// [`OverDepthNode`]: crate::traversal::OverDepthNode
+    /// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
+    /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     1
+    /// //    ╱
+    /// //   2
+    /// //  ╱ ╲
+    /// // 3   4
+    /// // |╲
+    /// // 5 6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2] = root.grow([2]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id3, _] = n2.grow([3, 4]);
+    ///
+    /// id3.node_mut(&mut tree).extend([5, 6]);
+    ///
+    /// // create & allocate traverser once
+    ///
+    /// let mut post_order = Traversal.post_order(); // OR: PostOrder::<_, OverData>::default()
+    ///
+    /// // re-use it multiple times
+    ///
+    /// let root = tree.root().unwrap();
+    /// let values: Vec<_> = post_order.iter(&root).copied().collect();
+    /// assert_eq!(values, [5, 6, 3, 4, 2, 1]);
+    ///
+    /// let n3 = id3.node(&tree);
+    /// let values: Vec<_> = post_order.iter(&n3).copied().collect();
+    /// assert_eq!(values, [5, 6, 3]);
+    ///
+    /// // create a traverser to yield (depth, node) rather than data
+    ///
+    /// let mut post_order = Traversal
+    ///     .post_order()
+    ///     .over_nodes()           // node rather than data
+    ///     .with_depth()           // => (depth, node)
+    ///     .with_sibling_idx();    // => (depth, sibling_idx, node)
+    ///
+    /// let mut iter = post_order.iter(&n3);
+    ///
+    /// let (depth, sibling_idx, node) = iter.next().unwrap();
+    /// assert_eq!(node.data(), &5);
+    /// assert_eq!(node.num_children(), 0);
+    /// assert_eq!(node.parent().map(|x| *x.data()), Some(3));
+    /// assert_eq!(depth, 1);
+    /// assert_eq!(sibling_idx, 0);
+    ///
+    /// let (depth, sibling_idx, node) = iter.next().unwrap();
+    /// assert_eq!(node.data(), &6);
+    /// assert_eq!(node.num_children(), 0);
+    /// assert_eq!(node.parent().map(|x| *x.data()), Some(3));
+    /// assert_eq!(depth, 1);
+    /// assert_eq!(sibling_idx, 1);
+    ///
+    /// let (depth, sibling_idx, node) = iter.next().unwrap();
+    /// assert_eq!(node.data(), &3);
+    /// assert_eq!(node.num_children(), 2);
+    /// assert_eq!(node.parent().map(|x| *x.data()), Some(2));
+    /// assert_eq!(depth, 0); // as it is the root of the traversed subtree
+    /// assert_eq!(sibling_idx, 0);
+    /// ```
     fn iter<'a, M, P>(
         &mut self,
         node: &'a impl NodeRef<'a, V, M, P>,

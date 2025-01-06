@@ -14,7 +14,7 @@ pub use depth_first::Dfs;
 pub use factory::Traversal;
 pub use over::{
     Over, OverData, OverDepthData, OverDepthNode, OverDepthSiblingIdxData, OverDepthSiblingIdxNode,
-    OverNode,
+    OverNode, OverSiblingIdxData, OverSiblingIdxNode,
 };
 pub use over_mut::OverMut;
 pub use post_order::PostOrder;
