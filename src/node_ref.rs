@@ -1,7 +1,10 @@
 use crate::{
     helpers::N,
     iter::{BfsIter, DfsBfsNodeVal, IterOver, NodeValueData, PostNodeVal, PostOrderIter},
-    traversal::{depth_first::DepthFirstEnumeration, enumerations::Val, over::OverItem, Over},
+    traversal::{
+        depth_first::DepthFirstEnumeration, enumerations::Val, over::OverItem,
+        post_order::PostOrderEnumeration, Over,
+    },
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
@@ -736,6 +739,8 @@ where
     ///
     /// # Allocation
     ///
+    /// TODO: revise after traversal refactoring
+    ///
     /// Note that post-order traversal requires a vector (alloc::vec::Vec) of size **D** to be allocated, where D is
     /// the maximum depth of the nodes traversed.
     /// Each time this method is called, a vector is allocated, used and dropped.
@@ -790,8 +795,17 @@ where
     /// let values: Vec<_> = n7.post_order().copied().collect();
     /// assert_eq!(values, [10, 11, 7]);
     /// ```
-    fn post_order(&self) -> PostOrderIter<PostNodeVal<NodeValueData>, V, M, P> {
-        PostOrderIter::new(self.col(), self.node_ptr().clone())
+    fn post_order<'b>(&'b self) -> impl Iterator<Item = &'b V::Item> + 'b
+    where
+        V::Item: 'b,
+        P: 'b,
+        M: 'b,
+        V: 'b,
+    {
+        use crate::traversal::post_order::*;
+        let root = self.node_ptr().clone();
+        let iter = iter_ptr::PostOrderIterPtr::<_, Val>::from((Default::default(), root));
+        iter_ref::PostOrderIterRef::from((self.col(), iter))
     }
 
     /// Creates an iterator for post-order traversal rooted at this node over different values of the nodes
@@ -821,7 +835,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// //      1
     /// //     ╱ ╲
@@ -875,7 +889,7 @@ where
     ///
     /// // post-order over (depth, sibling index, data)
     ///
-    /// let mut iter = root.post_order_over::<OverDepthSiblingData>();
+    /// let mut iter = root.post_order_over::<OverDepthSiblingIdxData>();
     /// assert_eq!(iter.next(), Some((3, 0, &8))); // (depth, sibling idx, data)
     /// assert_eq!(iter.next(), Some((2, 0, &4)));
     /// assert_eq!(iter.next(), Some((2, 1, &5)));
@@ -883,7 +897,7 @@ where
     /// assert_eq!(iter.next(), Some((3, 0, &9)));
     /// assert_eq!(iter.next(), Some((2, 0, &6))); // ...
     ///
-    /// let all: Vec<(usize, usize, &i32)> = root.post_order_over::<OverDepthSiblingData>().collect();
+    /// let all: Vec<(usize, usize, &i32)> = root.post_order_over::<OverDepthSiblingIdxData>().collect();
     ///
     /// let depths: Vec<usize> = all.iter().map(|x| x.0).collect();
     /// assert_eq!(depths, [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]);
@@ -912,7 +926,7 @@ where
     /// }
     ///
     /// let nodes: Vec<(usize, usize, Node<_>)> =
-    ///     root.post_order_over::<OverDepthSiblingNode>().collect();
+    ///     root.post_order_over::<OverDepthSiblingIdxNode>().collect();
     /// for ((depth, sibling_idx, node), (expected_depth, (expected_sibling_idx, expected_value))) in
     ///     nodes
     ///         .iter()
@@ -924,9 +938,21 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn post_order_over<K: IterOver + 'a>(
-        &'a self,
-    ) -> PostOrderIter<'a, K::PostOrderKind<'a, V, M, P>, V, M, P> {
-        PostOrderIter::new(self.col(), self.node_ptr().clone())
+    fn post_order_over<'b, O: Over<V>>(
+        &'b self,
+    ) -> impl Iterator<Item = OverItem<'b, V, O, M, P>> + 'b
+    where
+        V::Item: 'b,
+        P: 'b,
+        M: 'b,
+        V: 'b,
+        O: 'b,
+        O::Enumeration: PostOrderEnumeration,
+    {
+        use crate::traversal::post_order::*;
+        let root = self.node_ptr().clone();
+        let iter =
+            iter_ptr::PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        iter_ref::PostOrderIterRef::from((self.col(), iter))
     }
 }
