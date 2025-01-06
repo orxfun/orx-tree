@@ -7,7 +7,7 @@ use crate::{
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
-/// A node of the tree, which in turn is a tree.
+/// A node of the tree.
 pub struct Node<'a, V, M = DefaultMemory<V>, P = DefaultPinVec<V>>
 where
     V: TreeVariant,

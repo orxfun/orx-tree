@@ -132,6 +132,11 @@ impl<V> PostOrder<V, OverData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield [`Node`] rather than data:
+    ///
+    /// * [`OverData`] => [`OverNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_nodes(self) -> PostOrder<V, OverNode> {
         self.transform()
     }
@@ -141,6 +146,11 @@ impl<V> PostOrder<V, OverDepthData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, [`Node`]) rather than (depth, data):
+    ///
+    /// * [`OverDepthData`] => [`OverDepthNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_nodes(self) -> PostOrder<V, OverDepthNode> {
         self.transform()
     }
@@ -150,6 +160,11 @@ impl<V> PostOrder<V, OverSiblingIdxData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (sibling_idx, [`Node`]) rather than (sibling_idx, data):
+    ///
+    /// * [`OverSiblingIdxData`] => [`OverSiblingIdxNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_nodes(self) -> PostOrder<V, OverSiblingIdxNode> {
         self.transform()
     }
@@ -159,6 +174,11 @@ impl<V> PostOrder<V, OverDepthSiblingIdxData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, sibling_idx, [`Node`]) rather than (depth, sibling_idx, data):
+    ///
+    /// * [`OverDepthSiblingIdxData`] => [`OverDepthSiblingIdxNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_nodes(self) -> PostOrder<V, OverDepthSiblingIdxNode> {
         self.transform()
     }
@@ -170,6 +190,11 @@ impl<V> PostOrder<V, OverNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield data rather than [`Node`]:
+    ///
+    /// * [`OverNode`] => [`OverData`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_data(self) -> PostOrder<V, OverData> {
         self.transform()
     }
@@ -179,6 +204,11 @@ impl<V> PostOrder<V, OverDepthNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, data) rather than (depth, [`Node`]):
+    ///
+    /// * [`OverDepthNode`] => [`OverDepthData`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_data(self) -> PostOrder<V, OverDepthData> {
         self.transform()
     }
@@ -188,6 +218,11 @@ impl<V> PostOrder<V, OverSiblingIdxNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (sibling_idx, data) rather than (sibling_idx, [`Node`]):
+    ///
+    /// * [`OverSiblingIdxNode`] => [`OverSiblingIdxData`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_data(self) -> PostOrder<V, OverSiblingIdxData> {
         self.transform()
     }
@@ -197,6 +232,11 @@ impl<V> PostOrder<V, OverDepthSiblingIdxNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, sibling_idx, data) rather than (depth, sibling_idx, [`Node`]):
+    ///
+    /// * [`OverDepthSiblingIdxNode`] => [`OverDepthSiblingIdxData`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn over_data(self) -> PostOrder<V, OverDepthSiblingIdxData> {
         self.transform()
     }
@@ -208,6 +248,9 @@ impl<V> PostOrder<V, OverData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, data) rather than data:
+    ///
+    /// * [`OverData`] => [`OverDepthData`]
     pub fn with_depth(self) -> PostOrder<V, OverDepthData> {
         self.transform()
     }
@@ -217,6 +260,11 @@ impl<V> PostOrder<V, OverNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, [`Node`]) rather than [`Node`]:
+    ///
+    /// * [`OverNode`] => [`OverDepthNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn with_depth(self) -> PostOrder<V, OverDepthNode> {
         self.transform()
     }
@@ -226,6 +274,9 @@ impl<V> PostOrder<V, OverSiblingIdxData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, sibling_idx, data) rather than (sibling_idx, data):
+    ///
+    /// * [`OverSiblingIdxData`] => [`OverDepthSiblingIdxData`]
     pub fn with_depth(self) -> PostOrder<V, OverDepthSiblingIdxData> {
         self.transform()
     }
@@ -235,6 +286,11 @@ impl<V> PostOrder<V, OverSiblingIdxNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, sibling_idx, [`Node`]) rather than (sibling_idx, [`Node`]):
+    ///
+    /// * [`OverSiblingIdxNode`] => [`OverDepthSiblingIdxNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn with_depth(self) -> PostOrder<V, OverDepthSiblingIdxNode> {
         self.transform()
     }
@@ -246,6 +302,9 @@ impl<V> PostOrder<V, OverData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (sibling_idx, data) rather than data:
+    ///
+    /// * [`OverData`] => [`OverSiblingIdxData`]
     pub fn with_sibling_idx(self) -> PostOrder<V, OverSiblingIdxData> {
         self.transform()
     }
@@ -255,6 +314,11 @@ impl<V> PostOrder<V, OverNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (sibling_idx, [`Node`]) rather than [`Node`]:
+    ///
+    /// * [`OverNode`] => [`OverSiblingIdxNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn with_sibling_idx(self) -> PostOrder<V, OverSiblingIdxNode> {
         self.transform()
     }
@@ -264,6 +328,9 @@ impl<V> PostOrder<V, OverDepthData>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, sibling_idx, data) rather than (depth, data):
+    ///
+    /// * [`OverDepthData`] => [`OverDepthSiblingIdxData`]
     pub fn with_sibling_idx(self) -> PostOrder<V, OverDepthSiblingIdxData> {
         self.transform()
     }
@@ -273,6 +340,11 @@ impl<V> PostOrder<V, OverDepthNode>
 where
     V: TreeVariant,
 {
+    /// Transforms the traverser to yield (depth, sibling_idx, [`Node`]) rather than (depth, [`Node`]):
+    ///
+    /// * [`OverDepthNode`] => [`OverDepthSiblingIdxNode`]
+    ///
+    /// [`Node`]: crate::Node
     pub fn with_sibling_idx(self) -> PostOrder<V, OverDepthSiblingIdxNode> {
         self.transform()
     }
