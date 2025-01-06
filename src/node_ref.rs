@@ -365,13 +365,7 @@ where
     /// let values: Vec<_> = n7.dfs().copied().collect();
     /// assert_eq!(values, [7, 10, 11]);
     /// ```
-    fn dfs<'b>(&'b self) -> impl Iterator<Item = &'b V::Item> + 'b
-    where
-        V::Item: 'b,
-        P: 'b,
-        M: 'b,
-        V: 'b,
-    {
+    fn dfs(&'a self) -> impl Iterator<Item = &'a V::Item> + 'a {
         use crate::traversal::depth_first::*;
         let root = self.node_ptr().clone();
         let iter = iter_ptr::DfsIterPtr::<_, Val>::from((Default::default(), root));
@@ -505,13 +499,9 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn dfs_over<'b, O: Over<V>>(&'b self) -> impl Iterator<Item = OverItem<'b, V, O, M, P>> + 'b
+    fn dfs_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 'a
     where
-        V::Item: 'b,
-        P: 'b,
-        M: 'b,
-        V: 'b,
-        O: 'b,
+        O: Over<V> + 'a,
         O::Enumeration: DepthFirstEnumeration,
     {
         use crate::traversal::depth_first::*;
@@ -795,13 +785,7 @@ where
     /// let values: Vec<_> = n7.post_order().copied().collect();
     /// assert_eq!(values, [10, 11, 7]);
     /// ```
-    fn post_order<'b>(&'b self) -> impl Iterator<Item = &'b V::Item> + 'b
-    where
-        V::Item: 'b,
-        P: 'b,
-        M: 'b,
-        V: 'b,
-    {
+    fn post_order(&'a self) -> impl Iterator<Item = &'a V::Item> + 'a {
         use crate::traversal::post_order::*;
         let root = self.node_ptr().clone();
         let iter = iter_ptr::PostOrderIterPtr::<_, Val>::from((Default::default(), root));
@@ -938,15 +922,9 @@ where
     ///     assert!(node.num_children() <= 2);
     /// }
     /// ```
-    fn post_order_over<'b, O: Over<V>>(
-        &'b self,
-    ) -> impl Iterator<Item = OverItem<'b, V, O, M, P>> + 'b
+    fn post_order_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 'a
     where
-        V::Item: 'b,
-        P: 'b,
-        M: 'b,
-        V: 'b,
-        O: 'b,
+        O: Over<V> + 'a,
         O::Enumeration: PostOrderEnumeration,
     {
         use crate::traversal::post_order::*;
