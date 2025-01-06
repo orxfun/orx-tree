@@ -1,4 +1,4 @@
-use super::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef, Stack};
+use super::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef, stack::Stack};
 use crate::{
     helpers::N,
     node_ref::NodeRefCore,

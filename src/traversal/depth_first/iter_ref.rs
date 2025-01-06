@@ -1,6 +1,6 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
 use super::iter_ptr::DfsIterPtr;
-use super::{Item, Stack};
+use super::stack::{Item, Stack};
 use crate::helpers::N;
 use crate::traversal::node_item::NodeItem;
 use crate::TreeVariant;

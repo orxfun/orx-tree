@@ -1,5 +1,5 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
-use super::{Item, Stack};
+use super::stack::{Item, Stack};
 use crate::tree_variant::RefsChildren;
 use crate::TreeVariant;
 use alloc::vec::Vec;
