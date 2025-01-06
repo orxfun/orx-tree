@@ -112,12 +112,7 @@ where
     V: TreeVariant,
     O: Over<V>,
 {
-    /// Transformed version of the traverser where it yields:
-    /// * data rather than [`Node`]
-    /// * (depth, data) rather than (depth, [`Node`])
-    /// * (depth, sibling_idx, data) rather than (depth, sibling_idx, [`Node`])
-    ///
-    /// [`Node`]: crate::Node
+    /// Transformed version of the traverser from creating iterators over `O` to `O2`.
     type IntoOver<O2>
     where
         O2: Over<V>;
@@ -245,4 +240,12 @@ where
     ///
     /// [`Node`]: crate::Node
     fn over_data(self) -> Self::IntoOver<O::IntoOverData>;
+
+    /// Returns the transformed version of the traverser where it yields:
+    /// * [`Node`] rather than data
+    /// * (depth, [`Node`]) rather than (depth, data)
+    /// * (depth, sibling_idx, [`Node`]) rather than (depth, sibling_idx, data)
+    ///
+    /// [`Node`]: crate::Node
+    fn over_nodes(self) -> Self::IntoOver<O::IntoOverNode>;
 }

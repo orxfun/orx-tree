@@ -33,6 +33,9 @@ pub trait Over<V: TreeVariant> {
 
     /// Transformed version of the over item where it yields data rather than Node.
     type IntoOverData: Over<V>;
+
+    /// Transformed version of the over item where it yields Node rather than data.
+    type IntoOverNode: Over<V>;
 }
 
 // val
@@ -55,6 +58,7 @@ impl<V: TreeVariant> Over<V> for OverData {
         Self: 'a;
 
     type IntoOverData = Self;
+    type IntoOverNode = OverNode;
 }
 
 /// Yields a reference to the nodes; i.e., [`Node`].
@@ -74,6 +78,7 @@ impl<V: TreeVariant> Over<V> for OverNode {
         Self: 'a;
 
     type IntoOverData = OverData;
+    type IntoOverNode = Self;
 }
 
 pub(crate) struct OverPtr;
@@ -90,6 +95,7 @@ impl<V: TreeVariant> Over<V> for OverPtr {
         Self: 'a;
 
     type IntoOverData = OverData;
+    type IntoOverNode = OverNode;
 }
 
 // depth & val
@@ -116,6 +122,7 @@ impl<V: TreeVariant> Over<V> for OverDepthData {
         Self: 'a;
 
     type IntoOverData = Self;
+    type IntoOverNode = OverDepthNode;
 }
 
 /// Yields (depth, [`Node`]) tuple of the nodes.
@@ -139,6 +146,7 @@ impl<V: TreeVariant> Over<V> for OverDepthNode {
         Self: 'a;
 
     type IntoOverData = OverDepthData;
+    type IntoOverNode = Self;
 }
 
 // sibling & val
@@ -167,6 +175,7 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxData {
         Self: 'a;
 
     type IntoOverData = Self;
+    type IntoOverNode = OverSiblingIdxNode;
 }
 
 /// Yields (sibling_idx, [`Node`]) tuple of the nodes.
@@ -192,6 +201,7 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxNode {
         Self: 'a;
 
     type IntoOverData = OverSiblingIdxData;
+    type IntoOverNode = Self;
 }
 
 // depth & sibling & val
@@ -224,6 +234,7 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxData {
         Self: 'a;
 
     type IntoOverData = Self;
+    type IntoOverNode = OverDepthSiblingIdxNode;
 }
 
 /// Yields (depth, sibling_idx, [`Node`]) tuple of the nodes.
@@ -253,4 +264,5 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxNode {
         Self: 'a;
 
     type IntoOverData = OverDepthSiblingIdxData;
+    type IntoOverNode = Self;
 }

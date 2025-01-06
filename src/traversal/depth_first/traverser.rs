@@ -84,6 +84,10 @@ where
     fn over_data(self) -> Self::IntoOver<O::IntoOverData> {
         Dfs::<V, O::IntoOverData>::default()
     }
+
+    fn over_nodes(self) -> Self::IntoOver<O::IntoOverNode> {
+        Dfs::<V, O::IntoOverNode>::default()
+    }
 }
 
 impl<V, O> TraverserMut<V, O> for Dfs<V, O>
@@ -120,64 +124,6 @@ where
         P: Over<V, Enumeration = O::Enumeration>,
     {
         Dfs { stack: self.stack }
-    }
-}
-
-// transform: over_nodes
-
-impl<V> Dfs<V, OverData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield [`Node`] rather than data:
-    ///
-    /// * [`OverData`] => [`OverNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn over_nodes(self) -> Dfs<V, OverNode> {
-        self.transform()
-    }
-}
-
-impl<V> Dfs<V, OverDepthData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, [`Node`]) rather than (depth, data):
-    ///
-    /// * [`OverDepthData`] => [`OverDepthNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn over_nodes(self) -> Dfs<V, OverDepthNode> {
-        self.transform()
-    }
-}
-
-impl<V> Dfs<V, OverSiblingIdxData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (sibling_idx, [`Node`]) rather than (sibling_idx, data):
-    ///
-    /// * [`OverSiblingIdxData`] => [`OverSiblingIdxNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn over_nodes(self) -> Dfs<V, OverSiblingIdxNode> {
-        self.transform()
-    }
-}
-
-impl<V> Dfs<V, OverDepthSiblingIdxData>
-where
-    V: TreeVariant,
-{
-    /// Transforms the traverser to yield (depth, sibling_idx, [`Node`]) rather than (depth, sibling_idx, data):
-    ///
-    /// * [`OverDepthSiblingIdxData`] => [`OverDepthSiblingIdxNode`]
-    ///
-    /// [`Node`]: crate::Node
-    pub fn over_nodes(self) -> Dfs<V, OverDepthSiblingIdxNode> {
-        self.transform()
     }
 }
 
