@@ -1,6 +1,6 @@
 use crate::{
     helpers::N,
-    iter::{BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, IterMutOver, NodeValueData},
+    iter::ChildrenMutIter,
     node_ref::NodeRefCore,
     traversal::{
         enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverMut,
@@ -997,8 +997,11 @@ where
     /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
     /// assert_eq!(values, [10, 20, 3, 40, 50, 600, 7, 80, 900, 10, 11]);
     /// ```
-    pub fn bfs_mut(&mut self) -> BfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
-        BfsIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn bfs_mut(&mut self) -> impl Iterator<Item = &mut V::Item> {
+        use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
+        let root = self.node_ptr().clone();
+        let iter = BfsIterPtr::<_, Val>::from((Default::default(), root));
+        unsafe { BfsIterMut::from((self.col(), iter)) }
     }
 
     /// Creates a mutable breadth first search iterator over different values of nodes.
@@ -1023,7 +1026,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::iter::*;
+    /// use orx_tree::traversal::*;
     ///
     /// fn init_tree() -> DynTree<i32> {
     ///     //      1
@@ -1090,7 +1093,7 @@ where
     /// let mut tree = init_tree();
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// for (depth, sibling_idx, data) in root.bfs_mut_over::<OverDepthSiblingData>() {
+    /// for (depth, sibling_idx, data) in root.bfs_mut_over::<OverDepthSiblingIdxData>() {
     ///     *data += depth as i32 * 100 + sibling_idx as i32 * 10000;
     /// }
     /// let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
@@ -1099,10 +1102,13 @@ where
     ///     [1, 102, 10103, 204, 10205, 206, 10207, 308, 309, 310, 10311]
     /// );
     /// ```
-    pub fn bfs_mut_over<K: IterMutOver>(
-        &'a mut self,
-    ) -> BfsIterMut<'a, K::DfsBfsIterKind<'a, V, M, P>, V, M, P> {
-        BfsIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn bfs_mut_over<O: OverMut<V> + 'a>(
+        &mut self,
+    ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
+        use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
+        let root = self.node_ptr().clone();
+        let iter = BfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        unsafe { BfsIterMut::from((self.col(), iter)) }
     }
 
     // post-order
