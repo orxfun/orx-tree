@@ -23,27 +23,6 @@ where
     phantom: PhantomData<K>,
 }
 
-// new
-
-impl<'a, K, V, M, P> PostOrderIter<'a, K, V, M, P, DepthNodes<V>>
-where
-    K: PostOrderKind<'a, V, M, P>,
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-{
-    pub(crate) fn new(col: &'a SelfRefCol<V, M, P>, root_ptr: NodePtr<V>) -> Self {
-        let mut depth_nodes = DepthNodes::default();
-        depth_nodes.init(root_ptr);
-        Self {
-            col,
-            depth_nodes,
-            depth: 0,
-            phantom: PhantomData,
-        }
-    }
-}
-
 impl<'a, K, V, M, P> PostOrderIter<'a, K, V, M, P, &'a mut DepthNodes<V>>
 where
     K: PostOrderKind<'a, V, M, P>,

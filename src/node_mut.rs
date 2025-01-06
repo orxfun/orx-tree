@@ -1,13 +1,9 @@
 use crate::{
     helpers::N,
-    iter::{
-        BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, IterMutOver, NodeValueData,
-        PostNodeVal, PostOrderIter, PostOrderIterMut,
-    },
+    iter::{BfsIter, BfsIterMut, ChildrenMutIter, DfsBfsNodeVal, IterMutOver, NodeValueData},
     node_ref::NodeRefCore,
     traversal::{
-        enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, Over,
-        OverMut,
+        enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverMut,
     },
     tree::{DefaultMemory, DefaultPinVec},
     tree_variant::RefsChildren,
@@ -807,7 +803,7 @@ where
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
-    pub fn dfs_mut(&'a mut self) -> impl Iterator<Item = &'a mut V::Item> {
+    pub fn dfs_mut(&mut self) -> impl Iterator<Item = &mut V::Item> {
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
@@ -913,8 +909,8 @@ where
     /// );
     /// ```
     pub fn dfs_mut_over<O: OverMut<V> + 'a>(
-        &'a mut self,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> {
+        &mut self,
+    ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = DfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
@@ -1194,7 +1190,7 @@ where
     /// let values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
     /// assert_eq!(values, [80, 40, 50, 20, 900, 600, 10, 11, 7, 3, 10]);
     /// ```
-    pub fn post_order_mut(&'a mut self) -> impl Iterator<Item = &'a mut V::Item> {
+    pub fn post_order_mut(&mut self) -> impl Iterator<Item = &mut V::Item> {
         use crate::traversal::post_order::{
             iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
         };
@@ -1307,8 +1303,8 @@ where
     /// );
     /// ```
     pub fn post_order_mut_over<O: OverMut<V> + 'a>(
-        &'a mut self,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> {
+        &mut self,
+    ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::post_order::{
             iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
         };

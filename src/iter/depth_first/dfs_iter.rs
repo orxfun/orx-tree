@@ -4,7 +4,7 @@ use crate::{
     tree::{DefaultMemory, DefaultPinVec},
     TreeVariant,
 };
-use alloc::{vec, vec::Vec};
+use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
@@ -29,26 +29,6 @@ pub struct DfsIter<
     pub(super) col: &'a SelfRefCol<V, M, P>,
     pub(super) stack: S,
     phantom: PhantomData<K>,
-}
-
-// new
-
-impl<'a, K, V, M, P> DfsIter<'a, K, V, M, P, Vec<K::QueueElement>>
-where
-    K: DfsBfsIterKind<'a, V, M, P>,
-    V: TreeVariant,
-    M: MemoryPolicy<V>,
-    P: PinnedVec<N<V>>,
-{
-    pub(crate) fn new(col: &'a SelfRefCol<V, M, P>, root_ptr: NodePtr<V>) -> Self {
-        let root = <K::QueueElement as QueueElement<V>>::from_root_ptr(root_ptr);
-        let stack = vec![root];
-        Self {
-            col,
-            stack,
-            phantom: PhantomData,
-        }
-    }
 }
 
 impl<'a, K, V, M, P> DfsIter<'a, K, V, M, P, &'a mut Vec<K::QueueElement>>
