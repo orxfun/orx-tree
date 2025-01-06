@@ -47,6 +47,7 @@ impl<V: TreeVariant> DepthNode<V> {
 
 // collection
 
+/// TO BE REMOVED
 pub struct DepthNodes<V: TreeVariant> {
     vec: Vec<DepthNode<V>>,
 }
@@ -60,19 +61,23 @@ impl<V: TreeVariant> Default for DepthNodes<V> {
 }
 
 impl<V: TreeVariant> DepthNodes<V> {
+    /// TO BE REMOVED
     pub fn init(&mut self, root_ptr: NodePtr<V>) {
         self.vec.clear();
         self.vec.push(root_ptr.into());
     }
 
+    /// TO BE REMOVED
     pub fn get(&self, d: usize) -> &DepthNode<V> {
         &self.vec[d]
     }
 
+    /// TO BE REMOVED
     pub fn get_cloned(&self, d: usize) -> DepthNode<V> {
         self.vec[d].clone()
     }
 
+    /// TO BE REMOVED
     pub fn set(&mut self, d: usize, pointer: NodePtr<V>) {
         match self.vec.get_mut(d) {
             Some(x) => *x = pointer.into(),
@@ -83,6 +88,7 @@ impl<V: TreeVariant> DepthNodes<V> {
         }
     }
 
+    /// TO BE REMOVED
     pub fn increment_child_idx(&mut self, d: usize) {
         self.vec[d].child_idx += 1;
     }

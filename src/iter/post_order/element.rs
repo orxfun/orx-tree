@@ -12,11 +12,15 @@ use crate::{
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
 
+/// TO BE REMOVED
 pub trait PostOrderElement {
+    /// TO BE REMOVED
     type Enumerator: PostOrderEnumerator;
 
+    /// TO BE REMOVED
     type NodeData: NodeData;
 
+    /// TO BE REMOVED
     #[inline(always)]
     fn element_ptr<V>(
         node_ptr: NodePtr<V>,
@@ -29,6 +33,7 @@ pub trait PostOrderElement {
         <Self::Enumerator as PostOrderEnumerator>::post_output(node_ptr, depth, depth_nodes)
     }
 
+    /// TO BE REMOVED
     #[inline(always)]
     fn element<V, M, P>(
         col: &SelfRefCol<V, M, P>,
@@ -44,6 +49,7 @@ pub trait PostOrderElement {
         })
     }
 
+    /// TO BE REMOVED
     #[inline(always)]
     fn element_mut<V, M, P>(
         col: &mut SelfRefCol<V, M, P>,
