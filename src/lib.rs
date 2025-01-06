@@ -17,7 +17,7 @@ extern crate std;
 
 extern crate alloc;
 
-/// Module defining tree traversal iterators.
+/// Module defining iterators.
 pub mod iter;
 
 /// Module defining tree traversal iterators.
@@ -36,7 +36,6 @@ mod tree_variant;
 
 pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
-pub use iter::TraversalDepr;
 pub use node::Node;
 pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
 pub use node_ref::NodeRef;
