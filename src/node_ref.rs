@@ -366,10 +366,10 @@ where
     /// assert_eq!(values, [7, 10, 11]);
     /// ```
     fn dfs(&'a self) -> impl Iterator<Item = &'a V::Item> {
-        use crate::traversal::depth_first::*;
+        use crate::traversal::depth_first::{iter_ptr::DfsIterPtr, iter_ref::DfsIterRef};
         let root = self.node_ptr().clone();
-        let iter = iter_ptr::DfsIterPtr::<_, Val>::from((Default::default(), root));
-        iter_ref::DfsIterRef::from((self.col(), iter))
+        let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
+        DfsIterRef::from((self.col(), iter))
     }
 
     /// Creates a depth first search iterator over different values of nodes;
@@ -504,10 +504,10 @@ where
         O: Over<V> + 'a,
         O::Enumeration: DepthFirstEnumeration,
     {
-        use crate::traversal::depth_first::*;
+        use crate::traversal::depth_first::{iter_ptr::DfsIterPtr, iter_ref::DfsIterRef};
         let root = self.node_ptr().clone();
-        let iter = iter_ptr::DfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
-        iter_ref::DfsIterRef::from((self.col(), iter))
+        let iter = DfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        DfsIterRef::from((self.col(), iter))
     }
 
     // bfs
@@ -786,10 +786,12 @@ where
     /// assert_eq!(values, [10, 11, 7]);
     /// ```
     fn post_order(&'a self) -> impl Iterator<Item = &'a V::Item> {
-        use crate::traversal::post_order::*;
+        use crate::traversal::post_order::{
+            iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
+        };
         let root = self.node_ptr().clone();
-        let iter = iter_ptr::PostOrderIterPtr::<_, Val>::from((Default::default(), root));
-        iter_ref::PostOrderIterRef::from((self.col(), iter))
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), root));
+        PostOrderIterRef::from((self.col(), iter))
     }
 
     /// Creates an iterator for post-order traversal rooted at this node over different values of the nodes
@@ -927,10 +929,11 @@ where
         O: Over<V> + 'a,
         O::Enumeration: PostOrderEnumeration,
     {
-        use crate::traversal::post_order::*;
+        use crate::traversal::post_order::{
+            iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
+        };
         let root = self.node_ptr().clone();
-        let iter =
-            iter_ptr::PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
-        iter_ref::PostOrderIterRef::from((self.col(), iter))
+        let iter = PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
+        PostOrderIterRef::from((self.col(), iter))
     }
 }
