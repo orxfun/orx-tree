@@ -82,7 +82,10 @@ where
     }
 
     fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2> {
-        PostOrder::<V, O2>::default()
+        PostOrder {
+            states: self.states,
+            phantom: PhantomData,
+        }
     }
 }
 
