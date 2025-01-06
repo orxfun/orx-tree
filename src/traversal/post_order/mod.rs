@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests;
 
-mod iter_mut;
+pub(crate) mod iter_mut;
 pub(crate) mod iter_ptr;
 pub(crate) mod iter_ref;
 mod post_enumeration;
