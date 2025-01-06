@@ -75,6 +75,10 @@ where
         DfsIterRef::from((node.col(), iter_ptr))
     }
 
+    fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2> {
+        Dfs::<V, O2>::default()
+    }
+
     fn over_data(self) -> Self::IntoOver<O::IntoOverData> {
         Dfs::<V, O::IntoOverData>::default()
     }

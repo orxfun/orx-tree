@@ -81,6 +81,10 @@ where
         PostOrderIterRef::from((node.col(), iter_ptr))
     }
 
+    fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2> {
+        PostOrder::<V, O2>::default()
+    }
+
     fn over_data(self) -> Self::IntoOver<O::IntoOverData> {
         PostOrder::<V, O::IntoOverData>::default()
     }

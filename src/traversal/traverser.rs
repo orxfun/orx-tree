@@ -233,6 +233,10 @@ where
         O: 'a,
         Self: 'a;
 
+    /// Consumes this traverser and returns a transformed version of it
+    /// which creates iterators over `O2` rather than `O2`.
+    fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2>;
+
     /// Returns the transformed version of the traverser where it yields:
     /// * data rather than [`Node`]
     /// * (depth, data) rather than (depth, [`Node`])
