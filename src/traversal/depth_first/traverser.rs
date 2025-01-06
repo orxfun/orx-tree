@@ -19,6 +19,22 @@ use crate::{
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
+/// A depth first traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
+///
+/// A traverser can be created once and used to traverse over trees multiple times without
+/// requiring additional memory allocation.
+///
+/// # Construction
+///
+/// A depth first traverser can be created,
+/// * either by using Default trait and providing its two generic type parameters
+///   * `Dfs::<_, OverData>::default()` or `Dfs::<_, OverDepthSiblingIdxData>::default()`, or
+///   * `Dfs::<Dyn<u64>, OverData>::default()` or `Dfs::<Dary<2, String>, OverDepthSiblingIdxData>::default()`
+///     if we want the complete type signature.
+/// * or by using the [`Traversal`] type.
+///   * `Traversal.dfs()` or `Traversal.dfs().with_depth().with_sibling_idx()`.
+///
+/// [`Traversal`]: crate::Traversal
 pub struct Dfs<V, O = OverData>
 where
     V: TreeVariant,

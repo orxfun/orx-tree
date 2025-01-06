@@ -20,6 +20,22 @@ use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::MemoryPolicy;
 
+/// A post order traverser ([Wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
+///
+/// A traverser can be created once and used to traverse over trees multiple times without
+/// requiring additional memory allocation.
+///
+/// # Construction
+///
+/// A post order traverser can be created,
+/// * either by using Default trait and providing its two generic type parameters
+///   * `PostOrder::<_, OverData>::default()` or `PostOrder::<_, OverDepthSiblingIdxData>::default()`, or
+///   * `PostOrder::<Dyn<u64>, OverData>::default()` or `PostOrder::<Dary<2, String>, OverDepthSiblingIdxData>::default()`
+///     if we want the complete type signature.
+/// * or by using the [`Traversal`] type.
+///   * `Traversal.post_order()` or `Traversal.post_order().with_depth().with_sibling_idx()`.
+///
+/// [`Traversal`]: crate::Traversal
 pub struct PostOrder<V, O = OverData>
 where
     V: TreeVariant,
