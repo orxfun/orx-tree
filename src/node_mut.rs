@@ -804,8 +804,11 @@ where
     /// let values: Vec<_> = tree.root().unwrap().dfs().copied().collect();
     /// assert_eq!(values, [10, 20, 40, 80, 50, 3, 600, 900, 7, 10, 11]);
     /// ```
-    pub fn dfs_mut(&self) -> DfsIterMut<DfsBfsNodeVal<NodeValueData>, V, M, P> {
-        DfsIter::new(self.col(), self.node_ptr().clone()).into()
+    pub fn dfs_mut(&'a self) -> impl Iterator<Item = &'a mut V::Item> {
+        use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
+        let root = self.node_ptr().clone();
+        let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
+        unsafe { DfsIterMut::from((self.col(), iter)) }
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
