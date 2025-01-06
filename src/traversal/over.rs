@@ -1,3 +1,4 @@
+use super::breadth_first::BreadthFirstEnumeration;
 use super::depth_first::DepthFirstEnumeration;
 use super::node_item::NodeItem;
 use super::post_order::PostOrderEnumeration;
@@ -21,7 +22,10 @@ pub type OverItem<'a, V, O, M = DefaultMemory<V>, P = DefaultPinVec<V>> =
 pub trait Over<V: TreeVariant> {
     /// Enumeration of the traversal, which might be only the node item; or it might include one or both of the
     /// depth and sibling index.
-    type Enumeration: Enumeration + PostOrderEnumeration + DepthFirstEnumeration;
+    type Enumeration: Enumeration
+        + PostOrderEnumeration
+        + DepthFirstEnumeration
+        + BreadthFirstEnumeration;
 
     /// Part of the iterator item which only depends on the node's internal data.
     type NodeItem<'a, M, P>: NodeItem<'a, V, M, P>
