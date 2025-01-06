@@ -84,22 +84,6 @@ where
     fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2> {
         PostOrder::<V, O2>::default()
     }
-
-    fn over_data(self) -> Self::IntoOver<O::IntoOverData> {
-        PostOrder::<V, O::IntoOverData>::default()
-    }
-
-    fn over_nodes(self) -> Self::IntoOver<O::IntoOverNode> {
-        PostOrder::<V, O::IntoOverNode>::default()
-    }
-
-    fn with_depth(self) -> Self::IntoOver<O::IntoWithDepth> {
-        PostOrder::<V, O::IntoWithDepth>::default()
-    }
-
-    fn with_sibling_idx(self) -> Self::IntoOver<O::IntoWithSiblingIdx> {
-        PostOrder::<V, O::IntoWithSiblingIdx>::default()
-    }
 }
 
 impl<V, O> TraverserMut<V, O> for PostOrder<V, O>
