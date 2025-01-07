@@ -1,4 +1,4 @@
-use crate::{tree::DefaultMemory, TreeVariant};
+use crate::TreeVariant;
 use orx_selfref_col::{MemoryPolicy, MemoryReclaimNever, MemoryReclaimOnThreshold};
 
 pub trait TreeMemoryPolicy: 'static {
@@ -18,7 +18,7 @@ impl TreeMemoryPolicy for Lazy {
 pub struct Auto;
 impl TreeMemoryPolicy for Auto {
     type MemoryReclaimPolicy<V>
-        = DefaultMemory<V>
+        = MemoryReclaimOnThreshold<2, V, V::Reclaimer>
     where
         V: TreeVariant;
 }

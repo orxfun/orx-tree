@@ -4,10 +4,8 @@ use crate::{
     Node, NodeMut, TreeVariant,
 };
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryReclaimOnThreshold, NodeIdx, NodePtr, RefsSingle};
+use orx_selfref_col::{NodeIdx, NodePtr, RefsSingle};
 use orx_split_vec::{Recursive, SplitVec};
-
-pub(crate) type DefaultMemory<V> = MemoryReclaimOnThreshold<2, V, <V as TreeVariant>::Reclaimer>;
 
 pub(crate) type DefaultPinVec<V> = SplitVec<N<V>, Recursive>;
 

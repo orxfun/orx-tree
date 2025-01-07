@@ -1,11 +1,11 @@
 use crate::helpers::{Col, N};
-use crate::memory::TreeMemoryPolicy;
-use crate::tree::{DefaultMemory, DefaultPinVec};
+use crate::memory::{Auto, TreeMemoryPolicy};
+use crate::tree::DefaultPinVec;
 use crate::TreeVariant;
 use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::NodePtr;
 
-pub trait NodeItemMut<'a, V, M = DefaultMemory<V>, P = DefaultPinVec<V>>
+pub trait NodeItemMut<'a, V, M = Auto, P = DefaultPinVec<V>>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
