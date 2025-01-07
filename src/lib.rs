@@ -52,3 +52,6 @@ pub use traversal::{Traversal, Traverser, TraverserMut};
 pub use tree::Tree;
 pub use tree_node_idx::NodeIdx;
 pub use tree_variant::TreeVariant;
+
+// re-import from self-ref-col
+pub use orx_selfref_col::NodeIdxError;

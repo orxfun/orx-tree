@@ -1,5 +1,9 @@
 use crate::{pinned_storage::PinnedStorage, Node, NodeMut, Tree, TreeMemoryPolicy, TreeVariant};
-use orx_selfref_col::{MemoryState, NodePtr};
+use orx_selfref_col::{MemoryState, NodeIdxError, NodePtr};
+
+const INVALID_IDX_ERROR: &'static str = "\n
+NodeIdx is not valid for the given tree.
+Please see TODO\n";
 
 pub struct NodeIdx<V: TreeVariant>(orx_selfref_col::NodeIdx<V>);
 
@@ -16,6 +20,7 @@ impl<V: TreeVariant> PartialEq for NodeIdx<V> {
 }
 
 impl<V: TreeVariant> NodeIdx<V> {
+    #[inline(always)]
     pub(crate) fn new(state: MemoryState, node_ptr: &NodePtr<V>) -> Self {
         Self(orx_selfref_col::NodeIdx::new(state, node_ptr))
     }
@@ -29,24 +34,27 @@ impl<V: TreeVariant> NodeIdx<V> {
         self.0.is_valid_for(&tree.0)
     }
 
+    #[inline(always)]
     pub fn node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
         P: PinnedStorage,
     {
-        assert!(self.0.is_valid_for(&tree.0));
+        assert!(self.0.is_valid_for(&tree.0), "{}", INVALID_IDX_ERROR);
         Node::new(&tree.0, self.0.node_ptr())
     }
 
+    #[inline(always)]
     pub fn node_mut<'a, M, P>(&self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
         P: PinnedStorage,
     {
-        assert!(self.0.is_valid_for(&tree.0));
+        assert!(self.0.is_valid_for(&tree.0), "{}", INVALID_IDX_ERROR);
         NodeMut::new(&mut tree.0, self.0.node_ptr())
     }
 
+    #[inline(always)]
     pub fn get_node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Option<Node<'a, V, M, P>>
     where
         M: TreeMemoryPolicy,
@@ -57,6 +65,7 @@ impl<V: TreeVariant> NodeIdx<V> {
             .then(|| Node::new(&tree.0, self.0.node_ptr()))
     }
 
+    #[inline(always)]
     pub fn get_node_mut<'a, M, P>(
         &self,
         tree: &'a mut Tree<V, M, P>,
@@ -70,6 +79,35 @@ impl<V: TreeVariant> NodeIdx<V> {
             .then(|| NodeMut::new(&mut tree.0, self.0.node_ptr()))
     }
 
+    #[inline(always)]
+    pub fn try_get_node<'a, M, P>(
+        &self,
+        tree: &'a Tree<V, M, P>,
+    ) -> Result<Node<'a, V, M, P>, NodeIdxError>
+    where
+        M: TreeMemoryPolicy,
+        P: PinnedStorage,
+    {
+        tree.0
+            .try_get_ptr(&self.0)
+            .map(|ptr| Node::new(&tree.0, ptr))
+    }
+
+    #[inline(always)]
+    pub fn try_get_node_mut<'a, M, P>(
+        &self,
+        tree: &'a mut Tree<V, M, P>,
+    ) -> Result<NodeMut<'a, V, M, P>, NodeIdxError>
+    where
+        M: TreeMemoryPolicy,
+        P: PinnedStorage,
+    {
+        tree.0
+            .try_get_ptr(&self.0)
+            .map(|ptr| NodeMut::new(&mut tree.0, ptr))
+    }
+
+    #[inline(always)]
     pub unsafe fn node_unchecked<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
@@ -78,6 +116,7 @@ impl<V: TreeVariant> NodeIdx<V> {
         Node::new(&tree.0, self.0.node_ptr())
     }
 
+    #[inline(always)]
     pub unsafe fn node_mut_unchecked<'a, M, P>(
         &self,
         tree: &'a mut Tree<V, M, P>,
