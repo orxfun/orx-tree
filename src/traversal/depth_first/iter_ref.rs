@@ -1,39 +1,39 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
 use super::iter_ptr::DfsIterPtr;
 use super::stack::{Item, Stack};
-use crate::helpers::N;
+use crate::helpers::{Col, N};
+use crate::memory::TreeMemoryPolicy;
 use crate::traversal::node_item::NodeItem;
 use crate::TreeVariant;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
-use orx_selfref_col::{MemoryPolicy, SelfRefCol};
 
 pub struct DfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
     D: NodeItem<'a, V, M, P>,
 {
-    col: &'a SelfRefCol<V, M, P>,
+    col: &'a Col<V, M, P>,
     iter: DfsIterPtr<V, E, S>,
     phantom: PhantomData<D>,
 }
 
-impl<'a, V, M, P, E, S, D> From<(&'a SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)>
+impl<'a, V, M, P, E, S, D> From<(&'a Col<V, M, P>, DfsIterPtr<V, E, S>)>
     for DfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
     D: NodeItem<'a, V, M, P>,
 {
-    fn from((col, iter): (&'a SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)) -> Self {
+    fn from((col, iter): (&'a Col<V, M, P>, DfsIterPtr<V, E, S>)) -> Self {
         Self {
             col,
             iter,
@@ -45,7 +45,7 @@ where
 impl<'a, V, M, P, E, D> Clone for DfsIterRef<'a, V, M, P, E, Stack<V, E>, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: DepthFirstEnumeration,
     D: NodeItem<'a, V, M, P>,
@@ -63,7 +63,7 @@ where
 impl<'a, V, M, P, E, S, D> Iterator for DfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,

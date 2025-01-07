@@ -1,19 +1,20 @@
 use crate::{
-    helpers::N,
+    helpers::{Col, N},
+    memory::TreeMemoryPolicy,
     traversal::{enumerations::Val, over::OverItem, Over},
     tree_variant::RefsChildren,
     Node, TreeVariant,
 };
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, SelfRefCol};
+use orx_selfref_col::{NodeIdx, NodePtr};
 
 pub trait NodeRefCore<'a, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
 {
-    fn col(&self) -> &SelfRefCol<V, M, P>;
+    fn col(&self) -> &Col<V, M, P>;
 
     fn node_ptr(&self) -> &NodePtr<V>;
 
@@ -26,7 +27,7 @@ where
 impl<'a, V, M, P, X> NodeRef<'a, V, M, P> for X
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
     X: NodeRefCore<'a, V, M, P>,
 {
@@ -36,7 +37,7 @@ where
 pub trait NodeRef<'a, V, M, P>: NodeRefCore<'a, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
 {
     /// Returns the node index of this node.
@@ -364,7 +365,7 @@ where
         use crate::traversal::depth_first::{iter_ptr::DfsIterPtr, iter_ref::DfsIterRef};
         let root = self.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
-        DfsIterRef::from((self.col(), iter))
+        DfsIterRef::<'_, _, M, _, _, _, _>::from((self.col(), iter))
     }
 
     /// Creates a depth first search iterator over different values of nodes;
@@ -573,7 +574,7 @@ where
         use crate::traversal::breadth_first::{iter_ptr::BfsIterPtr, iter_ref::BfsIterRef};
         let root = self.node_ptr().clone();
         let iter = BfsIterPtr::<_, Val>::from((Default::default(), root));
-        BfsIterRef::from((self.col(), iter))
+        BfsIterRef::<'_, _, M, _, _, _, _>::from((self.col(), iter))
     }
 
     /// Creates a breadth first search iterator over different values of nodes.
@@ -790,7 +791,7 @@ where
         };
         let root = self.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), root));
-        PostOrderIterRef::from((self.col(), iter))
+        PostOrderIterRef::<'_, _, M, _, _, _, _>::from((self.col(), iter))
     }
 
     /// Creates an iterator for post-order traversal rooted at this node over different values of the nodes

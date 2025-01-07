@@ -1,7 +1,6 @@
 use super::over::{Over, OverItem};
-use crate::{helpers::N, NodeRef, TreeVariant};
+use crate::{helpers::N, memory::TreeMemoryPolicy, NodeRef, TreeVariant};
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::MemoryPolicy;
 
 /// A tree traverser which walks over a given node and all of its descendants by its `iter` method.
 ///
@@ -230,7 +229,7 @@ where
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
-        M: MemoryPolicy<V> + 'a,
+        M: TreeMemoryPolicy,
         P: PinnedVec<N<V>> + 'a,
         O: 'a,
         Self: 'a;

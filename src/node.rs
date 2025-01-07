@@ -1,27 +1,28 @@
 use crate::{
-    helpers::N,
+    helpers::{Col, N},
+    memory::{Auto, TreeMemoryPolicy},
     node_ref::NodeRefCore,
-    tree::{DefaultMemory, DefaultPinVec},
+    tree::DefaultPinVec,
     TreeVariant,
 };
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
+use orx_selfref_col::NodePtr;
 
 /// A node of the tree.
-pub struct Node<'a, V, M = DefaultMemory<V>, P = DefaultPinVec<V>>
+pub struct Node<'a, V, M = Auto, P = DefaultPinVec<V>>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
-    col: &'a SelfRefCol<V, M, P>,
+    col: &'a Col<V, M, P>,
     node_ptr: NodePtr<V>,
 }
 
 impl<V, M, P> Clone for Node<'_, V, M, P>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     fn clone(&self) -> Self {
@@ -35,12 +36,12 @@ where
 impl<'a, V, M, P> Node<'a, V, M, P>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     // helpers
 
-    pub(crate) fn new(col: &'a SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+    pub(crate) fn new(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
         Self { col, node_ptr }
     }
 }
@@ -48,11 +49,11 @@ where
 impl<'a, V, M, P> NodeRefCore<'a, V, M, P> for Node<'a, V, M, P>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     #[inline(always)]
-    fn col(&self) -> &SelfRefCol<V, M, P> {
+    fn col(&self) -> &Col<V, M, P> {
         self.col
     }
 

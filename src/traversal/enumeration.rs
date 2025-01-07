@@ -1,7 +1,11 @@
 use super::{node_item::NodeItem, node_item_mut::NodeItemMut};
-use crate::{helpers::N, TreeVariant};
+use crate::{
+    helpers::{Col, N},
+    memory::TreeMemoryPolicy,
+    TreeVariant,
+};
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
+use orx_selfref_col::NodePtr;
 
 pub trait Enumeration: Clone {
     type Item<D>;
@@ -11,12 +15,12 @@ pub trait Enumeration: Clone {
         M: FnOnce(D) -> E;
 
     fn from_element_ptr<'a, V, M, P, E>(
-        col: &'a SelfRefCol<V, M, P>,
+        col: &'a Col<V, M, P>,
         element_ptr: Self::Item<NodePtr<V>>,
     ) -> Self::Item<E>
     where
         V: TreeVariant,
-        M: MemoryPolicy<V>,
+        M: TreeMemoryPolicy,
         P: PinnedVec<N<V>>,
         E: NodeItem<'a, V, M, P>,
     {
@@ -25,12 +29,12 @@ pub trait Enumeration: Clone {
     }
 
     fn from_element_ptr_mut<'a, V, M, P, E>(
-        col: &'a SelfRefCol<V, M, P>,
+        col: &'a Col<V, M, P>,
         element_ptr: Self::Item<NodePtr<V>>,
     ) -> Self::Item<E>
     where
         V: TreeVariant,
-        M: MemoryPolicy<V>,
+        M: TreeMemoryPolicy,
         P: PinnedVec<N<V>>,
         E: NodeItemMut<'a, V, M, P>,
     {

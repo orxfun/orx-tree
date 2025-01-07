@@ -1,8 +1,5 @@
 use super::Dyn;
-use crate::{
-    tree::{DefaultMemory, DefaultPinVec},
-    Node, Tree,
-};
+use crate::{memory::Auto, tree::DefaultPinVec, Node, Tree};
 
 /// A dynamic tree where each of the nodes might have any number of child nodes.
 ///
@@ -41,8 +38,7 @@ use crate::{
 /// ```
 ///
 /// TODO: documentation & examples here
-pub type DynTree<T, M = DefaultMemory<Dyn<T>>, P = DefaultPinVec<Dyn<T>>> = Tree<Dyn<T>, M, P>;
+pub type DynTree<T, M = Auto, P = DefaultPinVec<Dyn<T>>> = Tree<Dyn<T>, M, P>;
 
 /// Node of a [`DynTree`].
-pub type DynNode<'a, T, M = DefaultMemory<Dyn<T>>, P = DefaultPinVec<Dyn<T>>> =
-    Node<'a, Dyn<T>, M, P>;
+pub type DynNode<'a, T, M = Auto, P = DefaultPinVec<Dyn<T>>> = Node<'a, Dyn<T>, M, P>;

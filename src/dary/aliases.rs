@@ -1,5 +1,6 @@
 use super::Dary;
 use crate::{
+    memory::Auto,
     tree::{DefaultMemory, DefaultPinVec},
     Node, Tree,
 };
@@ -81,8 +82,7 @@ pub type DaryTree<const D: usize, T, M = DefaultMemory<Dary<D, T>>, P = DefaultP
 /// ```
 ///
 /// TODO: documentation & examples here
-pub type BinaryTree<T, M = DefaultMemory<Dary<2, T>>, P = DefaultPinVec<Dary<2, T>>> =
-    DaryTree<2, T, M, P>;
+pub type BinaryTree<T, M = Auto, P = DefaultPinVec<Dary<2, T>>> = DaryTree<2, T, M, P>;
 
 // nodes
 
@@ -96,5 +96,4 @@ pub type DaryNode<
 > = Node<'a, Dary<D, T>, M, P>;
 
 /// Node of a [`BinaryTree`].
-pub type BinaryNode<'a, T, M = DefaultMemory<Dary<2, T>>, P = DefaultPinVec<Dary<2, T>>> =
-    Node<'a, Dary<2, T>, M, P>;
+pub type BinaryNode<'a, T, M = Auto, P = DefaultPinVec<Dary<2, T>>> = Node<'a, Dary<2, T>, M, P>;

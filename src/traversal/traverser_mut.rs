@@ -2,9 +2,8 @@ use super::{
     over_mut::{OverItemMut, OverMut},
     Traverser,
 };
-use crate::{helpers::N, NodeMut, TreeVariant};
+use crate::{helpers::N, memory::TreeMemoryPolicy, NodeMut, TreeVariant};
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::MemoryPolicy;
 
 /// A mutable tree traverser which walks over a given node and all of its descendants by its `iter_mut` method.
 ///
@@ -200,7 +199,7 @@ where
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
-        M: MemoryPolicy<V> + 'a,
+        M: TreeMemoryPolicy,
         P: PinnedVec<N<V>> + 'a,
         O: 'a,
         Self: 'a;

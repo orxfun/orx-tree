@@ -1,39 +1,39 @@
 use super::bfs_enumeration::BreadthFirstEnumeration;
 use super::iter_ptr::BfsIterPtr;
 use super::queue::{Item, Queue};
-use crate::helpers::N;
+use crate::helpers::{Col, N};
+use crate::memory::TreeMemoryPolicy;
 use crate::traversal::node_item::NodeItem;
 use crate::TreeVariant;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
-use orx_selfref_col::{MemoryPolicy, SelfRefCol};
 
 pub struct BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,
     D: NodeItem<'a, V, M, P>,
 {
-    col: &'a SelfRefCol<V, M, P>,
+    col: &'a Col<V, M, P>,
     iter: BfsIterPtr<V, E, S>,
     phantom: PhantomData<D>,
 }
 
-impl<'a, V, M, P, E, S, D> From<(&'a SelfRefCol<V, M, P>, BfsIterPtr<V, E, S>)>
+impl<'a, V, M, P, E, S, D> From<(&'a Col<V, M, P>, BfsIterPtr<V, E, S>)>
     for BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,
     D: NodeItem<'a, V, M, P>,
 {
-    fn from((col, iter): (&'a SelfRefCol<V, M, P>, BfsIterPtr<V, E, S>)) -> Self {
+    fn from((col, iter): (&'a Col<V, M, P>, BfsIterPtr<V, E, S>)) -> Self {
         Self {
             col,
             iter,
@@ -45,7 +45,7 @@ where
 impl<'a, V, M, P, E, D> Clone for BfsIterRef<'a, V, M, P, E, Queue<V, E>, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: BreadthFirstEnumeration,
     D: NodeItem<'a, V, M, P>,
@@ -63,7 +63,7 @@ where
 impl<'a, V, M, P, E, S, D> Iterator for BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,

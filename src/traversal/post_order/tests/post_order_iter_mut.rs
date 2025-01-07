@@ -1,8 +1,11 @@
 use crate::{
+    memory::Auto,
     node_ref::NodeRefCore,
-    traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
-    traversal::post_order::{
-        iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
+    traversal::{
+        enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
+        post_order::{
+            iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
+        },
     },
     AsTreeNode, Dyn, DynTree,
 };
@@ -43,7 +46,7 @@ fn post_order_iter_ref_empty() {
     let mut tree = DynTree::<i32>::empty();
     let iter = PostOrderIterPtr::<Dyn<i32>, Val>::default();
     let mut iter =
-        unsafe { PostOrderIterMut::<_, _, _, Val, _, &mut i32>::from((&mut tree.0, iter)) };
+        unsafe { PostOrderIterMut::<_, Auto, _, Val, _, &mut i32>::from((&mut tree.0, iter)) };
     assert_eq!(iter.next(), None);
 }
 
@@ -55,7 +58,8 @@ fn post_order_iter_mut_val() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = unsafe { PostOrderIterMut::<_, _, _, Val, _, &mut i32>::from((&mut tree.0, iter)) };
+    let iter =
+        unsafe { PostOrderIterMut::<_, Auto, _, Val, _, &mut i32>::from((&mut tree.0, iter)) };
 
     for (i, x) in iter.enumerate() {
         *x += 100 * i as i32;
@@ -64,7 +68,7 @@ fn post_order_iter_mut_val() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
-    let iter = PostOrderIterRef::<_, _, _, Val, _, &i32>::from((root.col(), iter));
+    let iter = PostOrderIterRef::<_, Auto, _, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.copied().collect::<Vec<_>>(),
         [8, 104, 205, 302, 409, 506, 610, 711, 807, 903, 1001]
@@ -80,7 +84,7 @@ fn post_order_iter_mut_depth() {
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter =
-        unsafe { PostOrderIterMut::<_, _, _, DepthVal, _, &mut i32>::from((&mut tree.0, iter)) };
+        unsafe { PostOrderIterMut::<_, Auto, _, DepthVal, _, &mut i32>::from((&mut tree.0, iter)) };
 
     for (d, x) in iter {
         *x += 100 * d as i32;
@@ -89,7 +93,7 @@ fn post_order_iter_mut_depth() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
-    let iter = PostOrderIterRef::<_, _, _, Val, _, &i32>::from((root.col(), iter));
+    let iter = PostOrderIterRef::<_, Auto, _, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.copied().collect::<Vec<_>>(),
         [308, 204, 205, 102, 309, 206, 310, 311, 207, 103, 1]
@@ -105,7 +109,7 @@ fn post_order_iter_mut_sibling() {
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
-        PostOrderIterMut::<_, _, _, SiblingIdxVal, _, &mut i32>::from((&mut tree.0, iter))
+        PostOrderIterMut::<_, Auto, _, SiblingIdxVal, _, &mut i32>::from((&mut tree.0, iter))
     };
 
     for (s, x) in iter {
@@ -115,7 +119,7 @@ fn post_order_iter_mut_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
-    let iter = PostOrderIterRef::<_, _, _, Val, _, &i32>::from((root.col(), iter));
+    let iter = PostOrderIterRef::<_, Auto, _, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.copied().collect::<Vec<_>>(),
         [8, 4, 105, 2, 9, 6, 10, 111, 107, 103, 1]
@@ -131,7 +135,7 @@ fn post_order_iter_mut_depth_sibling() {
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
-        PostOrderIterMut::<_, _, _, DepthSiblingIdxVal, _, &mut i32>::from((&mut tree.0, iter))
+        PostOrderIterMut::<_, Auto, _, DepthSiblingIdxVal, _, &mut i32>::from((&mut tree.0, iter))
     };
 
     for (d, s, x) in iter {
@@ -141,7 +145,7 @@ fn post_order_iter_mut_depth_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
-    let iter = PostOrderIterRef::<_, _, _, Val, _, &i32>::from((root.col(), iter));
+    let iter = PostOrderIterRef::<_, Auto, _, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.copied().collect::<Vec<_>>(),
         [30008, 20004, 20105, 10002, 30009, 20006, 30010, 30111, 20107, 10103, 1]

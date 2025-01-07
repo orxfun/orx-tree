@@ -1,24 +1,24 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
 use super::iter_ptr::DfsIterPtr;
 use super::stack::{Item, Stack};
-use crate::helpers::N;
+use crate::helpers::{Col, N};
+use crate::memory::TreeMemoryPolicy;
 use crate::traversal::node_item_mut::NodeItemMut;
 use crate::TreeVariant;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
 use orx_self_or::SoM;
-use orx_selfref_col::{MemoryPolicy, SelfRefCol};
 
 pub struct DfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
     D: NodeItemMut<'a, V, M, P>,
 {
-    col: &'a SelfRefCol<V, M, P>,
+    col: &'a Col<V, M, P>,
     iter: DfsIterPtr<V, E, S>,
     phantom: PhantomData<D>,
 }
@@ -26,7 +26,7 @@ where
 impl<'a, V, M, P, E, S, D> DfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
@@ -43,7 +43,7 @@ where
     /// * This method requires a mutable reference to a mutable node `NodeMut` which is guaranteed to
     ///   be the only reference to the collection.
     /// * Finally, this iterator's lifetime is equal to the borrow duration of the mutable node.
-    pub(crate) unsafe fn from((col, iter): (&'a SelfRefCol<V, M, P>, DfsIterPtr<V, E, S>)) -> Self {
+    pub(crate) unsafe fn from((col, iter): (&'a Col<V, M, P>, DfsIterPtr<V, E, S>)) -> Self {
         Self {
             col,
             iter,
@@ -55,7 +55,7 @@ where
 impl<'a, V, M, P, E, S, D> Iterator for DfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,

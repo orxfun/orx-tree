@@ -1,18 +1,19 @@
 use crate::{
-    helpers::N,
+    helpers::{Col, N},
     iter::ChildrenMutIter,
+    memory::{Auto, TreeMemoryPolicy},
     node_ref::NodeRefCore,
     traversal::{
         enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverMut,
     },
-    tree::{DefaultMemory, DefaultPinVec},
+    tree::DefaultPinVec,
     tree_variant::RefsChildren,
     TreeVariant,
 };
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodeIdx, NodePtr, Refs, SelfRefCol};
+use orx_selfref_col::{NodeIdx, NodePtr, Refs};
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation {}
@@ -34,14 +35,14 @@ pub struct NodeMutUpAndDown {}
 impl NodeMutOrientation for NodeMutUpAndDown {}
 
 /// A node of the tree, which in turn is a tree.
-pub struct NodeMut<'a, V, M = DefaultMemory<V>, P = DefaultPinVec<V>, O = NodeMutUpAndDown>
+pub struct NodeMut<'a, V, M = Auto, P = DefaultPinVec<V>, O = NodeMutUpAndDown>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     O: NodeMutOrientation,
 {
-    col: &'a mut SelfRefCol<V, M, P>,
+    col: &'a mut Col<V, M, P>,
     node_ptr: NodePtr<V>,
     phantom: PhantomData<O>,
 }
@@ -49,12 +50,12 @@ where
 impl<'a, V, M, P, MO> NodeRefCore<'a, V, M, P> for NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     MO: NodeMutOrientation,
 {
     #[inline(always)]
-    fn col(&self) -> &SelfRefCol<V, M, P> {
+    fn col(&self) -> &Col<V, M, P> {
         self.col
     }
 
@@ -67,7 +68,7 @@ where
 impl<'a, V, M, P, MO> NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
     MO: NodeMutOrientation,
 {
@@ -807,7 +808,7 @@ where
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
-        unsafe { DfsIterMut::from((self.col(), iter)) }
+        unsafe { DfsIterMut::<'_, _, M, _, _, _, _>::from((self.col, iter)) }
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
@@ -915,7 +916,7 @@ where
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = DfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
-        unsafe { DfsIterMut::from((self.col(), iter)) }
+        unsafe { DfsIterMut::from((self.col, iter)) }
     }
 
     // bfs
@@ -1003,7 +1004,7 @@ where
         use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = BfsIterPtr::<_, Val>::from((Default::default(), root));
-        unsafe { BfsIterMut::from((self.col(), iter)) }
+        unsafe { BfsIterMut::<'_, _, M, _, _, _, _>::from((self.col, iter)) }
     }
 
     /// Creates a mutable breadth first search iterator over different values of nodes.
@@ -1111,7 +1112,7 @@ where
         use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = BfsIterPtr::<_, O::Enumeration>::from((Default::default(), root));
-        unsafe { BfsIterMut::from((self.col(), iter)) }
+        unsafe { BfsIterMut::from((self.col, iter)) }
     }
 
     // post-order
@@ -1206,7 +1207,7 @@ where
         };
         let root = self.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), root));
-        unsafe { PostOrderIterMut::from((self.col(), iter)) }
+        unsafe { PostOrderIterMut::<'_, _, M, _, _, _, _>::from((self.col, iter)) }
     }
 
     /// Creates a mutable iterator for post-order traversal
@@ -1321,12 +1322,12 @@ where
         };
         let root = self.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
-        unsafe { PostOrderIterMut::from((self.col(), iter)) }
+        unsafe { PostOrderIterMut::from((self.col, iter)) }
     }
 
     // helpers
 
-    pub(crate) fn new(col: &'a mut SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+    pub(crate) fn new(col: &'a mut Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
         Self {
             col,
             node_ptr,
@@ -1356,7 +1357,7 @@ where
 impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     // traversal

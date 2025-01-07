@@ -1,26 +1,27 @@
-use crate::{helpers::N, Node, NodeMut, TreeVariant};
-use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{
-    MemoryPolicy, MemoryReclaimOnThreshold, NodeIdx, NodePtr, RefsSingle, SelfRefCol,
+use crate::{
+    helpers::{Col, N},
+    memory::{Auto, TreeMemoryPolicy},
+    Node, NodeMut, TreeVariant,
 };
+use orx_pinned_vec::PinnedVec;
+use orx_selfref_col::{MemoryReclaimOnThreshold, NodeIdx, NodePtr, RefsSingle};
 use orx_split_vec::{Recursive, SplitVec};
 
-#[allow(type_alias_bounds)]
-pub(crate) type DefaultMemory<V: TreeVariant> = MemoryReclaimOnThreshold<2, V, V::Reclaimer>;
+pub(crate) type DefaultMemory<V> = MemoryReclaimOnThreshold<2, V, <V as TreeVariant>::Reclaimer>;
 
 pub(crate) type DefaultPinVec<V> = SplitVec<N<V>, Recursive>;
 
 /// Core tree structure.
-pub struct Tree<V, M = DefaultMemory<V>, P = DefaultPinVec<V>>(pub(crate) SelfRefCol<V, M, P>)
+pub struct Tree<V, M = Auto, P = DefaultPinVec<V>>(pub(crate) Col<V, M, P>)
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>;
 
 impl<V, M, P> Tree<V, M, P>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     /// Creates an empty tree.
@@ -43,7 +44,7 @@ where
     where
         P: Default,
     {
-        Self(SelfRefCol::new())
+        Self(Col::<V, M, P>::new())
     }
 
     /// Creates a new tree including the root node with the given `root_value`.
@@ -62,7 +63,7 @@ where
     where
         P: Default,
     {
-        let mut col = SelfRefCol::<V, M, P>::new();
+        let mut col = Col::<V, M, P>::new();
         let root_ptr = col.push(root_value);
         let root_mut: &mut RefsSingle<V> = col.ends_mut();
         root_mut.set_some(root_ptr);

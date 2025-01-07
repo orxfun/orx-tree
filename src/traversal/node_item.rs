@@ -1,16 +1,18 @@
+use crate::helpers::Col;
+use crate::memory::TreeMemoryPolicy;
 use crate::tree::{DefaultMemory, DefaultPinVec};
 use crate::TreeVariant;
 use crate::{helpers::N, Node};
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
+use orx_selfref_col::NodePtr;
 
 pub trait NodeItem<'a, V, M = DefaultMemory<V>, P = DefaultPinVec<V>>: Clone
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
-    fn from_ptr(col: &'a SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self;
+    fn from_ptr(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self;
 
     #[cfg(test)]
     fn node_data(&self) -> &V::Item;
@@ -19,11 +21,11 @@ where
 impl<'a, V, M, P> NodeItem<'a, V, M, P> for Node<'a, V, M, P>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     #[inline(always)]
-    fn from_ptr(col: &'a SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+    fn from_ptr(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
         Node::new(col, node_ptr)
     }
 
@@ -38,11 +40,11 @@ where
 impl<'a, V, M, P> NodeItem<'a, V, M, P> for &'a V::Item
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     #[inline(always)]
-    fn from_ptr(_: &'a SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+    fn from_ptr(_: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
         let node = unsafe { &*node_ptr.ptr() };
         node.data().expect("active tree node has data")
     }
@@ -57,11 +59,11 @@ where
 impl<'a, V, M, P> NodeItem<'a, V, M, P> for NodePtr<V>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     #[inline(always)]
-    fn from_ptr(_: &'a SelfRefCol<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+    fn from_ptr(_: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
         node_ptr
     }
 

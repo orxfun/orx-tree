@@ -1,12 +1,11 @@
-use crate::{helpers::N, Node, NodeMut, TreeVariant};
+use crate::{helpers::N, memory::TreeMemoryPolicy, Node, NodeMut, TreeVariant};
 use core::fmt::Debug;
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::MemoryPolicy;
 
 impl<V, M, P> Debug for Node<'_, V, M, P>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -18,7 +17,7 @@ where
 impl<V, M, P> Debug for NodeMut<'_, V, M, P>
 where
     V: TreeVariant,
-    M: MemoryPolicy<V>,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>>,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

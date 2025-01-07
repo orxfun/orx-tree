@@ -1,28 +1,34 @@
-use crate::{helpers::N, node_mut::NodeMutDown, tree_variant::RefsChildren, NodeMut, TreeVariant};
+use crate::{
+    helpers::{Col, N},
+    memory::TreeMemoryPolicy,
+    node_mut::NodeMutDown,
+    tree_variant::RefsChildren,
+    NodeMut, TreeVariant,
+};
 use orx_pinned_vec::PinnedVec;
-use orx_selfref_col::{MemoryPolicy, NodePtr, SelfRefCol};
+use orx_selfref_col::NodePtr;
 
 /// Mutable children iterator.
 pub struct ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
     'a: 'b,
 {
     // node_ptr: *const N<V>,
-    col: &'a mut SelfRefCol<V, M, P>,
+    col: &'a mut Col<V, M, P>,
     children_ptr: <V::Children as RefsChildren<V>>::ChildrenPtrIter<'b>,
 }
 
 impl<'a, 'b, V, M, P> ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
     'a: 'b,
 {
-    pub(crate) fn new(col: &'a mut SelfRefCol<V, M, P>, node_ptr: *const N<V>) -> Self {
+    pub(crate) fn new(col: &'a mut Col<V, M, P>, node_ptr: *const N<V>) -> Self {
         let node = unsafe { &*node_ptr };
         let children_ptr = node.next().children_ptr();
 
@@ -30,7 +36,7 @@ where
     }
 
     fn next_child(&mut self, child_ptr: NodePtr<V>) -> NodeMut<'b, V, M, P, NodeMutDown> {
-        let col_mut = unsafe { &mut *(self.col as *mut SelfRefCol<V, M, P>) };
+        let col_mut = unsafe { &mut *(self.col as *mut Col<V, M, P>) };
         NodeMut::new(col_mut, child_ptr)
     }
 }
@@ -38,7 +44,7 @@ where
 impl<'a, 'b, V, M, P> Iterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
     'a: 'b,
 {
@@ -56,7 +62,7 @@ where
 impl<'a, 'b, V, M, P> ExactSizeIterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
     'a: 'b,
 {
@@ -68,7 +74,7 @@ where
 impl<'a, 'b, V, M, P> DoubleEndedIterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: MemoryPolicy<V> + 'a,
+    M: TreeMemoryPolicy,
     P: PinnedVec<N<V>> + 'a,
     'a: 'b,
 {
