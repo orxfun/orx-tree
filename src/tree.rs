@@ -1,26 +1,23 @@
 use crate::{
-    helpers::{Col, N},
+    helpers::Col,
     memory::{Auto, TreeMemoryPolicy},
+    pinned_storage::{PinnedStorage, SplitRecursive},
     Node, NodeMut, TreeVariant,
 };
-use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{NodeIdx, NodePtr, RefsSingle};
-use orx_split_vec::{Recursive, SplitVec};
-
-pub(crate) type DefaultPinVec<V> = SplitVec<N<V>, Recursive>;
 
 /// Core tree structure.
-pub struct Tree<V, M = Auto, P = DefaultPinVec<V>>(pub(crate) Col<V, M, P>)
+pub struct Tree<V, M = Auto, P = SplitRecursive>(pub(crate) Col<V, M, P>)
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>;
+    P: PinnedStorage;
 
 impl<V, M, P> Tree<V, M, P>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
 {
     /// Creates an empty tree.
     ///
@@ -40,7 +37,7 @@ where
     /// ```
     pub fn empty() -> Self
     where
-        P: Default,
+        P::PinnedVec<V>: Default,
     {
         Self(Col::<V, M, P>::new())
     }
@@ -59,7 +56,7 @@ where
     /// ```
     pub fn new(root_value: V::Item) -> Self
     where
-        P: Default,
+        P::PinnedVec<V>: Default,
     {
         let mut col = Col::<V, M, P>::new();
         let root_ptr = col.push(root_value);

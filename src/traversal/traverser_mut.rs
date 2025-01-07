@@ -2,8 +2,7 @@ use super::{
     over_mut::{OverItemMut, OverMut},
     Traverser,
 };
-use crate::{helpers::N, memory::TreeMemoryPolicy, NodeMut, TreeVariant};
-use orx_pinned_vec::PinnedVec;
+use crate::{memory::TreeMemoryPolicy, pinned_storage::PinnedStorage, NodeMut, TreeVariant};
 
 /// A mutable tree traverser which walks over a given node and all of its descendants by its `iter_mut` method.
 ///
@@ -200,7 +199,7 @@ where
     where
         V: TreeVariant + 'a,
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         O: 'a,
         Self: 'a;
 }

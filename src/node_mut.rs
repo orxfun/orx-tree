@@ -3,16 +3,15 @@ use crate::{
     iter::ChildrenMutIter,
     memory::{Auto, TreeMemoryPolicy},
     node_ref::NodeRefCore,
+    pinned_storage::{PinnedStorage, SplitRecursive},
     traversal::{
         enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverMut,
     },
-    tree::DefaultPinVec,
     tree_variant::RefsChildren,
     TreeVariant,
 };
 use alloc::vec::Vec;
 use core::marker::PhantomData;
-use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::{NodeIdx, NodePtr, Refs};
 
 /// A marker trait determining the mutation flexibility of a mutable node.
@@ -35,11 +34,11 @@ pub struct NodeMutUpAndDown {}
 impl NodeMutOrientation for NodeMutUpAndDown {}
 
 /// A node of the tree, which in turn is a tree.
-pub struct NodeMut<'a, V, M = Auto, P = DefaultPinVec<V>, O = NodeMutUpAndDown>
+pub struct NodeMut<'a, V, M = Auto, P = SplitRecursive, O = NodeMutUpAndDown>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
     O: NodeMutOrientation,
 {
     col: &'a mut Col<V, M, P>,
@@ -51,7 +50,7 @@ impl<'a, V, M, P, MO> NodeRefCore<'a, V, M, P> for NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
     MO: NodeMutOrientation,
 {
     #[inline(always)]
@@ -69,7 +68,7 @@ impl<'a, V, M, P, MO> NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
     MO: NodeMutOrientation,
 {
     /// Returns a mutable reference to data of this node.
@@ -808,7 +807,7 @@ where
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val>::from((Default::default(), root));
-        unsafe { DfsIterMut::<'_, _, M, _, _, _, _>::from((self.col, iter)) }
+        unsafe { DfsIterMut::<'_, _, M, P, _, _, _>::from((self.col, iter)) }
     }
 
     /// Creates a mutable depth first search iterator over different values of nodes;
@@ -1004,7 +1003,7 @@ where
         use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
         let root = self.node_ptr().clone();
         let iter = BfsIterPtr::<_, Val>::from((Default::default(), root));
-        unsafe { BfsIterMut::<'_, _, M, _, _, _, _>::from((self.col, iter)) }
+        unsafe { BfsIterMut::<'_, _, M, P, _, _, _>::from((self.col, iter)) }
     }
 
     /// Creates a mutable breadth first search iterator over different values of nodes.
@@ -1207,7 +1206,7 @@ where
         };
         let root = self.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), root));
-        unsafe { PostOrderIterMut::<'_, _, M, _, _, _, _>::from((self.col, iter)) }
+        unsafe { PostOrderIterMut::<'_, _, M, P, _, _, _>::from((self.col, iter)) }
     }
 
     /// Creates a mutable iterator for post-order traversal
@@ -1358,7 +1357,7 @@ impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
 {
     // traversal
 

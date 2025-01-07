@@ -1,13 +1,13 @@
 use crate::{
     memory::Auto,
     node_ref::NodeRefCore,
+    pinned_storage::SplitRecursive,
     traversal::{
         breadth_first::{iter_ptr::BfsIterPtr, iter_ref::BfsIterRef},
         enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
         node_item::NodeItem,
         over::{Over, OverData, OverNode, OverPtr},
     },
-    tree::DefaultPinVec,
     AsTreeNode, Dyn, DynTree, NodeRef,
 };
 use alloc::collections::VecDeque;
@@ -48,11 +48,11 @@ fn tree() -> DynTree<i32> {
 fn bfs_iter_ref_empty() {
     let tree = DynTree::<i32>::empty();
     let iter = BfsIterPtr::<Dyn<i32>, Val>::default();
-    let mut iter = BfsIterRef::<_, Auto, _, Val, _, NodePtr<_>>::from((&tree.0, iter));
+    let mut iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, NodePtr<_>>::from((&tree.0, iter));
     assert_eq!(iter.next(), None);
 }
 
-type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, DefaultPinVec<Dyn<i32>>>;
+type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, SplitRecursive>;
 
 fn bfs_iter_for<O: Over<Dyn<i32>>>() {
     fn data<'a, O: Over<Dyn<i32>> + 'a>(
@@ -67,19 +67,19 @@ fn bfs_iter_for<O: Over<Dyn<i32>>>() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
-    let iter = BfsIterRef::<_, Auto, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
-    let iter = BfsIterRef::<_, Auto, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [3, 6, 7, 9, 10, 11]);
 
     let n7 = n3.child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((queue, ptr));
-    let iter = BfsIterRef::<_, Auto, _, Val, _, Item<'_, O>>::from((root.col(), iter));
+    let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [7, 10, 11]);
 }
 
@@ -106,7 +106,7 @@ fn bfs_iter_ref_depth() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthVal, _>::from((&mut queue, ptr));
-    let iter = BfsIterRef::<_, Auto, _, DepthVal, _, &i32>::from((root.col(), iter));
+    let iter = BfsIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.map(|x| x.0).collect::<Vec<_>>(),
         [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
@@ -115,7 +115,7 @@ fn bfs_iter_ref_depth() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthVal, _>::from((&mut queue, ptr));
-    let iter = BfsIterRef::<_, Auto, _, DepthVal, _, &i32>::from((root.col(), iter));
+    let iter = BfsIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((root.col(), iter));
     assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 1, 1, 2, 2, 2]);
 }
 
@@ -127,7 +127,8 @@ fn bfs_iter_ref_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, SiblingIdxVal, _>::from((&mut queue, ptr));
-    let iter = BfsIterRef::<_, Auto, _, SiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter =
+        BfsIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.map(|x| x.0).collect::<Vec<_>>(),
         [0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1]
@@ -136,7 +137,8 @@ fn bfs_iter_ref_sibling() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, SiblingIdxVal, _>::from((&mut queue, ptr));
-    let iter = BfsIterRef::<_, Auto, _, SiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter =
+        BfsIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from((root.col(), iter));
     assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 1, 0, 0, 1]);
 }
 
@@ -147,7 +149,10 @@ fn bfs_iter_ref_depth_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthSiblingIdxVal, _>::from((VecDeque::default(), ptr));
-    let iter = BfsIterRef::<_, Auto, _, DepthSiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter = BfsIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((
+        root.col(),
+        iter,
+    ));
     assert_eq!(
         iter.clone().map(|x| x.0).collect::<Vec<_>>(),
         [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
@@ -161,7 +166,10 @@ fn bfs_iter_ref_depth_sibling() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthSiblingIdxVal, _>::from((VecDeque::default(), ptr));
-    let iter = BfsIterRef::<_, Auto, _, DepthSiblingIdxVal, _, &i32>::from((root.col(), iter));
+    let iter = BfsIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((
+        root.col(),
+        iter,
+    ));
     assert_eq!(
         iter.clone().map(|x| x.0).collect::<Vec<_>>(),
         [0, 1, 1, 2, 2, 2]

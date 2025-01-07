@@ -1,5 +1,5 @@
 use super::Dary;
-use crate::{memory::Auto, tree::DefaultPinVec, Node, Tree};
+use crate::{memory::Auto, pinned_storage::SplitRecursive, Node, Tree};
 
 /// A d-ary tree where each of the nodes might have at most `D` children.
 ///
@@ -38,7 +38,7 @@ use crate::{memory::Auto, tree::DefaultPinVec, Node, Tree};
 /// ```
 ///
 /// TODO: documentation & examples here
-pub type DaryTree<const D: usize, T, M = Auto, P = DefaultPinVec<Dary<D, T>>> =
+pub type DaryTree<const D: usize, T, M = Auto, P = SplitRecursive> =
     Tree<Dary<D, T>, M, P>;
 
 /// A binary tree where each node might have 0, 1 or 2 children.
@@ -78,13 +78,13 @@ pub type DaryTree<const D: usize, T, M = Auto, P = DefaultPinVec<Dary<D, T>>> =
 /// ```
 ///
 /// TODO: documentation & examples here
-pub type BinaryTree<T, M = Auto, P = DefaultPinVec<Dary<2, T>>> = DaryTree<2, T, M, P>;
+pub type BinaryTree<T, M = Auto, P = SplitRecursive> = DaryTree<2, T, M, P>;
 
 // nodes
 
 /// Node of a [`DaryTree`].
-pub type DaryNode<'a, const D: usize, T, M = Auto, P = DefaultPinVec<Dary<D, T>>> =
+pub type DaryNode<'a, const D: usize, T, M = Auto, P = SplitRecursive> =
     Node<'a, Dary<D, T>, M, P>;
 
 /// Node of a [`BinaryTree`].
-pub type BinaryNode<'a, T, M = Auto, P = DefaultPinVec<Dary<2, T>>> = Node<'a, Dary<2, T>, M, P>;
+pub type BinaryNode<'a, T, M = Auto, P = SplitRecursive> = Node<'a, Dary<2, T>, M, P>;

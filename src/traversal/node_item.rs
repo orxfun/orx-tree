@@ -1,16 +1,15 @@
 use crate::helpers::Col;
 use crate::memory::{Auto, TreeMemoryPolicy};
-use crate::tree::DefaultPinVec;
+use crate::pinned_storage::{PinnedStorage, SplitRecursive};
+use crate::Node;
 use crate::TreeVariant;
-use crate::{helpers::N, Node};
-use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::NodePtr;
 
-pub trait NodeItem<'a, V, M = Auto, P = DefaultPinVec<V>>: Clone
+pub trait NodeItem<'a, V, M = Auto, P = SplitRecursive>: Clone
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
 {
     fn from_ptr(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self;
 
@@ -22,7 +21,7 @@ impl<'a, V, M, P> NodeItem<'a, V, M, P> for Node<'a, V, M, P>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
 {
     #[inline(always)]
     fn from_ptr(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
@@ -41,7 +40,7 @@ impl<'a, V, M, P> NodeItem<'a, V, M, P> for &'a V::Item
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
 {
     #[inline(always)]
     fn from_ptr(_: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
@@ -60,7 +59,7 @@ impl<'a, V, M, P> NodeItem<'a, V, M, P> for NodePtr<V>
 where
     V: TreeVariant,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>>,
+    P: PinnedStorage,
 {
     #[inline(always)]
     fn from_ptr(_: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {

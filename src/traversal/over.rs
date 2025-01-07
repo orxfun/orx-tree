@@ -3,13 +3,13 @@ use super::depth_first::DepthFirstEnumeration;
 use super::node_item::NodeItem;
 use super::post_order::PostOrderEnumeration;
 use crate::memory::{Auto, TreeMemoryPolicy};
+use crate::pinned_storage::{PinnedStorage, SplitRecursive};
 use crate::traversal::enumeration::Enumeration;
 use crate::traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
-use crate::{helpers::N, tree::DefaultPinVec, Node, TreeVariant};
-use orx_pinned_vec::PinnedVec;
+use crate::{Node, TreeVariant};
 use orx_selfref_col::NodePtr;
 
-pub type OverItem<'a, V, O, M = Auto, P = DefaultPinVec<V>> =
+pub type OverItem<'a, V, O, M = Auto, P = SplitRecursive> =
     <<O as Over<V>>::Enumeration as Enumeration>::Item<<O as Over<V>>::NodeItem<'a, M, P>>;
 
 /// Type that defines the type of the items that iterators created by a traverser such as the [`Dfs`] or [`PostOrder`].
@@ -28,7 +28,7 @@ pub trait Over<V: TreeVariant> {
     type NodeItem<'a, M, P>: NodeItem<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -70,7 +70,7 @@ impl<V: TreeVariant> Over<V> for OverData {
         = &'a V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -92,7 +92,7 @@ impl<V: TreeVariant> Over<V> for OverNode {
         = Node<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -111,7 +111,7 @@ impl<V: TreeVariant> Over<V> for OverPtr {
         = NodePtr<V>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -140,7 +140,7 @@ impl<V: TreeVariant> Over<V> for OverDepthData {
         = &'a V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -166,7 +166,7 @@ impl<V: TreeVariant> Over<V> for OverDepthNode {
         = Node<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -185,7 +185,7 @@ impl<V: TreeVariant> Over<V> for OverDepthPtr {
         = NodePtr<V>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -216,7 +216,7 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxData {
         = &'a V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -244,7 +244,7 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxNode {
         = Node<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -263,7 +263,7 @@ impl<V: TreeVariant> Over<V> for OverSiblingIdxPtr {
         = NodePtr<V>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -298,7 +298,7 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxData {
         = &'a V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -330,7 +330,7 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxNode {
         = Node<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 
@@ -348,7 +348,7 @@ impl<V: TreeVariant> Over<V> for OverDepthSiblingIdxPtr {
         = NodePtr<V>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 

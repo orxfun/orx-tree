@@ -1,8 +1,8 @@
 use super::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, iter_ref::BfsIterRef, queue::Queue};
 use crate::{
-    helpers::N,
     memory::TreeMemoryPolicy,
     node_ref::NodeRefCore,
+    pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
@@ -11,7 +11,6 @@ use crate::{
     },
     NodeMut, NodeRef, TreeVariant,
 };
-use orx_pinned_vec::PinnedVec;
 
 /// A breadth first search traverser, also known as level-order
 /// ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search)).
@@ -67,7 +66,7 @@ where
     where
         V: TreeVariant + 'a,
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         O: 'a,
         Self: 'a,
     {
@@ -93,7 +92,7 @@ where
     where
         V: TreeVariant + 'a,
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         O: 'a,
         Self: 'a,
     {

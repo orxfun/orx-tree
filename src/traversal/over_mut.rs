@@ -4,14 +4,12 @@ use super::{
     over::{Over, OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
 };
 use crate::{
-    helpers::N,
     memory::{Auto, TreeMemoryPolicy},
-    tree::DefaultPinVec,
+    pinned_storage::{PinnedStorage, SplitRecursive},
     TreeVariant,
 };
-use orx_pinned_vec::PinnedVec;
 
-pub type OverItemMut<'a, V, O, M = Auto, P = DefaultPinVec<V>> =
+pub type OverItemMut<'a, V, O, M = Auto, P = SplitRecursive> =
     <<O as Over<V>>::Enumeration as Enumeration>::Item<<O as OverMut<V>>::NodeItemMut<'a, M, P>>;
 
 /// Type that defines the type of the mutable items that iterators created by a traverser such as the [`Dfs`] or [`PostOrder`].
@@ -23,7 +21,7 @@ pub trait OverMut<V: TreeVariant>: Over<V> {
     type NodeItemMut<'a, M, P>: NodeItemMut<'a, V, M, P>
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 }
@@ -35,7 +33,7 @@ impl<V: TreeVariant> OverMut<V> for OverData {
         = &'a mut V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 }
@@ -47,7 +45,7 @@ impl<V: TreeVariant> OverMut<V> for OverDepthData {
         = &'a mut V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 }
@@ -59,7 +57,7 @@ impl<V: TreeVariant> OverMut<V> for OverSiblingIdxData {
         = &'a mut V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 }
@@ -71,7 +69,7 @@ impl<V: TreeVariant> OverMut<V> for OverDepthSiblingIdxData {
         = &'a mut V::Item
     where
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         V: 'a,
         Self: 'a;
 }

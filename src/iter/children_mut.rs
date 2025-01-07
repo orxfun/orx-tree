@@ -2,10 +2,10 @@ use crate::{
     helpers::{Col, N},
     memory::TreeMemoryPolicy,
     node_mut::NodeMutDown,
+    pinned_storage::PinnedStorage,
     tree_variant::RefsChildren,
     NodeMut, TreeVariant,
 };
-use orx_pinned_vec::PinnedVec;
 use orx_selfref_col::NodePtr;
 
 /// Mutable children iterator.
@@ -13,7 +13,7 @@ pub struct ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>> + 'a,
+    P: PinnedStorage,
     'a: 'b,
 {
     // node_ptr: *const N<V>,
@@ -25,7 +25,7 @@ impl<'a, 'b, V, M, P> ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>> + 'a,
+    P: PinnedStorage,
     'a: 'b,
 {
     pub(crate) fn new(col: &'a mut Col<V, M, P>, node_ptr: *const N<V>) -> Self {
@@ -45,7 +45,7 @@ impl<'a, 'b, V, M, P> Iterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>> + 'a,
+    P: PinnedStorage,
     'a: 'b,
 {
     type Item = NodeMut<'b, V, M, P, NodeMutDown>;
@@ -63,7 +63,7 @@ impl<'a, 'b, V, M, P> ExactSizeIterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>> + 'a,
+    P: PinnedStorage,
     'a: 'b,
 {
     fn len(&self) -> usize {
@@ -75,7 +75,7 @@ impl<'a, 'b, V, M, P> DoubleEndedIterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
     M: TreeMemoryPolicy,
-    P: PinnedVec<N<V>> + 'a,
+    P: PinnedStorage,
     'a: 'b,
 {
     fn next_back(&mut self) -> Option<Self::Item> {

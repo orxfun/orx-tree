@@ -1,5 +1,6 @@
 use crate::{
     memory::Auto,
+    pinned_storage::SplitRecursive,
     traversal::{
         enumerations::Val,
         node_item::NodeItem,
@@ -10,7 +11,6 @@ use crate::{
         post_order::{post_enumeration::PostOrderEnumeration, traverser::PostOrder},
         Traversal, Traverser,
     },
-    tree::DefaultPinVec,
     AsTreeNode, Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
@@ -46,7 +46,7 @@ fn tree() -> DynTree<i32> {
     tree
 }
 
-type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, DefaultPinVec<Dyn<i32>>>;
+type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, SplitRecursive>;
 
 fn dfs_iter_for<O: Over<Dyn<i32>, Enumeration = Val>>()
 where

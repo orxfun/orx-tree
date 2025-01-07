@@ -1,8 +1,8 @@
 use super::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef, stack::Stack};
 use crate::{
-    helpers::N,
     memory::TreeMemoryPolicy,
     node_ref::NodeRefCore,
+    pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
@@ -11,7 +11,6 @@ use crate::{
     },
     NodeMut, NodeRef, TreeVariant,
 };
-use orx_pinned_vec::PinnedVec;
 
 /// A depth first search traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
 ///
@@ -66,7 +65,7 @@ where
     where
         V: TreeVariant + 'a,
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         O: 'a,
         Self: 'a,
     {
@@ -92,7 +91,7 @@ where
     where
         V: TreeVariant + 'a,
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         O: 'a,
         Self: 'a,
     {

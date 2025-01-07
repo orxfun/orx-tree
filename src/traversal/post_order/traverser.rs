@@ -3,9 +3,9 @@ use super::{
     states::States,
 };
 use crate::{
-    helpers::N,
     memory::TreeMemoryPolicy,
     node_ref::NodeRefCore,
+    pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
@@ -15,7 +15,6 @@ use crate::{
     NodeMut, NodeRef, TreeVariant,
 };
 use core::marker::PhantomData;
-use orx_pinned_vec::PinnedVec;
 
 /// A post order traverser ([Wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
 ///
@@ -72,7 +71,7 @@ where
     where
         V: TreeVariant + 'a,
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         O: 'a,
         Self: 'a,
     {
@@ -101,7 +100,7 @@ where
     where
         V: TreeVariant + 'a,
         M: TreeMemoryPolicy,
-        P: PinnedVec<N<V>> + 'a,
+        P: PinnedStorage,
         O: 'a,
         Self: 'a,
     {

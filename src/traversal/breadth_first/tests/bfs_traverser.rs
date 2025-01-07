@@ -1,5 +1,6 @@
 use crate::{
     memory::Auto,
+    pinned_storage::SplitRecursive,
     traversal::{
         breadth_first::traverser::Bfs,
         enumerations::Val,
@@ -10,7 +11,6 @@ use crate::{
         },
         Traversal, Traverser,
     },
-    tree::DefaultPinVec,
     AsTreeNode, Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
@@ -46,7 +46,7 @@ fn tree() -> DynTree<i32> {
     tree
 }
 
-type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, DefaultPinVec<Dyn<i32>>>;
+type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, SplitRecursive>;
 
 fn bfs_iter_for<O: Over<Dyn<i32>, Enumeration = Val>>() {
     fn data<'a, O: Over<Dyn<i32>> + 'a>(

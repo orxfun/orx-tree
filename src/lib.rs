@@ -32,6 +32,7 @@ mod memory;
 mod node;
 mod node_mut;
 mod node_ref;
+mod pinned_storage;
 mod tree;
 mod tree_variant;
 
