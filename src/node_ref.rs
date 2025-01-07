@@ -4,9 +4,9 @@ use crate::{
     pinned_storage::PinnedStorage,
     traversal::{enumerations::Val, over::OverItem, Over},
     tree_variant::RefsChildren,
-    Node, TreeVariant,
+    Node, NodeIdx, TreeVariant,
 };
-use orx_selfref_col::{NodeIdx, NodePtr};
+use orx_selfref_col::NodePtr;
 
 pub trait NodeRefCore<'a, V, M, P>
 where

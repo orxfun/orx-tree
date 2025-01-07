@@ -8,11 +8,11 @@ use crate::{
         enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverMut,
     },
     tree_variant::RefsChildren,
-    TreeVariant,
+    NodeIdx, TreeVariant,
 };
 use alloc::vec::Vec;
 use core::marker::PhantomData;
-use orx_selfref_col::{NodeIdx, NodePtr, Refs};
+use orx_selfref_col::{NodePtr, Refs};
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation {}

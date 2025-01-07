@@ -23,25 +23,32 @@ pub mod iter;
 /// Module defining tree traversal iterators.
 pub mod traversal;
 
+/// Module defining memory reclaim policies.
+pub mod memory;
+
+/// Module defining the choice over the pinned storage of the tree.
+pub mod pinned_storage;
+
 mod as_tree_node;
 mod common_traits;
 mod dary;
 mod r#dyn;
 mod helpers;
-mod memory;
 mod node;
 mod node_mut;
 mod node_ref;
-mod pinned_storage;
 mod tree;
+mod tree_node_idx;
 mod tree_variant;
 
 pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
+pub use memory::{Auto, AutoWithThreshold, Lazy, TreeMemoryPolicy};
 pub use node::Node;
 pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
 pub use node_ref::NodeRef;
 pub use r#dyn::{Dyn, DynNode, DynTree};
 pub use traversal::{Traversal, Traverser, TraverserMut};
 pub use tree::Tree;
+pub use tree_node_idx::NodeIdx;
 pub use tree_variant::TreeVariant;
