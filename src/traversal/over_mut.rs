@@ -4,7 +4,7 @@ use super::{
     over::{Over, OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
 };
 use crate::{
-    memory::{Auto, TreeMemoryPolicy},
+    memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
     TreeVariant,
 };
@@ -20,7 +20,7 @@ pub trait OverMut<V: TreeVariant>: Over<V> {
     /// Part of the mutable iterator item which only depends on the node's internal data.
     type NodeItemMut<'a, M, P>: NodeItemMut<'a, V, M, P>
     where
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         V: 'a,
         Self: 'a;
@@ -32,7 +32,7 @@ impl<V: TreeVariant> OverMut<V> for OverData {
     type NodeItemMut<'a, M, P>
         = &'a mut V::Item
     where
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         V: 'a,
         Self: 'a;
@@ -44,7 +44,7 @@ impl<V: TreeVariant> OverMut<V> for OverDepthData {
     type NodeItemMut<'a, M, P>
         = &'a mut V::Item
     where
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         V: 'a,
         Self: 'a;
@@ -56,7 +56,7 @@ impl<V: TreeVariant> OverMut<V> for OverSiblingIdxData {
     type NodeItemMut<'a, M, P>
         = &'a mut V::Item
     where
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         V: 'a,
         Self: 'a;
@@ -68,7 +68,7 @@ impl<V: TreeVariant> OverMut<V> for OverDepthSiblingIdxData {
     type NodeItemMut<'a, M, P>
         = &'a mut V::Item
     where
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         V: 'a,
         Self: 'a;

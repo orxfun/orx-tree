@@ -1,6 +1,6 @@
 use crate::{
     helpers::Col,
-    memory::{Auto, TreeMemoryPolicy},
+    memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
     TreeVariant,
@@ -11,7 +11,7 @@ use orx_selfref_col::NodePtr;
 pub struct Node<'a, V, M = Auto, P = SplitRecursive>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     col: &'a Col<V, M, P>,
@@ -21,7 +21,7 @@ where
 impl<V, M, P> Clone for Node<'_, V, M, P>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     fn clone(&self) -> Self {
@@ -35,7 +35,7 @@ where
 impl<'a, V, M, P> Node<'a, V, M, P>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     // helpers
@@ -48,7 +48,7 @@ where
 impl<'a, V, M, P> NodeRefCore<'a, V, M, P> for Node<'a, V, M, P>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     #[inline(always)]

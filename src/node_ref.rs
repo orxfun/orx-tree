@@ -1,6 +1,6 @@
 use crate::{
     helpers::{Col, N},
-    memory::TreeMemoryPolicy,
+    memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     traversal::{enumerations::Val, over::OverItem, Over},
     tree_variant::RefsChildren,
@@ -11,7 +11,7 @@ use orx_selfref_col::NodePtr;
 pub trait NodeRefCore<'a, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     fn col(&self) -> &Col<V, M, P>;
@@ -27,7 +27,7 @@ where
 impl<'a, V, M, P, X> NodeRef<'a, V, M, P> for X
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     X: NodeRefCore<'a, V, M, P>,
 {
@@ -37,7 +37,7 @@ where
 pub trait NodeRef<'a, V, M, P>: NodeRefCore<'a, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     /// Returns the node index of this node.

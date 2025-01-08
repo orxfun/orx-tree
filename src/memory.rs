@@ -1,8 +1,8 @@
 use crate::{pinned_storage::PinnedStorage, Tree, TreeVariant};
-use orx_selfref_col::{MemoryPolicy, MemoryReclaimNever, MemoryReclaimOnThreshold};
+use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclaimer};
 
-pub trait TreeMemoryPolicy: 'static {
-    type MemoryReclaimPolicy<V>: MemoryPolicy<V>
+pub trait MemoryPolicy: 'static {
+    type MemoryReclaimPolicy<V>: orx_selfref_col::MemoryPolicy<V>
     where
         V: TreeVariant;
 }
@@ -30,7 +30,7 @@ pub trait TreeMemoryPolicy: 'static {
 /// [`PinnedVec`]: orx_pinned_vec::PinnedVec
 /// [`NodeIdx<V>`]: orx_selfref_col::NodeIdx
 pub struct Lazy;
-impl TreeMemoryPolicy for Lazy {
+impl MemoryPolicy for Lazy {
     type MemoryReclaimPolicy<V>
         = MemoryReclaimNever
     where
@@ -158,9 +158,95 @@ impl TreeMemoryPolicy for Lazy {
 /// when we are done using the indices, we can switch back to Auto policy.
 /// Note that these transformations of the memory policies are free.
 ///
+/// ```
+/// use orx_tree::*;
 ///
+/// // # 1 - BUILD UP
+///
+/// //      1
+/// //     ╱ ╲
+/// //    ╱   ╲
+/// //   2     3
+/// //  ╱ ╲   ╱ ╲
+/// // 4   5 6   7
+/// // |     |  ╱ ╲
+/// // 8     9 10  11
+///
+/// fn bfs_values<M: MemoryPolicy>(tree: &DynTree<i32, M>) -> Vec<i32> {
+///     tree.root().unwrap().bfs().copied().collect()
+/// }
+///
+/// // # 1. GROW
+///
+/// let mut tree = DynTree::<i32, Lazy>::new(1);
+///
+/// let mut root = tree.root_mut().unwrap();
+/// let [id2, id3] = root.grow([2, 3]);
+///
+/// let mut n2 = id2.node_mut(&mut tree);
+/// let [id4, _] = n2.grow([4, 5]);
+///
+/// let [id8] = id4.node_mut(&mut tree).grow([8]);
+///
+/// let mut n3 = id3.node_mut(&mut tree);
+/// let [id6, id7] = n3.grow([6, 7]);
+///
+/// id6.node_mut(&mut tree).push(9);
+/// id7.node_mut(&mut tree).extend([10, 11]);
+///
+/// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+///
+/// // since we are on the Lazy policy, all id's are valid
+/// // even in Auto policy, they would have been valid since the tree only grew
+/// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
+/// assert!(id4.get_node(&tree).is_some()); // get_node => Some(Node)
+/// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
+/// let _node7 = id7.node(&tree); // no panic!
+///
+/// // # 2 - SHRINK, NO MEMORY RECLAIM
+///
+/// // let's close two nodes (nodes 4 & 8)
+/// id4.node_mut(&mut tree).remove();
+/// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
+///
+/// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
+/// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
+/// let node7 = id7.node(&tree); // no panic
+///
+/// // only id4 & id8 are affected (explicit) => invalidated due to RemovedNode
+/// assert!(!id4.is_valid_for(&tree));
+/// assert!(id4.get_node(&tree).is_none());
+/// assert_eq!(id4.try_get_node(&tree), Err(NodeIdxError::RemovedNode));
+/// // let node4 = id4.node(&tree); // panics!
+///
+/// // # 3 - SHRINK HEAVILY, STILL NO MEMORY RECLAIM
+///
+/// // let's close more nodes (7, 10, 11)
+/// // this would've triggered memory reclaim in Auto policy, but not in Lazy policy
+/// id7.node_mut(&mut tree).remove();
+/// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
+///
+/// // all indices are still (will always be) valid
+/// assert!(id2.is_valid_for(&tree));
+/// assert!(id2.try_get_node(&tree).is_ok());
+/// let n2 = id2.node(&tree);
+/// assert_eq!(n2.data(), &2);
+///
+/// // # 4 - END OF HEAVY MUTATIONS, RECLAIM THE MEMORY
+///
+/// // since utilization was below 75% (6 active nodes / 11)
+/// // memory is reclaimed immediately once switched to Auto.
+/// // now, all prior indices are invalid
+/// let tree: DynTree<i32, Auto> = tree.into_auto_reclaim();
+/// assert!(!id2.is_valid_for(&tree));
+/// assert!(id3.get_node(&tree).is_none());
+/// assert_eq!(
+///     id4.try_get_node(&tree),
+///     Err(NodeIdxError::ReorganizedCollection)
+/// );
+/// ```
 pub struct Auto;
-impl TreeMemoryPolicy for Auto {
+impl MemoryPolicy for Auto {
     type MemoryReclaimPolicy<V>
         = MemoryReclaimOnThreshold<2, V, V::Reclaimer>
     where
@@ -168,7 +254,7 @@ impl TreeMemoryPolicy for Auto {
 }
 
 pub struct AutoWithThreshold<const D: usize>;
-impl<const D: usize> TreeMemoryPolicy for AutoWithThreshold<D> {
+impl<const D: usize> MemoryPolicy for AutoWithThreshold<D> {
     type MemoryReclaimPolicy<V>
         = MemoryReclaimOnThreshold<D, V, V::Reclaimer>
     where
@@ -209,13 +295,27 @@ where
     P: PinnedStorage,
 {
     pub fn into_auto_reclaim(self) -> Tree<V, Auto, P> {
-        Tree(self.0.into())
+        let mut tree = Tree(self.0.into());
+        let will_reclaim =
+            <Auto as MemoryPolicy>::MemoryReclaimPolicy::<V>::col_needs_memory_reclaim(&tree.0);
+
+        if will_reclaim {
+            let nodes_moved = <V::Reclaimer as MemoryReclaimer<V>>::reclaim_nodes(&mut tree.0);
+            tree.0.update_state(nodes_moved);
+        }
+        tree
     }
 
     pub fn into_auto_reclaim_with_threshold<const D: usize>(
         self,
     ) -> Tree<V, AutoWithThreshold<D>, P> {
-        Tree(self.0.into())
+        let mut tree = Tree(self.0.into());
+        let will_reclaim =
+            <AutoWithThreshold<D> as MemoryPolicy>::MemoryReclaimPolicy::<V>::col_needs_memory_reclaim(&tree.0);
+        if will_reclaim {
+            <V::Reclaimer as MemoryReclaimer<V>>::reclaim_nodes(&mut tree.0);
+        }
+        tree
     }
 }
 
@@ -235,14 +335,13 @@ fn abc() {
     // |     |  ╱ ╲
     // 8     9 10  11
 
-    fn bfs_values<M: TreeMemoryPolicy>(tree: &DynTree<i32, M>) -> Vec<i32> {
+    fn bfs_values<M: MemoryPolicy>(tree: &DynTree<i32, M>) -> Vec<i32> {
         tree.root().unwrap().bfs().copied().collect()
     }
 
     // # 1. GROW
 
-    let mut tree = DynTree::<i32, Auto>::new(1);
-    // let tree: DynTree<i32, Lazy> = tree.into_lazy_reclaim();
+    let mut tree = DynTree::<i32, Lazy>::new(1);
 
     let mut root = tree.root_mut().unwrap();
     let [id2, id3] = root.grow([2, 3]);
@@ -260,16 +359,16 @@ fn abc() {
 
     assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
-    // since the tree only grew, we know that all id's above are valid
+    // since we are on the Lazy policy, all id's are valid
+    // even in Auto policy, they would have been valid since the tree only grew
     assert!(id2.is_valid_for(&tree)); // is_valid_for => true
     assert!(id4.get_node(&tree).is_some()); // get_node => Some(Node)
     assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
     let _node7 = id7.node(&tree); // no panic!
 
-    // # 2 - SHRINK BUT WITHOUT A MEMORY RECLAIM
+    // # 2 - SHRINK, NO MEMORY RECLAIM
 
     // let's close two nodes (nodes 4 & 8)
-    // this is not enough to trigger a memory reclaim
     id4.node_mut(&mut tree).remove();
     assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 
@@ -277,32 +376,35 @@ fn abc() {
     assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
     let node7 = id7.node(&tree); // no panic
 
-    // what about id4 & id8 => invalidated due to RemovedNode
+    // only id4 & id8 are affected (explicit) => invalidated due to RemovedNode
     assert!(!id4.is_valid_for(&tree));
     assert!(id4.get_node(&tree).is_none());
     assert_eq!(id4.try_get_node(&tree), Err(NodeIdxError::RemovedNode));
     // let node4 = id4.node(&tree); // panics!
 
-    // # 3 - SHRINK TRIGGERING MEMORY RECLAIM
+    // # 3 - SHRINK HEAVILY, STILL NO MEMORY RECLAIM
 
-    // let's close more nodes (7, 10, 11) to trigger the memory reclaim
+    // let's close more nodes (7, 10, 11)
+    // this would've triggered memory reclaim in Auto policy, but not in Lazy policy
     id7.node_mut(&mut tree).remove();
     assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 
-    // even node 2 is still on the tree;
-    // its idx is invalidated => ReorganizedCollection
-    assert!(!id2.is_valid_for(&tree));
-    assert_eq!(
-        id2.try_get_node(&tree),
-        Err(NodeIdxError::ReorganizedCollection)
-    );
-
-    // all indices obtained prior to reorganization are now invalid
-    // we can restore the valid indices again
-
-    let id2 = tree.root().unwrap().child(0).unwrap().idx();
+    // all indices are still (will always be) valid
     assert!(id2.is_valid_for(&tree));
     assert!(id2.try_get_node(&tree).is_ok());
     let n2 = id2.node(&tree);
     assert_eq!(n2.data(), &2);
+
+    // # 4 - END OF HEAVY MUTATIONS, RECLAIM THE MEMORY
+
+    // since utilization was below 75% (6 active nodes / 11)
+    // memory is reclaimed immediately once switched to Auto.
+    // now, all prior indices are invalid
+    let tree: DynTree<i32, Auto> = tree.into_auto_reclaim();
+    assert!(!id2.is_valid_for(&tree));
+    assert!(id3.get_node(&tree).is_none());
+    assert_eq!(
+        id4.try_get_node(&tree),
+        Err(NodeIdxError::ReorganizedCollection)
+    );
 }

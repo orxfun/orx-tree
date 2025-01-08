@@ -2,7 +2,7 @@ use super::dfs_enumeration::DepthFirstEnumeration;
 use super::iter_ptr::DfsIterPtr;
 use super::stack::{Item, Stack};
 use crate::helpers::Col;
-use crate::memory::TreeMemoryPolicy;
+use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;
 use crate::TreeVariant;
@@ -12,7 +12,7 @@ use orx_self_or::SoM;
 pub struct DfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
@@ -26,7 +26,7 @@ where
 impl<'a, V, M, P, E, S, D> DfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,
@@ -55,7 +55,7 @@ where
 impl<'a, V, M, P, E, S, D> Iterator for DfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: DepthFirstEnumeration,
     S: SoM<Stack<V, E>>,

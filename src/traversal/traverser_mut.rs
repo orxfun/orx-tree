@@ -2,7 +2,7 @@ use super::{
     over_mut::{OverItemMut, OverMut},
     Traverser,
 };
-use crate::{memory::TreeMemoryPolicy, pinned_storage::PinnedStorage, NodeMut, TreeVariant};
+use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, TreeVariant};
 
 /// A mutable tree traverser which walks over a given node and all of its descendants by its `iter_mut` method.
 ///
@@ -198,7 +198,7 @@ where
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         O: 'a,
         Self: 'a;

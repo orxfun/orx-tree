@@ -43,7 +43,7 @@ mod tree_variant;
 
 pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
-pub use memory::{Auto, AutoWithThreshold, Lazy, TreeMemoryPolicy};
+pub use memory::{Auto, AutoWithThreshold, Lazy, MemoryPolicy};
 pub use node::Node;
 pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
 pub use node_ref::NodeRef;

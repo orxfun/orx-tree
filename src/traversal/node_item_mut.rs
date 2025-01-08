@@ -1,5 +1,5 @@
 use crate::helpers::Col;
-use crate::memory::{Auto, TreeMemoryPolicy};
+use crate::memory::{Auto, MemoryPolicy};
 use crate::pinned_storage::{PinnedStorage, SplitRecursive};
 use crate::TreeVariant;
 use orx_selfref_col::NodePtr;
@@ -7,7 +7,7 @@ use orx_selfref_col::NodePtr;
 pub trait NodeItemMut<'a, V, M = Auto, P = SplitRecursive>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     fn from_ptr(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self;
@@ -16,7 +16,7 @@ where
 impl<'a, V, M, P> NodeItemMut<'a, V, M, P> for &'a mut V::Item
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     #[inline(always)]

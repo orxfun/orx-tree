@@ -1,6 +1,6 @@
 use crate::{
     helpers::{Col, N},
-    memory::TreeMemoryPolicy,
+    memory::MemoryPolicy,
     node_mut::NodeMutDown,
     pinned_storage::PinnedStorage,
     tree_variant::RefsChildren,
@@ -12,7 +12,7 @@ use orx_selfref_col::NodePtr;
 pub struct ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     'a: 'b,
 {
@@ -24,7 +24,7 @@ where
 impl<'a, 'b, V, M, P> ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     'a: 'b,
 {
@@ -44,7 +44,7 @@ where
 impl<'a, 'b, V, M, P> Iterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     'a: 'b,
 {
@@ -62,7 +62,7 @@ where
 impl<'a, 'b, V, M, P> ExactSizeIterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     'a: 'b,
 {
@@ -74,7 +74,7 @@ where
 impl<'a, 'b, V, M, P> DoubleEndedIterator for ChildrenMutIter<'a, 'b, V, M, P>
 where
     V: TreeVariant + 'a,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     'a: 'b,
 {
