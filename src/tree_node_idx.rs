@@ -246,6 +246,13 @@ impl<V: TreeVariant> NodeIdx<V> {
         Self(orx_selfref_col::NodeIdx::new(state, node_ptr))
     }
 
+    /// Returns true if this node index is valid for the given `tree`.
+    ///
+    /// Returns false if either of the following holds:
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
     #[inline(always)]
     pub fn is_valid_for<M, P>(&self, tree: &Tree<V, M, P>) -> bool
     where
@@ -255,6 +262,15 @@ impl<V: TreeVariant> NodeIdx<V> {
         self.0.is_valid_for(&tree.0)
     }
 
+    /// Returns the node that this index is pointing to in constant time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
     #[inline(always)]
     pub fn node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
     where
@@ -265,6 +281,15 @@ impl<V: TreeVariant> NodeIdx<V> {
         Node::new(&tree.0, self.0.node_ptr())
     }
 
+    /// Returns the mutable node that this index is pointing to in constant time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
     #[inline(always)]
     pub fn node_mut<'a, M, P>(&self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
     where
@@ -275,6 +300,13 @@ impl<V: TreeVariant> NodeIdx<V> {
         NodeMut::new(&mut tree.0, self.0.node_ptr())
     }
 
+    /// Returns the node that this index is pointing to in constant time if the index is valid.
+    ///
+    /// Returns None when either of the following holds:
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
     #[inline(always)]
     pub fn get_node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Option<Node<'a, V, M, P>>
     where
@@ -286,6 +318,13 @@ impl<V: TreeVariant> NodeIdx<V> {
             .then(|| Node::new(&tree.0, self.0.node_ptr()))
     }
 
+    /// Returns the mutable node that this index is pointing to in constant time if the index is valid.
+    ///
+    /// Returns None when either of the following holds:
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
     #[inline(always)]
     pub fn get_node_mut<'a, M, P>(
         &self,
@@ -300,6 +339,13 @@ impl<V: TreeVariant> NodeIdx<V> {
             .then(|| NodeMut::new(&mut tree.0, self.0.node_ptr()))
     }
 
+    /// Returns the node that this index is pointing to in constant time if the index is valid.
+    ///
+    /// Returns the node index error when either of the following holds:
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
     #[inline(always)]
     pub fn try_get_node<'a, M, P>(
         &self,
@@ -314,6 +360,13 @@ impl<V: TreeVariant> NodeIdx<V> {
             .map(|ptr| Node::new(&tree.0, ptr))
     }
 
+    /// Returns the mutable node that this index is pointing to in constant time if the index is valid.
+    ///
+    /// Returns the node index error when either of the following holds:
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
     #[inline(always)]
     pub fn try_get_node_mut<'a, M, P>(
         &self,
@@ -328,6 +381,14 @@ impl<V: TreeVariant> NodeIdx<V> {
             .map(|ptr| NodeMut::new(&mut tree.0, ptr))
     }
 
+    /// Returns the node that this index is pointing to in constant time.
+    ///
+    /// # Safety
+    ///
+    /// It omits the index validity assertions that [`node`] method performs; hence it is only safe to use
+    /// this method when we are certain that `node_idx.is_valid_for(tree)` would have returned true.
+    ///
+    /// [`node`]: Self::node
     #[inline(always)]
     pub unsafe fn node_unchecked<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
     where
@@ -337,6 +398,14 @@ impl<V: TreeVariant> NodeIdx<V> {
         Node::new(&tree.0, self.0.node_ptr())
     }
 
+    /// Returns the mutable node that this index is pointing to in constant time.
+    ///
+    /// # Safety
+    ///
+    /// It omits the index validity assertions that [`node_mut`] method performs; hence it is only safe to use
+    /// this method when we are certain that `node_idx.is_valid_for(tree)` would have returned true.
+    ///
+    /// [`node_mut`]: Self::node_mut
     #[inline(always)]
     pub unsafe fn node_mut_unchecked<'a, M, P>(
         &self,
