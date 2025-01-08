@@ -8,7 +8,7 @@ use crate::{
         node_item::NodeItem,
         over::{Over, OverData, OverNode, OverPtr},
     },
-    AsTreeNode, Dyn, DynTree, NodeRef,
+    Dyn, DynTree, NodeRef,
 };
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;

@@ -5,7 +5,7 @@ use crate::{
         traverser_mut::TraverserMut,
         Traversal, Traverser,
     },
-    AsTreeNode, Dyn, DynTree,
+    Dyn, DynTree,
 };
 use alloc::vec::Vec;
 
