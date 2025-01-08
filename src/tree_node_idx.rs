@@ -30,6 +30,165 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:\n
 /// [`Auto`]: crate::Auto
 /// [`Lazy`]: crate::Lazy
 /// [`MemoryPolicy`]: crate::MemoryPolicy
+///
+/// # Collecting Node Indices
+///
+/// There are three ways to get the index of a node.
+///
+/// ## 1. During Growth
+///
+/// We can add nodes to the tree by [`push`] and [`extend`] methods.
+/// These methods only create the nodes.
+/// If we want to receive the indices of the created nodes at the same time,
+/// we can use the [`grow`], [`grow_iter`] and [`grow_vec`] methods instead.
+///
+/// **adding a single child: push vs grow**
+///
+/// ```
+/// use orx_tree::*;
+///
+/// //      1
+/// //     ╱ ╲
+/// //    ╱   ╲
+/// //   2     3
+///
+/// let mut tree = DynTree::<i32>::new(1);
+///
+/// let mut root = tree.root_mut().unwrap();
+///
+/// root.push(2); // no idx is returned
+///
+/// let [id3] = root.grow([3]); // idx is received
+///
+/// // use id3 to directly access node 3
+/// let n3 = id3.node(&tree);
+/// assert_eq!(n3.data(), &3);
+/// ```
+///
+/// **adding a constant number of children: extend vs grow**
+///
+/// ```
+/// use orx_tree::*;
+///
+/// //       1
+/// //      ╱|╲
+/// //     ╱ | ╲
+/// //    ╱ ╱╲  ╲
+/// //   2 3  4  5
+///
+/// let mut tree = DynTree::<i32>::new(1);
+///
+/// let mut root = tree.root_mut().unwrap();
+///
+/// root.extend([2, 3]); // no indices are returned
+///
+/// let [id4, id5] = root.grow([4, 5]); // indices are received
+/// ```
+///
+/// **adding a variable number of children: extend vs grow_iter or grow_vec**
+///
+/// ```
+/// use orx_tree::*;
+///
+/// //       1
+/// //      ╱|╲
+/// //     ╱ | ╲
+/// //    ╱ ╱╲  ╲
+/// //   2 3  4  5
+///
+/// let mut tree = DynTree::<i32>::new(1);
+///
+/// let mut root = tree.root_mut().unwrap();
+///
+/// root.extend(2..4); // no indices are returned
+///
+/// let indices = root.grow_vec(4..6); // indices are collected into a vec
+///
+/// let id5 = &indices[1];
+/// let n5 = id5.node(&tree);
+/// assert_eq!(n5.data(), &5);
+/// ```
+///
+/// [`push`]: crate::NodeMut::push
+/// [`extend`]: crate::NodeMut::extend
+/// [`grow`]: crate::NodeMut::grow
+/// [`grow_iter`]: crate::NodeMut::grow_iter
+/// [`grow_vec`]: crate::NodeMut::grow_vec
+///
+/// ## 2. From the Node
+///
+/// A node index can be obtained from the node itself using the [`idx`] method.
+/// There are different ways to access the nodes:
+/// * we can traverse the tree ourselves using child and parent methods,
+/// * or we can traverse the tree [`OverNode`].
+///
+/// [`idx`]: crate::NodeRef::idx
+/// [`OverNode`]: crate::traversal::OverNode
+///
+/// ```
+/// use orx_tree::*;
+///
+/// //      1
+/// //     ╱ ╲
+/// //    ╱   ╲
+/// //   2     3
+/// //  ╱ ╲
+/// // 4   5
+///
+/// let mut tree = DynTree::<i32>::new(1);
+///
+/// let mut root = tree.root_mut().unwrap();
+///
+/// let [id2, _] = root.grow([2, 3]);
+///
+/// let mut n2 = id2.node_mut(&mut tree);
+/// n2.extend([4, 5]);
+///
+/// // task: access node 5 and get its index
+/// let root = tree.root().unwrap();
+/// let n2 = root.child(0).unwrap();
+/// let n5 = n2.child(1).unwrap();
+/// let id5 = n5.idx();
+///
+/// // now we can use idx5 to directly access node 5
+/// let n5 = id5.node(&tree);
+/// assert_eq!(n5.data(), &5);
+/// assert_eq!(n5.parent(), Some(id2.node(&tree)));
+/// ```
+///
+/// Since we can traverse the node in various ways and access the nodes in various orders,
+/// we can also collect the indices in desired order.
+///
+/// ```
+/// use orx_tree::*;
+/// use orx_tree::traversal::*;
+///
+/// //      1
+/// //     ╱ ╲
+/// //    ╱   ╲
+/// //   2     3
+/// //  ╱ ╲
+/// // 4   5
+///
+/// let mut tree = DynTree::<i32>::new(1);
+///
+/// let mut root = tree.root_mut().unwrap();
+///
+/// let [id2, _] = root.grow([2, 3]);
+///
+/// let mut n2 = id2.node_mut(&mut tree);
+/// n2.extend([4, 5]);
+///
+/// // task: collect all indices in breadth first order
+/// let root = tree.root().unwrap();
+/// let indices: Vec<_> = root.bfs_over::<OverNode>().map(|x| x.idx()).collect();
+///
+/// // now we can use indices to directly access nodes
+/// let id5 = &indices[4];
+/// let n5 = id5.node(&tree);
+/// assert_eq!(n5.data(), &5);
+/// assert_eq!(n5.parent(), Some(id2.node(&tree)));
+/// ```
 pub struct NodeIdx<V: TreeVariant>(orx_selfref_col::NodeIdx<V>);
 
 impl<V: TreeVariant> Clone for NodeIdx<V> {
@@ -156,6 +315,7 @@ impl<V: TreeVariant> NodeIdx<V> {
 
 #[test]
 fn abc() {
+    use crate::traversal::*;
     use crate::*;
     use alloc::vec::Vec;
 
@@ -163,38 +323,25 @@ fn abc() {
     //     ╱ ╲
     //    ╱   ╲
     //   2     3
-    //  ╱ ╲   ╱ ╲
-    // 4   5 6   7
-    // |     |  ╱ ╲
-    // 8     9 10  11
+    //  ╱ ╲
+    // 4   5
 
     let mut tree = DynTree::<i32>::new(1);
 
     let mut root = tree.root_mut().unwrap();
-    let [id2, id3] = root.grow([2, 3]);
+
+    let [id2, _] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
-    let [id4, _] = n2.grow([4, 5]);
+    n2.extend([4, 5]);
 
-    id4.node_mut(&mut tree).push(8);
-
-    let mut n3 = id3.node_mut(&mut tree);
-    let [id6, id7] = n3.grow([6, 7]);
-
-    id6.node_mut(&mut tree).push(9);
-    id7.node_mut(&mut tree).extend([10, 11]);
-
-    // traversal from any node
-
+    // task: collect all indices in breadth first order
     let root = tree.root().unwrap();
-    let values: Vec<_> = root.dfs().copied().collect();
-    assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    let indices: Vec<_> = root.bfs_over::<OverNode>().map(|x| x.idx()).collect();
 
-    let n3 = id3.node(&tree);
-    let values: Vec<_> = n3.dfs().copied().collect();
-    assert_eq!(values, [3, 6, 9, 7, 10, 11]);
-
-    let n7 = id7.node(&tree);
-    let values: Vec<_> = n7.dfs().copied().collect();
-    assert_eq!(values, [7, 10, 11]);
+    // now we can use indices to directly access nodes
+    let id5 = &indices[4];
+    let n5 = id5.node(&tree);
+    assert_eq!(n5.data(), &5);
+    assert_eq!(n5.parent(), Some(id2.node(&tree)));
 }
