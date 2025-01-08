@@ -358,8 +358,11 @@ where
     V: TreeVariant,
     P: PinnedStorage,
 {
-    /// Transforms the tree's memory reclaim policy from [`Auto`] to [`Lazy`]; i.e.,
-    /// `Tree<V, Auto>` becomes `Tree<V, Lazy>`.
+    /// Transforms the tree's memory reclaim policy from [`Auto`] to [`Lazy`]:
+    ///
+    /// * `Tree<V>` => `Tree<V, Lazy>` // Auto can be omitted on since it is the default
+    /// * `DynTree<u62>` => `DynTree<u32, Lazy>`
+    /// * `BinaryTree<u62>` => `BinaryTree<u32, Lazy>`
     ///
     /// This is free operation and does not require any allocation or copies.
     pub fn into_lazy_reclaim(self) -> Tree<V, Lazy, P> {
@@ -372,6 +375,13 @@ where
     V: TreeVariant,
     P: PinnedStorage,
 {
+    /// Transforms the tree's memory reclaim policy from [`AutoWithThreshold`] to [`Lazy`]:
+    ///
+    /// * `Tree<V, AutoWithThreshold<3>>` => `Tree<V, Lazy>`
+    /// * `DynTree<u62, AutoWithThreshold<4>>` => `DynTree<u32, Lazy>`
+    /// * `BinaryTree<u62, AutoWithThreshold<1>>` => `BinaryTree<u32, Lazy>`
+    ///
+    /// This is free operation and does not require any allocation or copies.
     pub fn into_lazy_reclaim(self) -> Tree<V, Lazy, P> {
         Tree(self.0.into())
     }
@@ -384,6 +394,13 @@ where
     V: TreeVariant,
     P: PinnedStorage,
 {
+    /// Transforms the tree's memory reclaim policy from [`Lazy`] to [`Auto`]:
+    ///
+    /// * `Tree<V, Lazy>` => `Tree<V>` // Auto can be omitted on since it is the default
+    /// * `DynTree<u62, Lazy>` => `DynTree<u32>`
+    /// * `BinaryTree<u62, Lazy>` => `BinaryTree<u32>`
+    ///
+    /// This is free operation and does not require any allocation or copies.
     pub fn into_auto_reclaim(self) -> Tree<V, Auto, P> {
         let mut tree = Tree(self.0.into());
         let will_reclaim =
@@ -396,6 +413,13 @@ where
         tree
     }
 
+    /// Transforms the tree's memory reclaim policy from [`Lazy`] to [`AutoWithThreshold`]:
+    ///
+    /// * `Tree<V, Lazy>` => `Tree<V, AutoWithThreshold<3>>`
+    /// * `DynTree<u62, Lazy>` => `DynTree<u32, AutoWithThreshold<1>>`
+    /// * `BinaryTree<u62, Lazy>` => `BinaryTree<u32, AutoWithThreshold<4>>`
+    ///
+    /// This is free operation and does not require any allocation or copies.
     pub fn into_auto_reclaim_with_threshold<const D: usize>(
         self,
     ) -> Tree<V, AutoWithThreshold<D>, P> {
