@@ -29,7 +29,6 @@ pub mod memory;
 /// Module defining the choice over the pinned storage of the tree.
 pub mod pinned_storage;
 
-mod as_tree_node;
 mod common_traits;
 mod dary;
 mod r#dyn;
@@ -41,7 +40,6 @@ mod tree;
 mod tree_node_idx;
 mod tree_variant;
 
-pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
 pub use memory::{Auto, AutoWithThreshold, Lazy, MemoryPolicy};
 pub use node::Node;
