@@ -189,6 +189,43 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:\n
 /// assert_eq!(n5.data(), &5);
 /// assert_eq!(n5.parent(), Some(id2.node(&tree)));
 /// ```
+///
+/// # Validity of Node Indices
+///
+/// At the time it is created, the node index:
+///
+/// * is valid for the tree the node belongs to,
+/// * is invalid for any other tree:
+///   * `idx.is_valid_for(&other_tree)` => false
+///   * `idx.node(&other_tree)` => panics!!!
+///   * `idx.get_node(&other_tree)` => None
+///   * `idx.try_get_node(&other_tree)` => Err([`OutOfBounds`])
+///
+/// However, it might later become invalid for the original tree due to two reasons.
+///
+/// The first reason is explicit.
+/// If the node is removed from the tree, directly or due to removal of any of its ancestors,
+/// the corresponding index becomes invalid:
+/// * `idx.is_valid_for(&correct_tree)` => false
+/// * `idx.node(&correct_tree)` => panics!!!
+/// * `idx.get_node(&correct_tree)` => None
+/// * `idx.try_get_node(&correct_tree)` => Err([`RemovedNode`])
+///
+/// The second reason is implicit and closely related to [`MemoryPolicy`].
+/// If removals from the tree triggers a memory reclaim operation which reorganizes the nodes of
+/// the tree, all indices cached prior to the reorganization becomes invalid:
+/// * `idx.is_valid_for(&correct_tree)` => false
+/// * `idx.node(&correct_tree)` => panics!!!
+/// * `idx.get_node(&correct_tree)` => None
+/// * `idx.try_get_node(&correct_tree)` => Err([`ReorganizedCollection`])
+///
+/// The implicit invalidation is not desirable and can be avoided by using memory policies,
+/// please see the [`MemoryPolicy`] documentation and examples.
+/// In brief:
+/// * [`Lazy`] policy never leads to implicit invalidation.
+/// * Growth methods never lead to implicit invalidation.
+/// * We can only experience implicit invalidation when we are using [`Auto`] (or auto with threshold)
+///   memory policy and remove nodes from the tree.
 pub struct NodeIdx<V: TreeVariant>(orx_selfref_col::NodeIdx<V>);
 
 impl<V: TreeVariant> Clone for NodeIdx<V> {
