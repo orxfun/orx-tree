@@ -1,6 +1,6 @@
 use crate::{
     helpers::Col,
-    memory::{Auto, TreeMemoryPolicy},
+    memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
     Node, NodeMut, TreeVariant,
 };
@@ -10,13 +10,13 @@ use orx_selfref_col::{NodeIdx, NodePtr, RefsSingle};
 pub struct Tree<V, M = Auto, P = SplitRecursive>(pub(crate) Col<V, M, P>)
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage;
 
 impl<V, M, P> Tree<V, M, P>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     /// Creates an empty tree.

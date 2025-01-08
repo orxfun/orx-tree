@@ -1,6 +1,6 @@
 use super::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef, stack::Stack};
 use crate::{
-    memory::TreeMemoryPolicy,
+    memory::MemoryPolicy,
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
@@ -64,7 +64,7 @@ where
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         O: 'a,
         Self: 'a,
@@ -90,7 +90,7 @@ where
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         O: 'a,
         Self: 'a,

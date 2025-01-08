@@ -2,7 +2,7 @@ use super::iter_ptr::PostOrderIterPtr;
 use super::states::States;
 use super::{iter_ptr::Item, post_enumeration::PostOrderEnumeration};
 use crate::helpers::Col;
-use crate::memory::TreeMemoryPolicy;
+use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;
 use crate::TreeVariant;
@@ -12,7 +12,7 @@ use orx_self_or::SoM;
 pub struct PostOrderIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
     S: SoM<States<V>>,
@@ -26,7 +26,7 @@ where
 impl<'a, V, M, P, E, S, D> PostOrderIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
     S: SoM<States<V>>,
@@ -55,7 +55,7 @@ where
 impl<'a, V, M, P, E, S, D> Iterator for PostOrderIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
     S: SoM<States<V>>,

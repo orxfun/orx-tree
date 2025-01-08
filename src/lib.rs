@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![warn(
-    // missing_docs,
+    missing_docs,
     clippy::unwrap_in_result,
     clippy::unwrap_used,
     clippy::panic,
@@ -29,7 +29,6 @@ pub mod memory;
 /// Module defining the choice over the pinned storage of the tree.
 pub mod pinned_storage;
 
-mod as_tree_node;
 mod common_traits;
 mod dary;
 mod r#dyn;
@@ -41,9 +40,8 @@ mod tree;
 mod tree_node_idx;
 mod tree_variant;
 
-pub use as_tree_node::AsTreeNode;
 pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
-pub use memory::{Auto, AutoWithThreshold, Lazy, TreeMemoryPolicy};
+pub use memory::{Auto, AutoWithThreshold, Lazy, MemoryPolicy};
 pub use node::Node;
 pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
 pub use node_ref::NodeRef;
@@ -52,3 +50,6 @@ pub use traversal::{Traversal, Traverser, TraverserMut};
 pub use tree::Tree;
 pub use tree_node_idx::NodeIdx;
 pub use tree_variant::TreeVariant;
+
+// re-import from self-ref-col
+pub use orx_selfref_col::NodeIdxError;

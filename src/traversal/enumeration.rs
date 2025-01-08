@@ -1,5 +1,5 @@
 use super::{node_item::NodeItem, node_item_mut::NodeItemMut};
-use crate::{helpers::Col, memory::TreeMemoryPolicy, pinned_storage::PinnedStorage, TreeVariant};
+use crate::{helpers::Col, memory::MemoryPolicy, pinned_storage::PinnedStorage, TreeVariant};
 use orx_selfref_col::NodePtr;
 
 pub trait Enumeration: Clone {
@@ -15,7 +15,7 @@ pub trait Enumeration: Clone {
     ) -> Self::Item<E>
     where
         V: TreeVariant,
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         E: NodeItem<'a, V, M, P>,
     {
@@ -29,7 +29,7 @@ pub trait Enumeration: Clone {
     ) -> Self::Item<E>
     where
         V: TreeVariant,
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         E: NodeItemMut<'a, V, M, P>,
     {

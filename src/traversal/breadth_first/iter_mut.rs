@@ -2,7 +2,7 @@ use super::bfs_enumeration::BreadthFirstEnumeration;
 use super::iter_ptr::BfsIterPtr;
 use super::queue::{Item, Queue};
 use crate::helpers::Col;
-use crate::memory::TreeMemoryPolicy;
+use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;
 use crate::TreeVariant;
@@ -12,7 +12,7 @@ use orx_self_or::SoM;
 pub struct BfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,
@@ -26,7 +26,7 @@ where
 impl<'a, V, M, P, E, S, D> BfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,
@@ -55,7 +55,7 @@ where
 impl<'a, V, M, P, E, S, D> Iterator for BfsIterMut<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,

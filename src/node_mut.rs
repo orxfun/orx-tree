@@ -1,7 +1,7 @@
 use crate::{
     helpers::{Col, N},
     iter::ChildrenMutIter,
-    memory::{Auto, TreeMemoryPolicy},
+    memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
     traversal::{
@@ -37,7 +37,7 @@ impl NodeMutOrientation for NodeMutUpAndDown {}
 pub struct NodeMut<'a, V, M = Auto, P = SplitRecursive, O = NodeMutUpAndDown>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     O: NodeMutOrientation,
 {
@@ -49,7 +49,7 @@ where
 impl<'a, V, M, P, MO> NodeRefCore<'a, V, M, P> for NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     MO: NodeMutOrientation,
 {
@@ -67,7 +67,7 @@ where
 impl<'a, V, M, P, MO> NodeMut<'a, V, M, P, MO>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     MO: NodeMutOrientation,
 {
@@ -1356,7 +1356,7 @@ where
 impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
 {
     // traversal

@@ -1,5 +1,5 @@
 use super::over::{Over, OverItem};
-use crate::{memory::TreeMemoryPolicy, pinned_storage::PinnedStorage, NodeRef, TreeVariant};
+use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeRef, TreeVariant};
 
 /// A tree traverser which walks over a given node and all of its descendants by its `iter` method.
 ///
@@ -228,7 +228,7 @@ where
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
-        M: TreeMemoryPolicy,
+        M: MemoryPolicy,
         P: PinnedStorage,
         O: 'a,
         Self: 'a;

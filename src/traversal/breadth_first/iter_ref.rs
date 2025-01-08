@@ -2,7 +2,7 @@ use super::bfs_enumeration::BreadthFirstEnumeration;
 use super::iter_ptr::BfsIterPtr;
 use super::queue::{Item, Queue};
 use crate::helpers::Col;
-use crate::memory::TreeMemoryPolicy;
+use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item::NodeItem;
 use crate::TreeVariant;
@@ -12,7 +12,7 @@ use orx_self_or::SoM;
 pub struct BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,
@@ -27,7 +27,7 @@ impl<'a, V, M, P, E, S, D> From<(&'a Col<V, M, P>, BfsIterPtr<V, E, S>)>
     for BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,
@@ -45,7 +45,7 @@ where
 impl<'a, V, M, P, E, D> Clone for BfsIterRef<'a, V, M, P, E, Queue<V, E>, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
     D: NodeItem<'a, V, M, P>,
@@ -63,7 +63,7 @@ where
 impl<'a, V, M, P, E, S, D> Iterator for BfsIterRef<'a, V, M, P, E, S, D>
 where
     V: TreeVariant,
-    M: TreeMemoryPolicy,
+    M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
     S: SoM<Queue<V, E>>,
