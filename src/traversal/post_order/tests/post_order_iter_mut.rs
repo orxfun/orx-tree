@@ -8,7 +8,7 @@ use crate::{
             iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
         },
     },
-    AsTreeNode, Dyn, DynTree,
+    Dyn, DynTree,
 };
 use alloc::vec::Vec;
 

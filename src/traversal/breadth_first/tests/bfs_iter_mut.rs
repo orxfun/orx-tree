@@ -6,7 +6,7 @@ use crate::{
         breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, iter_ref::BfsIterRef},
         enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
     },
-    AsTreeNode, Dyn, DynTree,
+    Dyn, DynTree,
 };
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;

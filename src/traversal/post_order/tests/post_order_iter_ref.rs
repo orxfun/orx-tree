@@ -8,7 +8,7 @@ use crate::{
         over::{Over, OverData, OverNode, OverPtr},
         post_order::{iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef},
     },
-    AsTreeNode, Dyn, DynTree, NodeRef,
+    Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
 use orx_selfref_col::{NodePtr, Variant};

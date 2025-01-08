@@ -11,7 +11,7 @@ use crate::{
         },
         Traversal, Traverser,
     },
-    AsTreeNode, Dyn, DynTree, NodeRef,
+    Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
 use orx_selfref_col::Variant;

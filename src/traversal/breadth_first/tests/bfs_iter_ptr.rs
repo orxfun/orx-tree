@@ -1,7 +1,7 @@
 use crate::{
     node_ref::NodeRefCore,
     traversal::{breadth_first::iter_ptr::BfsIterPtr, enumerations::Val},
-    AsTreeNode, Dyn, DynTree, NodeRef, TreeVariant,
+    Dyn, DynTree, NodeRef, TreeVariant,
 };
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
