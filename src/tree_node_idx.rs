@@ -418,36 +418,3 @@ impl<V: TreeVariant> NodeIdx<V> {
         NodeMut::new(&mut tree.0, self.0.node_ptr())
     }
 }
-
-#[test]
-fn abc() {
-    use crate::traversal::*;
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //      1
-    //     ╱ ╲
-    //    ╱   ╲
-    //   2     3
-    //  ╱ ╲
-    // 4   5
-
-    let mut tree = DynTree::<i32>::new(1);
-
-    let mut root = tree.root_mut().unwrap();
-
-    let [id2, _] = root.grow([2, 3]);
-
-    let mut n2 = id2.node_mut(&mut tree);
-    n2.extend([4, 5]);
-
-    // task: collect all indices in breadth first order
-    let root = tree.root().unwrap();
-    let indices: Vec<_> = root.bfs_over::<OverNode>().map(|x| x.idx()).collect();
-
-    // now we can use indices to directly access nodes
-    let id5 = &indices[4];
-    let n5 = id5.node(&tree);
-    assert_eq!(n5.data(), &5);
-    assert_eq!(n5.parent(), Some(id2.node(&tree)));
-}

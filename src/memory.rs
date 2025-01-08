@@ -226,6 +226,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// );
 /// ```
 pub trait MemoryPolicy: 'static {
+    /// Memory reclaim policy for the specific tree variant `V`.
     type MemoryReclaimPolicy<V>: orx_selfref_col::MemoryPolicy<V>
     where
         V: TreeVariant;
