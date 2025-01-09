@@ -1,5 +1,4 @@
 use super::{breadth_first::Bfs, depth_first::Dfs, post_order::PostOrder};
-use crate::TreeVariant;
 
 /// Type with methods allowing to create different [`Traverser`] types with
 /// different walk strategies, such as depth-first, breadth-first or post-order.
