@@ -9,6 +9,7 @@ pub(crate) mod over;
 pub(crate) mod over_mut;
 pub(crate) mod post_order;
 mod traverser;
+mod traverser_core;
 
 pub use breadth_first::Bfs;
 pub use depth_first::Dfs;

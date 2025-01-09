@@ -6,7 +6,7 @@ use crate::{
         breadth_first::{into_iter::BfsIterInto, iter_ptr::BfsIterPtr},
         enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
     },
-    DynTree, NodeRef,
+    Bfs, DynTree, NodeRef,
 };
 use alloc::collections::VecDeque;
 use alloc::string::{String, ToString};
@@ -102,7 +102,7 @@ fn bfs_into_iter_partially_used(use_iter: UseIter) {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -131,7 +131,7 @@ fn bfs_into_iter_partially_used(use_iter: UseIter) {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -175,7 +175,7 @@ fn bfs_into_iter_val() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -196,7 +196,7 @@ fn bfs_into_iter_val() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -246,7 +246,7 @@ fn bfs_into_iter_depth() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -270,7 +270,7 @@ fn bfs_into_iter_depth() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -320,7 +320,7 @@ fn bfs_into_iter_sibling_idx() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -344,7 +344,7 @@ fn bfs_into_iter_sibling_idx() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -406,7 +406,7 @@ fn bfs_into_iter_depth_sibling_idx() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -436,7 +436,7 @@ fn bfs_into_iter_depth_sibling_idx() {
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
         assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
-        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        let values: Vec<_> = tree.root().unwrap().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }

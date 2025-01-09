@@ -1,14 +1,11 @@
-use super::{
-    into_iter::PostOrderIterInto, iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
-    iter_ref::PostOrderIterRef, states::States,
-};
+use super::states::States;
 use crate::{
     memory::MemoryPolicy,
-    node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
+        traverser_core::TraverserCore,
         Traverser,
     },
     NodeMut, NodeRef, TreeVariant,
@@ -70,10 +67,8 @@ where
         M: MemoryPolicy,
         P: PinnedStorage,
     {
-        let root = node.node_ptr().clone();
         let states = self.states.for_variant::<V>();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((states, root));
-        PostOrderIterRef::from((node.col(), iter_ptr))
+        Self::iter_with_storage(node, states)
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
@@ -93,10 +88,8 @@ where
         P: PinnedStorage,
         O: OverMut,
     {
-        let root = node_mut.node_ptr().clone();
         let states = self.states.for_variant::<V>();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((states, root));
-        unsafe { PostOrderIterMut::from((node_mut.col(), iter_ptr)) }
+        Self::iter_mut_with_storage(node_mut, states)
     }
 
     fn into_iter<'a, V, M, P>(
@@ -109,9 +102,7 @@ where
         P: PinnedStorage,
         O: OverMut,
     {
-        let (col, root) = node_mut.into_inner();
         let states = self.states.for_variant::<V>();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((states, root.clone()));
-        unsafe { PostOrderIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+        Self::into_iter_with_storage(node_mut, states)
     }
 }
