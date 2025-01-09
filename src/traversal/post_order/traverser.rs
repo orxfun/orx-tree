@@ -32,7 +32,7 @@ pub struct PostOrder<O = OverData>
 where
     O: Over,
 {
-    states: States,
+    pub(super) states: States,
     phantom: PhantomData<O>,
 }
 
@@ -56,19 +56,6 @@ where
             states: Default::default(),
             phantom: PhantomData,
         }
-    }
-
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        let states = self.states.for_variant::<V>();
-        Self::iter_with_storage(node, states)
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {

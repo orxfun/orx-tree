@@ -66,89 +66,6 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 /// let mut traverser = Traversal.post_order().with_depth().with_sibling_idx(); // yields (depth, sibling_idx, data)
 /// ```
 ///
-/// # Examples
-///
-/// The following example demonstrates multiple use of all three kinds of iterator generating methods by a
-/// traverser.
-///
-/// ```
-/// use orx_tree::*;
-///
-/// //      1
-/// //     ╱ ╲
-/// //    ╱   ╲
-/// //   2     3
-/// //  ╱ ╲   ╱ ╲
-/// // 4   5 6   7
-/// // |     |  ╱ ╲
-/// // 8     9 10  11
-///
-/// let mut tree = DynTree::<i32>::new(1);
-///
-/// let mut root = tree.root_mut().unwrap();
-/// let id1 = root.idx();
-/// let [id2, id3] = root.grow([2, 3]);
-///
-/// let mut n2 = id2.node_mut(&mut tree);
-/// let [id4, _] = n2.grow([4, 5]);
-///
-/// id4.node_mut(&mut tree).push(8);
-///
-/// let mut n3 = id3.node_mut(&mut tree);
-/// let [id6, id7] = n3.grow([6, 7]);
-///
-/// id6.node_mut(&mut tree).push(9);
-/// id7.node_mut(&mut tree).extend([10, 11]);
-///
-/// // create a traverser once
-/// // and use it multiple times without allocation
-///
-/// let mut traverser = Traversal.dfs();
-///
-/// // [I] iter: iterate over references
-///
-/// let root = id1.node(&tree);
-/// let tree_vals: Vec<&i32> = traverser.iter(&root).collect();
-/// assert_eq!(tree_vals, [&1, &2, &4, &8, &5, &3, &6, &9, &7, &10, &11]);
-///
-/// let n3 = id3.node(&tree);
-/// let from_n3: Vec<&i32> = traverser.iter(&n3).collect();
-/// assert_eq!(from_n3, [&3, &6, &9, &7, &10, &11]);
-///
-/// // [II] iter_mut: iterate over mutable references
-///
-/// let mut n7 = id7.node_mut(&mut tree);
-/// for x in traverser.iter_mut(&mut n7) {
-///     // must yield 10 -> 11 -> 7
-///     *x += 100;
-/// }
-///
-/// let root = id1.node(&tree);
-/// let tree_vals: Vec<&i32> = traverser.iter(&root).collect();
-/// assert_eq!(
-///     tree_vals,
-///     [&1, &2, &4, &8, &5, &3, &6, &9, &107, &110, &111]
-/// );
-///
-/// // [III] into_iter: iterate over removed values
-///
-/// let n3 = id3.node_mut(&mut tree);
-/// let removed: Vec<i32> = traverser.into_iter(n3).collect();
-/// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
-///
-/// // all 6 nodes are removed from the tree
-/// let root = id1.node(&tree);
-/// let tree_vals: Vec<&i32> = traverser.iter(&root).collect();
-/// assert_eq!(tree_vals, [&1, &2, &4, &8, &5]); // remaining nodes
-///
-/// // let's completely drain the tree: into_iter(root)
-/// let root = id1.node_mut(&mut tree);
-/// let removed: Vec<i32> = traverser.into_iter(root).collect();
-/// assert_eq!(removed, [1, 2, 4, 8, 5]);
-/// assert!(tree.is_empty());
-/// assert_eq!(tree.root(), None);
-/// ```
-///
 /// # Iterating Over Different Values
 ///
 /// For [`iter`], it is possible to iterate over [`Node`]s rather than node data.
@@ -210,120 +127,14 @@ where
     /// Creates a new traverser.
     fn new() -> Self;
 
-    /// Returns an iterator which yields all nodes including the `node` and all its descendants; i.e.,
-    /// all nodes of the subtree rooted at the given `node`.
-    ///
-    /// The order of visited nodes depends on the internal walk strategy of the traverser; depth-first and
-    /// breadth-first are the most well-known traversals.
-    ///
-    /// Typically, the `iter` call of a traverser does not require any memory allocation.
-    ///
-    /// # Yields
-    ///
-    /// The return value of the iterations depend on the second generic parameter of the traverser which implements
-    /// the [`Over`] trait. The following is the complete list of implementations and the corresponding item type
-    /// of the created iterators. For any `Over` implementation, the corresponding traverser can be created by using
-    /// the `Default::default()` function; however, it is often more convenient to use the [`Traversal`] type.
-    /// The last column of the table demonstrates how to create different traverser types; where the depth first or dfs
-    /// is replaceable with any available traversal strategy such as `bfs` or `post_order`.
-    ///
-    /// | Over | Yields | Depth First Example |
-    /// |---|---|---|
-    /// | [`OverData`] | &data | `Traversal.dfs()` |
-    /// | [`OverDepthData`] | (depth, &data) | `Traversal.dfs().with_depth()` |
-    /// | [`OverSiblingIdxData`] | (sibling_idx, &data) | `Traversal.dfs().with_sibling_idx()` |
-    /// | [`OverDepthSiblingIdxData`] | (depth, sibling_idx, &data) | `Traversal.with_depth().with_sibling_idx()` |
-    /// | [`OverNode`] | Node | `Traversal.dfs().over_nodes()` |
-    /// | [`OverDepthNode`] | (depth, Node) | `Traversal.dfs().over_nodes().with_depth()` |
-    /// | [`OverSiblingIdxNode`] | (sibling_idx, Node) | `Traversal.dfs().over_nodes().with_sibling_idx()` |
-    /// | [`OverDepthSiblingIdxNode`] | (depth, sibling_idx, Node) | `Traversal.dfs().over_nodes().with_depth().with_sibling_idx()` |
-    ///
-    /// [`Traversal`]: crate::traversal::Traversal
-    /// [`OverData`]: crate::traversal::OverData
-    /// [`OverDepthData`]: crate::traversal::OverDepthData
-    /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
-    /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
-    /// [`OverNode`]: crate::traversal::OverNode
-    /// [`OverDepthNode`]: crate::traversal::OverDepthNode
-    /// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
-    /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //     1
-    /// //    ╱
-    /// //   2
-    /// //  ╱ ╲
-    /// // 3   4
-    /// // |╲
-    /// // 5 6
-    ///
-    /// let mut tree = DynTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// let [id2] = root.grow([2]);
-    ///
-    /// let mut n2 = id2.node_mut(&mut tree);
-    /// let [id3, _] = n2.grow([3, 4]);
-    ///
-    /// id3.node_mut(&mut tree).extend([5, 6]);
-    ///
-    /// // create & allocate traverser once
-    ///
-    /// let mut post_order = Traversal.post_order(); // OR: PostOrder::<_, OverData>::default()
-    ///
-    /// // re-use it multiple times for iter (or iter_mut methods when possible)
-    ///
-    /// let root = tree.root().unwrap();
-    /// let values: Vec<_> = post_order.iter(&root).copied().collect();
-    /// assert_eq!(values, [5, 6, 3, 4, 2, 1]);
-    ///
-    /// let n3 = id3.node(&tree);
-    /// let values: Vec<_> = post_order.iter(&n3).copied().collect();
-    /// assert_eq!(values, [5, 6, 3]);
-    ///
-    /// // create a traverser to yield (depth, node) rather than data
-    ///
-    /// let mut post_order = Traversal
-    ///     .post_order()
-    ///     .over_nodes()           // node rather than data
-    ///     .with_depth()           // => (depth, node)
-    ///     .with_sibling_idx();    // => (depth, sibling_idx, node)
-    ///
-    /// let mut iter = post_order.iter(&n3);
-    ///
-    /// let (depth, sibling_idx, node) = iter.next().unwrap();
-    /// assert_eq!(node.data(), &5);
-    /// assert_eq!(node.num_children(), 0);
-    /// assert_eq!(node.parent().map(|x| *x.data()), Some(3));
-    /// assert_eq!(depth, 1);
-    /// assert_eq!(sibling_idx, 0);
-    ///
-    /// let (depth, sibling_idx, node) = iter.next().unwrap();
-    /// assert_eq!(node.data(), &6);
-    /// assert_eq!(node.num_children(), 0);
-    /// assert_eq!(node.parent().map(|x| *x.data()), Some(3));
-    /// assert_eq!(depth, 1);
-    /// assert_eq!(sibling_idx, 1);
-    ///
-    /// let (depth, sibling_idx, node) = iter.next().unwrap();
-    /// assert_eq!(node.data(), &3);
-    /// assert_eq!(node.num_children(), 2);
-    /// assert_eq!(node.parent().map(|x| *x.data()), Some(2));
-    /// assert_eq!(depth, 0); // as it is the root of the traversed subtree
-    /// assert_eq!(sibling_idx, 0);
-    /// ```
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage;
+    // fn iter<'a, V, M, P>(
+    //     &'a mut self,
+    //     node: &'a impl NodeRef<'a, V, M, P>,
+    // ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    // where
+    //     V: TreeVariant + 'a,
+    //     M: MemoryPolicy,
+    //     P: PinnedStorage;
 
     /// Returns a mutable iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
@@ -355,62 +166,6 @@ where
     /// [`OverDepthData`]: crate::traversal::OverDepthData
     /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
     /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //     1
-    /// //    ╱
-    /// //   2
-    /// //  ╱ ╲
-    /// // 3   4
-    /// // |
-    /// // 5
-    ///
-    /// let mut tree = DynTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// let [id2] = root.grow([2]);
-    ///
-    /// let mut n2 = id2.node_mut(&mut tree);
-    /// let [id3, _] = n2.grow([3, 4]);
-    ///
-    /// id3.node_mut(&mut tree).push(5);
-    ///
-    /// // create & allocate traverser once
-    ///
-    /// let mut dfs = Traversal.dfs(); // OR: Dfs::<_, OverData>::default()
-    ///
-    /// // re-use it multiple times for iter or iter_mut or into_iter
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// for (i, data) in dfs.iter_mut(&mut root).enumerate() {
-    ///     *data += 100 * i as i32;
-    /// }
-    ///
-    /// let root = tree.root().unwrap();
-    /// let values: Vec<_> = dfs.iter(&root).copied().collect();
-    /// assert_eq!(values, [1, 102, 203, 305, 404]);
-    ///
-    /// let n3 = id3.node(&tree);
-    /// let values: Vec<_> = dfs.iter(&n3).copied().collect();
-    /// assert_eq!(values, [203, 305]);
-    ///
-    /// // create a traverser to yield (depth, sibling_idx, data) rather than data
-    ///
-    /// let mut dfs = Traversal.dfs().with_depth().with_sibling_idx();
-    ///
-    /// let mut n3 = id3.node_mut(&mut tree);
-    /// for (depth, sibling_idx, data) in dfs.iter_mut(&mut n3) {
-    ///     *data += 10000 * (depth + sibling_idx) as i32;
-    /// }
-    ///
-    /// let root = tree.root().unwrap();
-    /// let values: Vec<_> = dfs.iter(&root).map(|(_, _, data)| *data).collect();
-    /// assert_eq!(values, [1, 102, 203, 10305, 404]);
-    /// ```
     fn iter_mut<'a, V, M, P>(
         &'a mut self,
         node: &'a mut NodeMut<'a, V, M, P>,
@@ -461,64 +216,6 @@ where
     /// [`OverDepthData`]: crate::traversal::OverDepthData
     /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
     /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    ///
-    /// let mut tree = DynTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut().unwrap();
-    /// let id1 = root.idx();
-    /// let [id2, id3] = root.grow([2, 3]);
-    ///
-    /// let mut n2 = id2.node_mut(&mut tree);
-    /// let [id4, _] = n2.grow([4, 5]);
-    ///
-    /// id4.node_mut(&mut tree).push(8);
-    ///
-    /// let mut n3 = id3.node_mut(&mut tree);
-    /// let [id6, id7] = n3.grow([6, 7]);
-    ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
-    ///
-    /// // create & allocate traverser once
-    ///
-    /// let mut post_order = Traversal.post_order(); // OR: PostOrder::<_, OverData>::default()
-    ///
-    /// // re-use it multiple times for iter or iter_mut or into_iter
-    /// // here with into_iter, we remove node 3 and its descendants
-    /// // collect the removed values into a vector in the traversal's order
-    ///
-    /// let n3 = id3.node_mut(&mut tree);
-    /// let removed: Vec<_> = post_order.into_iter(n3).collect();
-    /// assert_eq!(removed, [9, 6, 10, 11, 7, 3]);
-    ///
-    /// let root = id1.node(&tree);
-    /// let remaining_values: Vec<_> = post_order.iter(&root).copied().collect();
-    /// assert_eq!(remaining_values, [8, 4, 5, 2, 1]);
-    ///
-    /// // let's remove root and its descendants (empty the tree)
-    /// // and collect remaining nodes in the traversal's order
-    ///
-    /// let root = id1.node_mut(&mut tree);
-    /// let removed: Vec<_> = post_order.into_iter(root).collect();
-    /// assert_eq!(removed, [8, 4, 5, 2, 1]);
-    ///
-    /// assert!(tree.is_empty());
-    /// assert_eq!(tree.root(), None);
-    /// ```
     #[allow(clippy::wrong_self_convention)]
     fn into_iter<'a, V, M, P>(
         &'a mut self,

@@ -32,7 +32,7 @@ pub struct Bfs<O = OverData>
 where
     O: Over,
 {
-    queue: Queue<O::Enumeration>,
+    pub(crate) queue: Queue<O::Enumeration>,
 }
 
 impl Default for Bfs {
@@ -54,19 +54,6 @@ where
         Self {
             queue: Default::default(),
         }
-    }
-
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        let queue = self.queue.for_variant::<V>();
-        Self::iter_with_storage(node, queue)
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {

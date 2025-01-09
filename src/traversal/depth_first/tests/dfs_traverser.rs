@@ -9,6 +9,7 @@ use crate::{
             Over, OverData, OverDepthData, OverDepthSiblingIdxData, OverNode, OverPtr,
             OverSiblingIdxData,
         },
+        traverser_core::TraverserCore,
         Traversal, Traverser,
     },
     Dyn, DynTree, NodeRef,

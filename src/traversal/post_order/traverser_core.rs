@@ -36,6 +36,19 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
         PostOrderIterRef::from((node.col(), iter_ptr))
     }
 
+    fn iter<'a, V, M, P>(
+        &'a mut self,
+        node: &'a impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+    {
+        let states = self.states.for_variant::<V>();
+        Self::iter_with_storage(node, states)
+    }
+
     fn iter_mut_with_storage<'a, V, M, P>(
         node_mut: &'a mut NodeMut<'a, V, M, P>,
         storage: impl SoM<Self::Storage<V>>,
