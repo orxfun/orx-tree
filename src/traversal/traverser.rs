@@ -34,19 +34,19 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 ///
 /// # Construction
 ///
-/// A traverser can be created by its `Default::default()` method such as:
+/// A traverser can be created by its `new` or `default` method such as:
 ///
 /// ```
 /// use orx_tree::{*, traversal::*};
 ///
-/// let mut traverser = Dfs::<Dyn<i32>>::default();
-/// let mut traverser = Bfs::<Binary<i32>>::default();
-/// let mut traverser = PostOrder::<Dary<4, i32>>::default();
+/// let mut traverser = Dfs::default();
+/// let mut traverser = Bfs::default();
+/// let mut traverser = PostOrder::default();
 ///
 /// // or traverser to iterate over different items
-/// let mut traverser = Dfs::<Dyn<i32>, OverNode>::default(); // yields Node rather than data
-/// let mut traverser = Bfs::<Binary<i32>, OverDepthData>::default(); // yields (depth, data)
-/// let mut traverser = PostOrder::<Dary<4, OverDepthSiblingIdxData>>::default(); // yields (depth, sibling_idx, data)
+/// let mut traverser = Dfs::<OverNode>::new(); // yields Node rather than data
+/// let mut traverser = Bfs::<OverDepthData>::new(); // yields (depth, data)
+/// let mut traverser = PostOrder::<OverDepthSiblingIdxData>::new(); // yields (depth, sibling_idx, data)
 /// ```
 ///
 /// However, it is often more convenient to use the [`Traversal`] type to create the traverser instances;
@@ -197,7 +197,7 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 /// [`OverDepthNode`]: crate::traversal::OverDepthNode
 /// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
 /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
-pub trait Traverser<O = OverData>: Default
+pub trait Traverser<O = OverData>: Sized
 where
     O: Over,
 {
@@ -205,6 +205,9 @@ where
     type IntoOver<O2>
     where
         O2: Over;
+
+    /// Creates a new traverser.
+    fn new() -> Self;
 
     /// Returns an iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.

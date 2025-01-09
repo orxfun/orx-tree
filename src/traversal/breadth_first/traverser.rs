@@ -38,14 +38,9 @@ where
     queue: Queue<O::Enumeration>,
 }
 
-impl<O> Default for Bfs<O>
-where
-    O: Over,
-{
+impl Default for Bfs {
     fn default() -> Self {
-        Self {
-            queue: Default::default(),
-        }
+        Self::new()
     }
 }
 
@@ -57,6 +52,12 @@ where
         = Bfs<O2>
     where
         O2: Over;
+
+    fn new() -> Self {
+        Self {
+            queue: Default::default(),
+        }
+    }
 
     fn iter<'a, V, M, P>(
         &'a mut self,
@@ -76,7 +77,7 @@ where
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
-        Bfs::<O2>::default()
+        Bfs::<O2>::new()
     }
 
     fn iter_mut<'a, V, M, P>(

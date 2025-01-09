@@ -39,15 +39,9 @@ where
     phantom: PhantomData<O>,
 }
 
-impl<O> Default for PostOrder<O>
-where
-    O: Over,
-{
+impl Default for PostOrder {
     fn default() -> Self {
-        Self {
-            states: Default::default(),
-            phantom: PhantomData,
-        }
+        Self::new()
     }
 }
 
@@ -59,6 +53,13 @@ where
         = PostOrder<O2>
     where
         O2: Over;
+
+    fn new() -> Self {
+        Self {
+            states: Default::default(),
+            phantom: PhantomData,
+        }
+    }
 
     fn iter<'a, V, M, P>(
         &'a mut self,

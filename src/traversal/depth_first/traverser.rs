@@ -37,14 +37,9 @@ where
     stack: Stack<O::Enumeration>,
 }
 
-impl<O> Default for Dfs<O>
-where
-    O: Over,
-{
+impl Default for Dfs {
     fn default() -> Self {
-        Self {
-            stack: Default::default(),
-        }
+        Self::new()
     }
 }
 
@@ -56,6 +51,12 @@ where
         = Dfs<O2>
     where
         O2: Over;
+
+    fn new() -> Self {
+        Self {
+            stack: Default::default(),
+        }
+    }
 
     fn iter<'a, V, M, P>(
         &'a mut self,
@@ -75,7 +76,7 @@ where
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
-        Dfs::<O2>::default()
+        Dfs::<O2>::new()
     }
 
     fn iter_mut<'a, V, M, P>(
