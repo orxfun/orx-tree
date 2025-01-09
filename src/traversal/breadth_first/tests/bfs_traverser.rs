@@ -56,7 +56,7 @@ fn bfs_iter_for<O: Over<Enumeration = Val>>() {
     }
 
     let tree = tree();
-    let mut traverser = Bfs::<Dyn<i32>, O>::default();
+    let mut traverser = Bfs::<O>::new();
 
     let root = tree.root().unwrap();
     let iter = traverser.iter(&root);
@@ -88,7 +88,7 @@ fn bfs_traverser_node() {
 
 #[test]
 fn bfs_iter_ref_depth() {
-    fn test(mut traverser: Bfs<Dyn<i32>, OverDepthData>) {
+    fn test(mut traverser: Bfs<OverDepthData>) {
         let tree = tree();
 
         let root = tree.root().unwrap();
@@ -103,22 +103,16 @@ fn bfs_iter_ref_depth() {
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 1, 1, 2, 2, 2]);
     }
 
-    test(Bfs::<Dyn<i32>, OverDepthData>::default());
-    test(Bfs::default());
-    test(Bfs::<_, OverData>::default().with_depth());
-    test(
-        Bfs::<_, OverData>::default()
-            .with_depth()
-            .over_nodes()
-            .over_data(),
-    );
+    test(Bfs::<OverDepthData>::new());
+    test(Bfs::default().with_depth());
+    test(Bfs::default().with_depth().over_nodes().over_data());
 
     test(Traversal.bfs().with_depth());
 }
 
 #[test]
 fn bfs_iter_ref_sibling() {
-    fn test(mut traverser: Bfs<Dyn<i32>, OverSiblingIdxData>) {
+    fn test(mut traverser: Bfs<OverSiblingIdxData>) {
         let tree = tree();
 
         let root = tree.root().unwrap();
@@ -133,22 +127,16 @@ fn bfs_iter_ref_sibling() {
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 1, 0, 0, 1]);
     }
 
-    test(Bfs::<Dyn<i32>, OverSiblingIdxData>::default());
-    test(Bfs::default());
-    test(Bfs::<_, OverData>::default().with_sibling_idx());
-    test(
-        Bfs::<_, OverData>::default()
-            .with_sibling_idx()
-            .over_nodes()
-            .over_data(),
-    );
+    test(Bfs::<OverSiblingIdxData>::new());
+    test(Bfs::default().with_sibling_idx());
+    test(Bfs::default().with_sibling_idx().over_nodes().over_data());
 
     test(Traversal.bfs().with_sibling_idx());
 }
 
 #[test]
 fn bfs_iter_ref_depth_sibling() {
-    fn test(mut traverser: Bfs<Dyn<i32>, OverDepthSiblingIdxData>) {
+    fn test(mut traverser: Bfs<OverDepthSiblingIdxData>) {
         let tree = tree();
 
         let root = tree.root().unwrap();
@@ -170,20 +158,11 @@ fn bfs_iter_ref_depth_sibling() {
         assert_eq!(iter.map(|x| x.1).collect::<Vec<_>>(), [0, 0, 1, 0, 0, 1]);
     }
 
-    test(Bfs::<Dyn<i32>, OverDepthSiblingIdxData>::default());
-    test(Bfs::default());
+    test(Bfs::<OverDepthSiblingIdxData>::new());
+    test(Bfs::default().with_sibling_idx().with_depth());
+    test(Bfs::default().with_depth().with_sibling_idx());
     test(
-        Bfs::<_, OverData>::default()
-            .with_sibling_idx()
-            .with_depth(),
-    );
-    test(
-        Bfs::<_, OverData>::default()
-            .with_depth()
-            .with_sibling_idx(),
-    );
-    test(
-        Bfs::<_, OverData>::default()
+        Bfs::default()
             .with_sibling_idx()
             .with_depth()
             .over_nodes()
