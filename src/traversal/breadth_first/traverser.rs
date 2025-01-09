@@ -1,7 +1,4 @@
-use super::{
-    into_iter::BfsIterInto, iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, iter_ref::BfsIterRef,
-    queue::Queue,
-};
+use super::{into_iter::BfsIterInto, iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, queue::Queue};
 use crate::{
     memory::MemoryPolicy,
     node_ref::NodeRefCore,

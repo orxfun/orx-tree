@@ -1,7 +1,4 @@
-use super::{
-    into_iter::DfsIterInto, iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef,
-    stack::Stack,
-};
+use super::{into_iter::DfsIterInto, iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, stack::Stack};
 use crate::{
     memory::MemoryPolicy,
     node_ref::NodeRefCore,
@@ -10,6 +7,7 @@ use crate::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
         traverser::Traverser,
+        traverser_core::TraverserCore,
     },
     NodeMut, NodeRef, TreeVariant,
 };
@@ -67,10 +65,8 @@ where
         M: MemoryPolicy,
         P: PinnedStorage,
     {
-        let root = node.node_ptr().clone();
         let stack = self.stack.for_variant::<V>();
-        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((stack, root));
-        DfsIterRef::from((node.col(), iter_ptr))
+        Self::iter_with_storage(node, stack)
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
