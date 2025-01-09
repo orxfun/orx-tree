@@ -2,7 +2,6 @@ use crate::{
     traversal::{
         over::{OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
         post_order::traverser::PostOrder,
-        traverser_mut::TraverserMut,
         Traversal, Traverser,
     },
     Dyn, DynTree,

@@ -7,7 +7,6 @@ use crate::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
         traverser::Traverser,
-        traverser_mut::TraverserMut,
     },
     NodeMut, NodeRef, TreeVariant,
 };
