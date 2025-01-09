@@ -9,19 +9,18 @@ use super::{over::Over, traverser_core::TraverserCore, OverData};
 /// A traverser holds its temporary data, and therefore, it might be used to create as many iterators
 /// as needed without requiring additional allocation.
 ///
-/// It creates three kinds of iterators with its three iterator methods.
-/// Each of these methods take the root node of the traversal as its argument.
+/// The following three kinds of node methods can be called with a traverser.
 ///
-/// * [`iter`]
+/// * [`walk_with`]
 ///   * Creates an iterator over references.
 ///   * `Iterator<Item = &V::Item>`
 ///   * The tree remains unchanged.
-/// * [`iter_mut`]
+/// * [`walk_mut_with`]
 ///   * Creates an iterator over mutable references.
 ///   * `Iterator<Item = &mut V::Item>`
 ///   * The data of the subtree rooted at the given node might be mutated.
 ///   * However, the structure of the tree remains unchanged.
-/// * [`into_iter`]
+/// * [`into_walk_with`]
 ///   * Creates an iterator over owned values taken out of the nodes.
 ///   * `Iterator<Item = V::Item>`
 ///   * All nodes belonging to the subtree rooted at the given node will be removed.
@@ -62,7 +61,7 @@ use super::{over::Over, traverser_core::TraverserCore, OverData};
 ///
 /// # Iterating Over Different Values
 ///
-/// For [`iter`], it is possible to iterate over [`Node`]s rather than node data.
+/// For immutable walks, it is possible to iterate over [`Node`]s rather than node data.
 ///
 /// Further, for all three iterator methods, it is possible to add either or both of:
 ///
@@ -95,9 +94,9 @@ use super::{over::Over, traverser_core::TraverserCore, OverData};
 /// | [`OverSiblingIdxNode`] | (sibling_idx, Node) | `Traversal.dfs().over_nodes().with_sibling_idx()` |
 /// | [`OverDepthSiblingIdxNode`] | (depth, sibling_idx, Node) | `Traversal.dfs().over_nodes().with_depth().with_sibling_idx()` |
 ///
-/// [`iter`]: crate::traversal::Traverser::iter
-/// [`iter_mut`]: crate::traversal::Traverser::iter_mut
-/// [`into_iter`]: crate::traversal::Traverser::into_iter
+/// [`walk_with`]: crate::NodeRef::walk_with
+/// [`walk_mut_with`]: crate::NodeMut::walk_mut_with
+/// [`into_walk_with`]: crate::NodeMut::into_walk_with
 /// [`Node`]: crate::Node
 /// [`Traversal`]: crate::traversal::Traversal
 /// [`Over`]: crate::traversal::Over
