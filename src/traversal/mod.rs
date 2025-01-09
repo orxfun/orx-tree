@@ -3,6 +3,7 @@ pub(crate) mod depth_first;
 pub(crate) mod enumeration;
 pub(crate) mod enumerations;
 mod factory;
+mod into_iter_guard;
 mod node_item;
 mod node_item_mut;
 pub(crate) mod over;
