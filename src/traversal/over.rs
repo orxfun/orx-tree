@@ -16,7 +16,7 @@ pub type OverItem<'a, V, O, M = Auto, P = SplitRecursive> =
 ///
 /// [`Dfs`]: crate::traversal::Dfs
 /// [`PostOrder`]: crate::traversal::PostOrder
-pub trait Over {
+pub trait Over: 'static {
     /// Enumeration of the traversal, which might be only the node item; or it might include one or both of the
     /// depth and sibling index.
     type Enumeration: Enumeration

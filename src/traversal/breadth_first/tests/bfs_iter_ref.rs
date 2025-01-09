@@ -55,7 +55,7 @@ fn bfs_iter_ref_empty() {
 type Item<'a, O> = <O as Over>::NodeItem<'a, Dyn<i32>, Auto, SplitRecursive>;
 
 fn bfs_iter_for<O: Over>() {
-    fn data<'a, O: Over + 'a>(
+    fn data<'a, O: Over>(
         iter: impl Iterator<Item = Item<'a, O>>,
     ) -> Vec<<Dyn<i32> as Variant>::Item> {
         iter.map(|x| x.node_data().clone()).collect()

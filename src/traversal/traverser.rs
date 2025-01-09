@@ -322,9 +322,7 @@ where
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
-        P: PinnedStorage,
-        O: 'a,
-        Self: 'a;
+        P: PinnedStorage;
 
     /// Returns a mutable iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
@@ -420,8 +418,7 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: OverMut + 'a,
-        Self: 'a;
+        O: OverMut;
 
     /// Returns an iterator which:
     ///
@@ -530,8 +527,7 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: OverMut + 'a,
-        Self: 'a;
+        O: OverMut;
 
     /// Consumes this traverser and returns a transformed version of it
     /// which creates iterators over `O2` rather than `O2`.
