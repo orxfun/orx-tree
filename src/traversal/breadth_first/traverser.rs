@@ -84,10 +84,8 @@ where
         P: PinnedStorage,
         O: OverMut,
     {
-        let root = node_mut.node_ptr().clone();
         let queue = self.queue.for_variant::<V>();
-        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((queue, root));
-        unsafe { BfsIterMut::from((node_mut.col(), iter_ptr)) }
+        Self::iter_mut_with_storage(node_mut, queue)
     }
 
     fn into_iter<'a, V, M, P>(
