@@ -973,14 +973,14 @@ fn abc() {
     // traversal from any node
 
     let root = tree.root().unwrap();
-    let values: Vec<_> = root.walk::<Dfs>().copied().collect();
-    assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
+    let values: Vec<_> = root.walk::<PostOrder>().copied().collect();
+    assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
 
     let n3 = id3.node(&tree);
-    let values: Vec<_> = n3.walk::<Dfs>().copied().collect();
-    assert_eq!(values, [3, 6, 9, 7, 10, 11]);
+    let values: Vec<_> = n3.walk::<PostOrder>().copied().collect();
+    assert_eq!(values, [9, 6, 10, 11, 7, 3]);
 
     let n7 = id7.node(&tree);
-    let values: Vec<_> = n7.walk::<Dfs>().copied().collect();
-    assert_eq!(values, [7, 10, 11]);
+    let values: Vec<_> = n7.walk::<PostOrder>().copied().collect();
+    assert_eq!(values, [10, 11, 7]);
 }

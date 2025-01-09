@@ -1,6 +1,6 @@
 use super::{
     into_iter::PostOrderIterInto, iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
-    iter_ref::PostOrderIterRef, states::States,
+    states::States,
 };
 use crate::{
     memory::MemoryPolicy,
@@ -9,6 +9,7 @@ use crate::{
     traversal::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
+        traverser_core::TraverserCore,
         Traverser,
     },
     NodeMut, NodeRef, TreeVariant,
@@ -70,10 +71,8 @@ where
         M: MemoryPolicy,
         P: PinnedStorage,
     {
-        let root = node.node_ptr().clone();
         let states = self.states.for_variant::<V>();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((states, root));
-        PostOrderIterRef::from((node.col(), iter_ptr))
+        Self::iter_with_storage(node, states)
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {

@@ -1,11 +1,9 @@
-use orx_self_or::SoM;
-
 use super::{
     over::{Over, OverItem},
-    over_mut::{OverItemInto, OverItemMut},
-    OverData, OverMut,
+    OverData,
 };
 use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRef, TreeVariant};
+use orx_self_or::SoM;
 
 pub trait TraverserCore<O = OverData>: Sized
 where
@@ -22,10 +20,7 @@ where
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        core::iter::empty()
-    }
+        P: PinnedStorage;
 
     // provided
 
