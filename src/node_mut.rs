@@ -1821,7 +1821,36 @@ where
         traverser.iter_mut(self)
     }
 
+    /// Creates an iterator that owned (removed) data of all nodes belonging to the subtree rooted at this node.
     ///
+    /// Note that once the returned iterator is dropped, regardless of whether it is completely used up or not,
+    /// the subtree rooted at this node will be **removed** from the tree it belongs to.
+    /// If this node is the root of the tree, the tree will be left empty.
+    ///
+    /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// See also [`walk`] and [`walk_mut`] for iterators over shared and mutable references, respectively.
+    ///
+    /// Note that tree traversing methods typically allocate a temporary data structure that is dropped once the
+    /// iterator is dropped.
+    /// In use cases where we repeatedly iterate using any of the **walk** methods over different nodes or different
+    /// trees, we can avoid the allocation by creating the traverser only once and using [`walk_with`], [`walk_mut_with`]
+    /// and [`into_walk_with`] methods instead.
+    /// These methods additionally allow for iterating over nodes rather than data; and yielding node depths and sibling
+    /// indices in addition to node data.
+    ///
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    /// [`walk`]: crate::NodeRef::walk
+    /// [`walk_mut`]: crate::NodeMut::walk_mut
+    /// [`walk_with`]: crate::NodeRef::walk_with
+    /// [`walk_mut_with`]: crate::NodeMut::walk_mut_with
+    /// [`into_walk_with`]: crate::NodeMut::into_walk_with
     ///
     /// # Examples
     ///
