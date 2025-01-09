@@ -1,14 +1,7 @@
 use super::queue::Queue;
-use crate::{
-    memory::MemoryPolicy,
-    pinned_storage::PinnedStorage,
-    traversal::{
-        over::{Over, OverData, OverItem},
-        over_mut::{OverItemInto, OverItemMut, OverMut},
-        traverser::Traverser,
-        traverser_core::TraverserCore,
-    },
-    NodeMut, NodeRef, TreeVariant,
+use crate::traversal::{
+    over::{Over, OverData},
+    traverser::Traverser,
 };
 
 /// A breadth first search traverser, also known as level-order

@@ -1,14 +1,7 @@
 use super::stack::Stack;
-use crate::{
-    memory::MemoryPolicy,
-    pinned_storage::PinnedStorage,
-    traversal::{
-        over::{Over, OverData, OverItem},
-        over_mut::{OverItemMut, OverMut},
-        traverser::Traverser,
-        traverser_core::TraverserCore,
-    },
-    NodeMut, NodeRef, TreeVariant,
+use crate::traversal::{
+    over::{Over, OverData},
+    traverser::Traverser,
 };
 
 /// A depth first search traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).

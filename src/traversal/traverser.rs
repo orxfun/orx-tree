@@ -1,10 +1,4 @@
-use super::{
-    over::{Over, OverItem},
-    over_mut::{OverItemInto, OverItemMut},
-    traverser_core::TraverserCore,
-    OverData, OverMut,
-};
-use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRef, TreeVariant};
+use super::{over::Over, traverser_core::TraverserCore, OverData};
 
 /// A tree traverser that creates iterators which walk over a given node and all of its descendants;
 /// i.e., over all nodes of the sub-tree rooted at the given node.

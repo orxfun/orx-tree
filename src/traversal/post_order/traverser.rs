@@ -1,14 +1,7 @@
 use super::states::States;
-use crate::{
-    memory::MemoryPolicy,
-    pinned_storage::PinnedStorage,
-    traversal::{
-        over::{Over, OverData, OverItem},
-        over_mut::{OverItemMut, OverMut},
-        traverser_core::TraverserCore,
-        Traverser,
-    },
-    NodeMut, NodeRef, TreeVariant,
+use crate::traversal::{
+    over::{Over, OverData},
+    Traverser,
 };
 use core::marker::PhantomData;
 
