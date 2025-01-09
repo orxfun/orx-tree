@@ -10,6 +10,7 @@ use crate::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemInto, OverItemMut, OverMut},
         traverser::Traverser,
+        traverser_core::TraverserCore,
     },
     NodeMut, NodeRef, TreeVariant,
 };
@@ -68,10 +69,8 @@ where
         M: MemoryPolicy,
         P: PinnedStorage,
     {
-        let root = node.node_ptr().clone();
         let queue = self.queue.for_variant::<V>();
-        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((queue, root));
-        BfsIterRef::from((node.col(), iter_ptr))
+        Self::iter_with_storage(node, queue)
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {

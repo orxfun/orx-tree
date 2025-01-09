@@ -8,6 +8,7 @@ pub(crate) mod iter_ptr;
 pub(crate) mod iter_ref;
 mod stack;
 mod traverser;
+mod traverser_core;
 
 pub use dfs_enumeration::DepthFirstEnumeration;
 pub use traverser::Dfs;

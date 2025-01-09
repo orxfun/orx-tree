@@ -2,9 +2,9 @@ use crate::{
     helpers::{Col, N},
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
-    traversal::{enumerations::Val, over::OverItem, Over},
+    traversal::{enumerations::Val, over::OverItem, Over, OverData},
     tree_variant::RefsChildren,
-    Node, NodeIdx, TreeVariant,
+    Node, NodeIdx, Traverser, TreeVariant,
 };
 use orx_selfref_col::NodePtr;
 
@@ -927,4 +927,60 @@ where
         let iter = PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
         PostOrderIterRef::from((self.col(), iter))
     }
+
+    // traversal
+
+    fn walk<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
+    where
+        T: Traverser<OverData> + 'a,
+        Self: Sized,
+    {
+        T::iter_with_owned_storage::<V, M, P>(self)
+    }
+}
+
+#[test]
+fn abc() {
+    use crate::traversal::*;
+    use crate::*;
+    use alloc::vec::Vec;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲   ╱ ╲
+    // 4   5 6   7
+    // |     |  ╱ ╲
+    // 8     9 10  11
+
+    let mut tree = DynTree::<i32>::new(1);
+
+    let mut root = tree.root_mut().unwrap();
+    let [id2, id3] = root.grow([2, 3]);
+
+    let mut n2 = id2.node_mut(&mut tree);
+    let [id4, _] = n2.grow([4, 5]);
+
+    id4.node_mut(&mut tree).push(8);
+
+    let mut n3 = id3.node_mut(&mut tree);
+    let [id6, id7] = n3.grow([6, 7]);
+
+    id6.node_mut(&mut tree).push(9);
+    id7.node_mut(&mut tree).extend([10, 11]);
+
+    // traversal from any node
+
+    let root = tree.root().unwrap();
+    let values: Vec<_> = root.walk::<Bfs>().copied().collect();
+    assert_eq!(values, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    let n3 = id3.node(&tree);
+    let values: Vec<_> = n3.walk::<Bfs>().copied().collect();
+    assert_eq!(values, [3, 6, 7, 9, 10, 11]);
+
+    let n7 = id7.node(&tree);
+    let values: Vec<_> = n7.walk::<Bfs>().copied().collect();
+    assert_eq!(values, [7, 10, 11]);
 }

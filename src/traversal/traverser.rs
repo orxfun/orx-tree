@@ -1,6 +1,7 @@
 use super::{
     over::{Over, OverItem},
     over_mut::{OverItemInto, OverItemMut},
+    traverser_core::TraverserCore,
     OverData, OverMut,
 };
 use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRef, TreeVariant};
@@ -197,7 +198,7 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 /// [`OverDepthNode`]: crate::traversal::OverDepthNode
 /// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
 /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
-pub trait Traverser<O = OverData>: Sized
+pub trait Traverser<O = OverData>: TraverserCore<O>
 where
     O: Over,
 {
