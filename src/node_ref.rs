@@ -930,6 +930,54 @@ where
 
     // traversal
 
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::traversal::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // walk over any subtree rooted at a selected node
+    /// // with different traversals
+    ///
+    /// let root = tree.root().unwrap();
+    /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// let n3 = id3.node(&tree);
+    /// let dfs: Vec<_> = n3.walk::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [3, 6, 9, 7, 10, 11]);
+    ///
+    /// let n2 = id2.node(&tree);
+    /// let post_order: Vec<_> = n2.walk::<PostOrder>().copied().collect();
+    /// assert_eq!(post_order, [8, 4, 5, 2]);
+    /// ```
     fn walk<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
     where
         T: Traverser<OverData>,
@@ -937,50 +985,4 @@ where
     {
         T::iter_with_owned_storage::<V, M, P>(self)
     }
-}
-
-#[test]
-fn abc() {
-    use crate::traversal::*;
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //      1
-    //     ╱ ╲
-    //    ╱   ╲
-    //   2     3
-    //  ╱ ╲   ╱ ╲
-    // 4   5 6   7
-    // |     |  ╱ ╲
-    // 8     9 10  11
-
-    let mut tree = DynTree::<i32>::new(1);
-
-    let mut root = tree.root_mut().unwrap();
-    let [id2, id3] = root.grow([2, 3]);
-
-    let mut n2 = id2.node_mut(&mut tree);
-    let [id4, _] = n2.grow([4, 5]);
-
-    id4.node_mut(&mut tree).push(8);
-
-    let mut n3 = id3.node_mut(&mut tree);
-    let [id6, id7] = n3.grow([6, 7]);
-
-    id6.node_mut(&mut tree).push(9);
-    id7.node_mut(&mut tree).extend([10, 11]);
-
-    // traversal from any node
-
-    let root = tree.root().unwrap();
-    let values: Vec<_> = root.walk::<PostOrder>().copied().collect();
-    assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
-
-    let n3 = id3.node(&tree);
-    let values: Vec<_> = n3.walk::<PostOrder>().copied().collect();
-    assert_eq!(values, [9, 6, 10, 11, 7, 3]);
-
-    let n7 = id7.node(&tree);
-    let values: Vec<_> = n7.walk::<PostOrder>().copied().collect();
-    assert_eq!(values, [10, 11, 7]);
 }

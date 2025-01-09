@@ -1582,14 +1582,129 @@ where
 
     // traversal
 
-    fn walk_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::traversal::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // walk over mutable references of nodes of any subtree
+    /// // rooted at a selected node with different traversals
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// {
+    ///     let mut bfs = root.walk_mut::<Bfs>();
+    ///     assert_eq!(bfs.next(), Some(&mut 1));
+    ///     assert_eq!(bfs.next(), Some(&mut 2)); // ...
+    /// }
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// {
+    ///     let mut dfs = n3.walk_mut::<Dfs>();
+    ///     assert_eq!(dfs.next(), Some(&mut 3));
+    ///     assert_eq!(dfs.next(), Some(&mut 6)); // ...
+    /// }
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// {
+    ///     let mut post_order = n2.walk_mut::<PostOrder>();
+    ///     assert_eq!(post_order.next(), Some(&mut 8));
+    ///     assert_eq!(post_order.next(), Some(&mut 4)); // ...
+    /// }
+    /// ```
+    pub fn walk_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
     where
         T: Traverser<OverData>,
     {
         T::iter_mut_with_owned_storage::<V, M, P>(self)
     }
 
-    fn walk_into<T>(self) -> impl Iterator<Item = V::Item> + use<'a, T, V, M, P>
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    /// use orx_tree::traversal::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // remove any subtree rooted at a selected node
+    /// // from the tree, and collect the node values
+    /// // in the order of different traversals
+    ///
+    /// let n4 = id4.node_mut(&mut tree);
+    /// let removed: Vec<_> = n4.into_walk::<PostOrder>().collect();
+    /// assert_eq!(removed, [8, 4]);
+    ///
+    /// let remaining: Vec<_> = tree.root().unwrap().walk::<Bfs>().copied().collect();
+    /// assert_eq!(remaining, [1, 2, 3, 5, 6, 7, 9, 10, 11]);
+    ///
+    /// let n3 = id3.node_mut(&mut tree);
+    /// let removed: Vec<_> = n3.into_walk::<Dfs>().collect();
+    /// assert_eq!(removed, [3, 6, 9, 7, 10, 11]);
+    ///
+    /// let remaining: Vec<_> = tree.root().unwrap().walk::<Bfs>().copied().collect();
+    /// assert_eq!(remaining, [1, 2, 5]);
+    ///
+    /// let root = tree.root_mut().unwrap();
+    /// let removed: Vec<_> = root.into_walk::<Bfs>().collect(); // empties the tree
+    /// assert_eq!(removed, [1, 2, 5]);
+    ///
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.root(), None);
+    /// ```
+    pub fn into_walk<T>(self) -> impl Iterator<Item = V::Item> + use<'a, T, V, M, P>
     where
         T: Traverser<OverData>,
     {
