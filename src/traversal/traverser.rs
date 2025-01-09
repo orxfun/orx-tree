@@ -1,5 +1,3 @@
-use std::dbg;
-
 use super::{
     over::{Over, OverItem},
     over_mut::{OverItemInto, OverItemMut},
@@ -530,10 +528,7 @@ where
         M: MemoryPolicy,
         P: PinnedStorage,
         O: OverMut<V> + 'a,
-        Self: 'a,
-    {
-        core::iter::empty()
-    }
+        Self: 'a;
 
     /// Consumes this traverser and returns a transformed version of it
     /// which creates iterators over `O2` rather than `O2`.
