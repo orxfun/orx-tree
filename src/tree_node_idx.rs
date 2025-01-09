@@ -180,8 +180,9 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// n2.extend([4, 5]);
 ///
 /// // task: collect all indices in breadth first order
+/// let mut bfs = Bfs::default().over_nodes();
 /// let root = tree.root().unwrap();
-/// let indices: Vec<_> = root.bfs_over::<OverNode>().map(|x| x.idx()).collect();
+/// let indices: Vec<_> = root.walk_with(&mut bfs).map(|x| x.idx()).collect();
 ///
 /// // now we can use indices to directly access nodes
 /// let id5 = &indices[4];

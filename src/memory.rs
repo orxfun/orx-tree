@@ -62,7 +62,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // 8     9 10  11
 ///
 /// fn bfs_values(tree: &DynTree<i32>) -> Vec<i32> {
-///     tree.root().unwrap().bfs().copied().collect()
+///     tree.root().unwrap().walk::<Bfs>().copied().collect()
 /// }
 ///
 /// // # 1. GROW
@@ -153,7 +153,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // 8     9 10  11
 ///
 /// fn bfs_values<M: MemoryPolicy>(tree: &DynTree<i32, M>) -> Vec<i32> {
-///     tree.root().unwrap().bfs().copied().collect()
+///     tree.root().unwrap().walk::<Bfs>().copied().collect()
 /// }
 ///
 /// // # 1. GROW
