@@ -58,32 +58,4 @@ where
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
         Dfs::<O2>::new()
     }
-
-    fn iter_mut<'a, V, M, P>(
-        &'a mut self,
-        node_mut: &'a mut NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-        O: OverMut,
-    {
-        let stack = self.stack.for_variant::<V>();
-        Self::iter_mut_with_storage(node_mut, stack)
-    }
-
-    fn into_iter<'a, V, M, P>(
-        &'a mut self,
-        node_mut: NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = crate::traversal::over_mut::OverItemInto<'a, V, O>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-        O: OverMut,
-    {
-        let stack = self.stack.for_variant::<V>();
-        Self::into_iter_with_storage(node_mut, stack)
-    }
 }
