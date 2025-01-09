@@ -930,7 +930,7 @@ where
 
     // traversal
 
-    /// Creates an iterator that yields references of data of all nodes belonging to the subtree rooted at this node.
+    /// Creates an iterator that yields references to data of all nodes belonging to the subtree rooted at this node.
     ///
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:

@@ -1584,13 +1584,37 @@ where
 
     // traversal
 
+    /// Creates an iterator that yields mutable references to data of all nodes belonging to the subtree rooted at this node.
     ///
+    /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// See also [`walk`] and [`into_walk`] variants.
+    ///
+    /// Note that tree traversing methods typically allocate a temporary data structure that is dropped once the
+    /// iterator is dropped.
+    /// In use cases where we repeatedly iterate using any of the **walk** methods over different nodes or different
+    /// trees, we can avoid the allocation by creating the traverser only once and using [`walk_with`], [`walk_mut_with`]
+    /// and [`into_walk_with`] methods instead.
+    /// These methods additionally allow for iterating over nodes rather than data; and yielding node depths and sibling
+    /// indices in addition to node data.
+    ///
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    /// [`walk`]: crate::NodeRef::walk
+    /// [`into_walk`]: crate::NodeMut::into_walk
+    /// [`walk_with`]: crate::NodeRef::walk_with
+    /// [`walk_mut_with`]: crate::NodeMut::walk_mut_with
+    /// [`into_walk_with`]: crate::NodeMut::into_walk_with
     ///
     /// # Examples
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::traversal::*;
     ///
     /// //      1
     /// //     ╱ ╲
