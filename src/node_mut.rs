@@ -5,10 +5,11 @@ use crate::{
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
     traversal::{
-        enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverMut,
+        enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverData,
+        OverMut,
     },
     tree_variant::RefsChildren,
-    NodeIdx, TreeVariant,
+    NodeIdx, Traverser, TreeVariant,
 };
 use alloc::vec::Vec;
 use core::marker::PhantomData;
@@ -1577,5 +1578,15 @@ where
             .get()
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
+    }
+
+    // traversal
+
+    fn walk_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
+    where
+        T: Traverser<OverData> + 'a,
+        Self: Sized,
+    {
+        T::iter_mut_with_owned_storage::<V, M, P>(self)
     }
 }
