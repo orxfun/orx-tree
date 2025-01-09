@@ -14,10 +14,11 @@ pub fn set<V: TreeVariant>(states: &mut Vec<State<V>>, depth: usize, pointer: No
     }
 }
 
-pub fn increment_child_idx<V: TreeVariant>(states: &mut Vec<State<V>>, depth: usize) {
+pub fn increment_child_idx<V: TreeVariant>(states: &mut [State<V>], depth: usize) {
     states[depth].1 += 1;
 }
 
+#[derive(Default)]
 pub struct States {
     states: Vec<State<Dyn<i32>>>,
 }
@@ -33,13 +34,5 @@ impl States {
         // Since NodePtr<V> under the hood contains only one raw pointer,
         // memory size and layout of elements are independent of V.
         unsafe { core::mem::transmute(&mut self.states) }
-    }
-}
-
-impl Default for States {
-    fn default() -> Self {
-        Self {
-            states: Default::default(),
-        }
     }
 }

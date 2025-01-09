@@ -2,10 +2,9 @@ use super::states::State;
 use crate::traversal::enumeration::Enumeration;
 use crate::traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
 use crate::TreeVariant;
-use alloc::vec::Vec;
 
 pub trait PostOrderEnumeration: Enumeration {
-    fn create_post_item<D, V>(node_value: D, depth: usize, states: &Vec<State<V>>) -> Self::Item<D>
+    fn create_post_item<D, V>(node_value: D, depth: usize, states: &[State<V>]) -> Self::Item<D>
     where
         V: TreeVariant;
 }
@@ -13,7 +12,7 @@ pub trait PostOrderEnumeration: Enumeration {
 // impl
 
 impl PostOrderEnumeration for Val {
-    fn create_post_item<D, V>(node_value: D, _: usize, _: &Vec<State<V>>) -> Self::Item<D>
+    fn create_post_item<D, V>(node_value: D, _: usize, _: &[State<V>]) -> Self::Item<D>
     where
         V: TreeVariant,
     {
@@ -22,7 +21,7 @@ impl PostOrderEnumeration for Val {
 }
 
 impl PostOrderEnumeration for DepthVal {
-    fn create_post_item<D, V>(node_value: D, depth: usize, _: &Vec<State<V>>) -> Self::Item<D>
+    fn create_post_item<D, V>(node_value: D, depth: usize, _: &[State<V>]) -> Self::Item<D>
     where
         V: TreeVariant,
     {
@@ -31,7 +30,7 @@ impl PostOrderEnumeration for DepthVal {
 }
 
 impl PostOrderEnumeration for SiblingIdxVal {
-    fn create_post_item<D, V>(node_value: D, depth: usize, states: &Vec<State<V>>) -> Self::Item<D>
+    fn create_post_item<D, V>(node_value: D, depth: usize, states: &[State<V>]) -> Self::Item<D>
     where
         V: TreeVariant,
     {
@@ -44,7 +43,7 @@ impl PostOrderEnumeration for SiblingIdxVal {
 }
 
 impl PostOrderEnumeration for DepthSiblingIdxVal {
-    fn create_post_item<D, V>(node_value: D, depth: usize, states: &Vec<State<V>>) -> Self::Item<D>
+    fn create_post_item<D, V>(node_value: D, depth: usize, states: &[State<V>]) -> Self::Item<D>
     where
         V: TreeVariant,
     {
