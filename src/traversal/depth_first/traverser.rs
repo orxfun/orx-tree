@@ -147,7 +147,7 @@ fn def() {
 
     // second tree
 
-    let mut tree2 = DaryTree::<4, i32>::new(1);
+    let mut tree2 = DynTree::<u64>::new(1);
 
     let mut root = tree2.root_mut().unwrap();
     let [id2, tree2_id3] = root.grow([2, 3]);
@@ -193,12 +193,8 @@ fn def() {
     let vals: Vec<_> = tr.into_iter(tree2_n3).collect();
     assert_eq!(vals, [103, 106, 109, 107, 110, 111]);
 
-    std::dbg!(tree2.len());
-    let xyz = tree2.root().unwrap().dfs().copied().collect::<Vec<_>>();
-    std::dbg!(xyz);
-
     let tree2_rem: Vec<_> = tr.iter(&tree2.root().unwrap()).copied().collect();
-    assert_eq!(tree2_rem, [101, 102, 104, 105, 108]);
+    assert_eq!(tree2_rem, [101, 102, 104, 108, 105]);
 
     // depth - data
 
@@ -206,9 +202,9 @@ fn def() {
 
     let root = tree1.root().unwrap();
     let vals: Vec<_> = tr.iter(&root).map(|x| *x.1).collect();
-    assert_eq!(vals, [1, 2, 4, 5, 8]);
+    assert_eq!(vals, [1, 2, 4, 8, 5]);
 
     let root = tree2.root().unwrap();
     let vals: Vec<_> = tr.iter(&root).map(|x| *x.1).collect();
-    assert_eq!(vals, [101, 102, 104, 105, 108]);
+    assert_eq!(vals, [101, 102, 104, 108, 105]);
 }
