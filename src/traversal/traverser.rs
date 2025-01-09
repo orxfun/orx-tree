@@ -519,6 +519,7 @@ where
     /// assert!(tree.is_empty());
     /// assert_eq!(tree.root(), None);
     /// ```
+    #[allow(clippy::wrong_self_convention)]
     fn into_iter<'a, M, P>(
         &mut self,
         node: NodeMut<'a, V, M, P>,
