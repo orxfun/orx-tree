@@ -5,8 +5,10 @@ use crate::{
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
     traversal::{
-        enumerations::Val, over_mut::OverItemMut, post_order::iter_ptr::PostOrderIterPtr, OverData,
-        OverMut,
+        enumerations::Val,
+        over_mut::{OverItemInto, OverItemMut},
+        post_order::iter_ptr::PostOrderIterPtr,
+        OverData, OverMut,
     },
     tree_variant::RefsChildren,
     NodeIdx, Traverser, TreeVariant,
@@ -1646,6 +1648,17 @@ where
         T::iter_mut_with_owned_storage::<V, M, P>(self)
     }
 
+    pub fn walk_mut_with<T, O>(
+        &'a mut self,
+        traverser: &'a mut T,
+    ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>>
+    where
+        O: OverMut,
+        T: Traverser<O>,
+    {
+        traverser.iter_mut(self)
+    }
+
     ///
     ///
     /// # Examples
@@ -1709,5 +1722,16 @@ where
         T: Traverser<OverData>,
     {
         T::into_iter_with_owned_storage::<V, M, P>(self)
+    }
+
+    pub fn into_walk_with<T, O>(
+        self,
+        traverser: &'a mut T,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        O: OverMut,
+        T: Traverser<O>,
+    {
+        traverser.into_iter(self)
     }
 }
