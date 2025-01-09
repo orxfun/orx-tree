@@ -1,3 +1,5 @@
+use std::dbg;
+
 use super::{
     over::{Over, OverItem},
     over_mut::{OverItemInto, OverItemMut},
@@ -102,17 +104,17 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 /// // create a traverser once
 /// // and use it multiple times without allocation
 ///
-/// let mut traverser = Traversal.post_order();
+/// let mut traverser = Traversal.dfs();
 ///
 /// // [I] iter: iterate over references
 ///
 /// let root = id1.node(&tree);
 /// let tree_vals: Vec<&i32> = traverser.iter(&root).collect();
-/// assert_eq!(tree_vals, [&8, &4, &5, &2, &9, &6, &10, &11, &7, &3, &1]);
+/// assert_eq!(tree_vals, [&1, &2, &4, &8, &5, &3, &6, &9, &7, &10, &11]);
 ///
 /// let n3 = id3.node(&tree);
 /// let from_n3: Vec<&i32> = traverser.iter(&n3).collect();
-/// assert_eq!(from_n3, [&9, &6, &10, &11, &7, &3]);
+/// assert_eq!(from_n3, [&3, &6, &9, &7, &10, &11]);
 ///
 /// // [II] iter_mut: iterate over mutable references
 ///
@@ -126,24 +128,24 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 /// let tree_vals: Vec<&i32> = traverser.iter(&root).collect();
 /// assert_eq!(
 ///     tree_vals,
-///     [&8, &4, &5, &2, &9, &6, &110, &111, &107, &3, &1]
+///     [&1, &2, &4, &8, &5, &3, &6, &9, &107, &110, &111]
 /// );
 ///
 /// // [III] into_iter: iterate over removed values
 ///
 /// let n3 = id3.node_mut(&mut tree);
 /// let removed: Vec<i32> = traverser.into_iter(n3).collect();
-/// assert_eq!(removed, [9, 6, 110, 111, 107, 3]);
+/// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
 ///
 /// // all 6 nodes are removed from the tree
 /// let root = id1.node(&tree);
 /// let tree_vals: Vec<&i32> = traverser.iter(&root).collect();
-/// assert_eq!(tree_vals, [&8, &4, &5, &2, &1]); // remaining nodes
+/// assert_eq!(tree_vals, [&1, &2, &4, &8, &5]); // remaining nodes
 ///
 /// // let's completely drain the tree: into_iter(root)
 /// let root = id1.node_mut(&mut tree);
 /// let removed: Vec<i32> = traverser.into_iter(root).collect();
-/// assert_eq!(removed, [8, 4, 5, 2, 1]);
+/// assert_eq!(removed, [1, 2, 4, 8, 5]);
 /// assert!(tree.is_empty());
 /// assert_eq!(tree.root(), None);
 /// ```
