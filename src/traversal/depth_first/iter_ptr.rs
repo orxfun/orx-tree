@@ -1,5 +1,5 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
-use super::stack::{Item, Stack};
+use super::stack::Item;
 use crate::tree_variant::RefsChildren;
 use crate::TreeVariant;
 use alloc::vec::Vec;
@@ -7,11 +7,11 @@ use core::marker::PhantomData;
 use orx_self_or::SoM;
 use orx_selfref_col::NodePtr;
 
-pub struct DfsIterPtr<V, E, S = Stack<V, E>>
+pub struct DfsIterPtr<V, E, S = Vec<Item<V, E>>>
 where
     E: DepthFirstEnumeration,
     V: TreeVariant,
-    S: SoM<Stack<V, E>>,
+    S: SoM<Vec<Item<V, E>>>,
 {
     stack: S,
     phantom: PhantomData<(V, E)>,
@@ -21,7 +21,7 @@ impl<V, E, S> From<(S, NodePtr<V>)> for DfsIterPtr<V, E, S>
 where
     E: DepthFirstEnumeration,
     V: TreeVariant,
-    S: SoM<Stack<V, E>>,
+    S: SoM<Vec<Item<V, E>>>,
 {
     fn from((mut stack, root): (S, NodePtr<V>)) -> Self {
         stack.get_mut().clear();
@@ -33,7 +33,7 @@ where
     }
 }
 
-impl<V, E> Default for DfsIterPtr<V, E, Stack<V, E>>
+impl<V, E> Default for DfsIterPtr<V, E, Vec<Item<V, E>>>
 where
     E: DepthFirstEnumeration,
     V: TreeVariant,
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<V, E> Clone for DfsIterPtr<V, E, Stack<V, E>>
+impl<V, E> Clone for DfsIterPtr<V, E, Vec<Item<V, E>>>
 where
     E: DepthFirstEnumeration,
     V: TreeVariant,
@@ -64,7 +64,7 @@ impl<V, E, S> Iterator for DfsIterPtr<V, E, S>
 where
     E: DepthFirstEnumeration,
     V: TreeVariant,
-    S: SoM<Stack<V, E>>,
+    S: SoM<Vec<Item<V, E>>>,
 {
     type Item = Item<V, E>;
 

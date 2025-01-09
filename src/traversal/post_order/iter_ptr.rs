@@ -1,7 +1,4 @@
-use super::{
-    post_enumeration::PostOrderEnumeration,
-    states::{State, States},
-};
+use super::{post_enumeration::PostOrderEnumeration, states::State};
 use crate::{traversal::enumeration::Enumeration, tree_variant::RefsChildren, TreeVariant};
 use alloc::vec::Vec;
 use core::marker::PhantomData;
@@ -10,11 +7,11 @@ use orx_selfref_col::NodePtr;
 
 pub type Item<V, E> = <E as Enumeration>::Item<NodePtr<V>>;
 
-pub struct PostOrderIterPtr<V, E, S = States<V>>
+pub struct PostOrderIterPtr<V, E, S = Vec<State<V>>>
 where
     E: PostOrderEnumeration,
     V: TreeVariant,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     states: S,
     depth: usize,
@@ -25,7 +22,7 @@ impl<V, E, S> From<(S, NodePtr<V>)> for PostOrderIterPtr<V, E, S>
 where
     E: PostOrderEnumeration,
     V: TreeVariant,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     fn from((mut states, root): (S, NodePtr<V>)) -> Self {
         states.get_mut().clear();
@@ -38,7 +35,7 @@ where
     }
 }
 
-impl<V, E> Default for PostOrderIterPtr<V, E, States<V>>
+impl<V, E> Default for PostOrderIterPtr<V, E, Vec<State<V>>>
 where
     E: PostOrderEnumeration,
     V: TreeVariant,
@@ -52,7 +49,7 @@ where
     }
 }
 
-impl<V, E> Clone for PostOrderIterPtr<V, E, States<V>>
+impl<V, E> Clone for PostOrderIterPtr<V, E, Vec<State<V>>>
 where
     E: PostOrderEnumeration,
     V: TreeVariant,
@@ -72,7 +69,7 @@ impl<V, E, S> PostOrderIterPtr<V, E, S>
 where
     E: PostOrderEnumeration,
     V: TreeVariant,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     fn current(&self) -> Option<&State<V>> {
         match self.depth < usize::MAX {
@@ -101,7 +98,7 @@ impl<V, E, S> Iterator for PostOrderIterPtr<V, E, S>
 where
     E: PostOrderEnumeration,
     V: TreeVariant,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     type Item = Item<V, E>;
 

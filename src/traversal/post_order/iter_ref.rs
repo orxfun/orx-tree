@@ -1,12 +1,13 @@
 use super::iter_ptr::Item;
 use super::iter_ptr::PostOrderIterPtr;
 use super::post_enumeration::PostOrderEnumeration;
-use super::states::States;
+use super::states::State;
 use crate::helpers::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item::NodeItem;
 use crate::TreeVariant;
+use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;
 
@@ -16,7 +17,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
     D: NodeItem<'a, V, M, P>,
 {
     col: &'a Col<V, M, P>,
@@ -31,7 +32,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
     D: NodeItem<'a, V, M, P>,
 {
     fn from((col, iter): (&'a Col<V, M, P>, PostOrderIterPtr<V, E, S>)) -> Self {
@@ -43,7 +44,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, D> Clone for PostOrderIterRef<'a, V, M, P, E, States<V>, D>
+impl<'a, V, M, P, E, D> Clone for PostOrderIterRef<'a, V, M, P, E, Vec<State<V>>, D>
 where
     V: TreeVariant,
     M: MemoryPolicy,
@@ -67,7 +68,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
     D: NodeItem<'a, V, M, P>,
 {
     type Item = E::Item<D>;

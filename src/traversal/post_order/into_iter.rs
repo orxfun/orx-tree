@@ -1,10 +1,11 @@
 use super::iter_ptr::PostOrderIterPtr;
 use super::post_enumeration::PostOrderEnumeration;
-use super::states::States;
+use super::states::State;
 use crate::helpers::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::TreeVariant;
+use alloc::vec::Vec;
 use orx_self_or::SoM;
 use orx_selfref_col::{NodePtr, Refs};
 
@@ -14,7 +15,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     col: &'a mut Col<V, M, P>,
     iter: PostOrderIterPtr<V, E, S>,
@@ -26,7 +27,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     /// # Safety
     ///
@@ -76,7 +77,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     type Item = E::Item<V::Item>;
 
@@ -91,7 +92,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
 {
     fn drop(&mut self) {
         while let Some(element) = self.iter.next() {

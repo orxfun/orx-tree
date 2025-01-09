@@ -1,5 +1,5 @@
 use super::bfs_enumeration::BreadthFirstEnumeration;
-use super::queue::{Item, Queue};
+use super::queue::Item;
 use crate::tree_variant::RefsChildren;
 use crate::TreeVariant;
 use alloc::collections::VecDeque;
@@ -7,11 +7,11 @@ use core::marker::PhantomData;
 use orx_self_or::SoM;
 use orx_selfref_col::NodePtr;
 
-pub struct BfsIterPtr<V, E, S = Queue<V, E>>
+pub struct BfsIterPtr<V, E, S = VecDeque<Item<V, E>>>
 where
     E: BreadthFirstEnumeration,
     V: TreeVariant,
-    S: SoM<Queue<V, E>>,
+    S: SoM<VecDeque<Item<V, E>>>,
 {
     stack: S,
     phantom: PhantomData<(V, E)>,
@@ -21,7 +21,7 @@ impl<V, E, S> From<(S, NodePtr<V>)> for BfsIterPtr<V, E, S>
 where
     E: BreadthFirstEnumeration,
     V: TreeVariant,
-    S: SoM<Queue<V, E>>,
+    S: SoM<VecDeque<Item<V, E>>>,
 {
     fn from((mut stack, root): (S, NodePtr<V>)) -> Self {
         stack.get_mut().clear();
@@ -33,7 +33,7 @@ where
     }
 }
 
-impl<V, E> Default for BfsIterPtr<V, E, Queue<V, E>>
+impl<V, E> Default for BfsIterPtr<V, E, VecDeque<Item<V, E>>>
 where
     E: BreadthFirstEnumeration,
     V: TreeVariant,
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<V, E> Clone for BfsIterPtr<V, E, Queue<V, E>>
+impl<V, E> Clone for BfsIterPtr<V, E, VecDeque<Item<V, E>>>
 where
     E: BreadthFirstEnumeration,
     V: TreeVariant,
@@ -64,7 +64,7 @@ impl<V, E, S> Iterator for BfsIterPtr<V, E, S>
 where
     E: BreadthFirstEnumeration,
     V: TreeVariant,
-    S: SoM<Queue<V, E>>,
+    S: SoM<VecDeque<Item<V, E>>>,
 {
     type Item = Item<V, E>;
 
