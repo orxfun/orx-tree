@@ -932,7 +932,7 @@ where
 
     fn walk<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
     where
-        T: Traverser<OverData> + 'a,
+        T: Traverser<OverData>,
         Self: Sized,
     {
         T::iter_with_owned_storage::<V, M, P>(self)

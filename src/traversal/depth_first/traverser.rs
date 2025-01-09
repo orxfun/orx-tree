@@ -1,12 +1,6 @@
-use super::{
-    into_iter::DfsIterInto,
-    iter_mut::DfsIterMut,
-    iter_ptr::DfsIterPtr,
-    stack::{self, Stack},
-};
+use super::stack::Stack;
 use crate::{
     memory::MemoryPolicy,
-    node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
@@ -102,9 +96,7 @@ where
         P: PinnedStorage,
         O: OverMut,
     {
-        let (col, root) = node_mut.into_inner();
         let stack = self.stack.for_variant::<V>();
-        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((stack, root.clone()));
-        unsafe { DfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+        Self::into_iter_with_storage(node_mut, stack)
     }
 }

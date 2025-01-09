@@ -1,6 +1,6 @@
 use super::{
     over::{Over, OverItem},
-    over_mut::OverItemMut,
+    over_mut::{OverItemInto, OverItemMut},
     OverData, OverMut,
 };
 use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRef, TreeVariant};
@@ -33,6 +33,16 @@ where
         P: PinnedStorage,
         O: OverMut;
 
+    fn into_iter_with_storage<'a, V, M, P>(
+        node_mut: NodeMut<'a, V, M, P>,
+        storage: impl SoM<Self::Storage<V>>,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        O: OverMut;
+
     // provided
 
     fn iter_with_owned_storage<'a, V, M, P>(
@@ -56,5 +66,17 @@ where
         O: OverMut,
     {
         Self::iter_mut_with_storage(node_mut, Self::Storage::default())
+    }
+
+    fn into_iter_with_owned_storage<'a, V, M, P>(
+        node_mut: NodeMut<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        O: OverMut,
+    {
+        Self::into_iter_with_storage(node_mut, Self::Storage::default())
     }
 }

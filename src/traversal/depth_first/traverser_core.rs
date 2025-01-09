@@ -1,9 +1,15 @@
-use super::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef, stack::Item, Dfs};
+use super::{
+    into_iter::DfsIterInto, iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef,
+    stack::Item, Dfs,
+};
 use crate::{
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
-        over::OverItem, over_mut::OverItemMut, traverser_core::TraverserCore, Over, OverMut,
+        over::OverItem,
+        over_mut::{OverItemInto, OverItemMut},
+        traverser_core::TraverserCore,
+        Over, OverMut,
     },
     MemoryPolicy, NodeMut, NodeRef, TreeVariant,
 };
@@ -43,5 +49,20 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         let root = node_mut.node_ptr().clone();
         let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { DfsIterMut::from((node_mut.col(), iter_ptr)) }
+    }
+
+    fn into_iter_with_storage<'a, V, M, P>(
+        node_mut: NodeMut<'a, V, M, P>,
+        storage: impl SoM<Self::Storage<V>>,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        O: OverMut,
+    {
+        let (col, root) = node_mut.into_inner();
+        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root.clone()));
+        unsafe { DfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
     }
 }

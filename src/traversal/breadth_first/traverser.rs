@@ -1,7 +1,6 @@
-use super::{into_iter::BfsIterInto, iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, queue::Queue};
+use super::queue::Queue;
 use crate::{
     memory::MemoryPolicy,
-    node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
@@ -98,9 +97,7 @@ where
         P: PinnedStorage,
         O: OverMut,
     {
-        let (col, root) = node_mut.into_inner();
         let queue = self.queue.for_variant::<V>();
-        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((queue, root.clone()));
-        unsafe { BfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+        Self::into_iter_with_storage(node_mut, queue)
     }
 }

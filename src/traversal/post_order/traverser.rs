@@ -1,10 +1,6 @@
-use super::{
-    into_iter::PostOrderIterInto, iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
-    states::States,
-};
+use super::states::States;
 use crate::{
     memory::MemoryPolicy,
-    node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
@@ -106,9 +102,7 @@ where
         P: PinnedStorage,
         O: OverMut,
     {
-        let (col, root) = node_mut.into_inner();
         let states = self.states.for_variant::<V>();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((states, root.clone()));
-        unsafe { PostOrderIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+        Self::into_iter_with_storage(node_mut, states)
     }
 }

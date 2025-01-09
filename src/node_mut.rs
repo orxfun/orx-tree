@@ -1584,9 +1584,15 @@ where
 
     fn walk_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
     where
-        T: Traverser<OverData> + 'a,
-        Self: Sized,
+        T: Traverser<OverData>,
     {
         T::iter_mut_with_owned_storage::<V, M, P>(self)
+    }
+
+    fn walk_into<T>(self) -> impl Iterator<Item = V::Item> + use<'a, T, V, M, P>
+    where
+        T: Traverser<OverData>,
+    {
+        T::into_iter_with_owned_storage::<V, M, P>(self)
     }
 }
