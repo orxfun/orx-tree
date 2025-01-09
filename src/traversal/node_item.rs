@@ -5,7 +5,7 @@ use crate::Node;
 use crate::TreeVariant;
 use orx_selfref_col::NodePtr;
 
-pub trait NodeItem<'a, V, M = Auto, P = SplitRecursive>: Clone
+pub trait NodeItem<'a, V, M = Auto, P = SplitRecursive>
 where
     V: TreeVariant,
     M: MemoryPolicy,
