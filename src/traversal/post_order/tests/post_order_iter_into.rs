@@ -8,7 +8,9 @@ use crate::{
     },
     DynTree, NodeRef,
 };
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use test_case::test_matrix;
 
 /// ```
 ///      1
@@ -20,24 +22,117 @@ use alloc::vec::Vec;
 /// |     |  ╱ ╲
 /// 8     9 10  11
 /// ```
-fn tree() -> DynTree<i32> {
-    let mut tree = DynTree::<i32>::new(1);
+fn tree() -> DynTree<String> {
+    let mut tree = DynTree::<String>::new(1.to_string());
 
     let mut root = tree.root_mut().unwrap();
-    let [id2, id3] = root.grow([2, 3]);
+    let [id2, id3] = root.grow([2.to_string(), 3.to_string()]);
 
     let mut n2 = id2.node_mut(&mut tree);
-    let [id4, _] = n2.grow([4, 5]);
+    let [id4, _] = n2.grow([4.to_string(), 5.to_string()]);
 
-    id4.node_mut(&mut tree).push(8);
+    id4.node_mut(&mut tree).push(8.to_string());
 
     let mut n3 = id3.node_mut(&mut tree);
-    let [id6, id7] = n3.grow([6, 7]);
+    let [id6, id7] = n3.grow([6.to_string(), 7.to_string()]);
 
-    id6.node_mut(&mut tree).push(9);
-    id7.node_mut(&mut tree).extend([10, 11]);
+    id6.node_mut(&mut tree).push(9.to_string());
+    id7.node_mut(&mut tree)
+        .extend([10.to_string(), 11.to_string()]);
 
     tree
+}
+
+enum UseIter {
+    Nonce,
+    Once,
+    All,
+}
+
+#[test_matrix([UseIter::Nonce, UseIter::Once, UseIter::All])]
+fn post_order_into_iter_partially_used(use_iter: UseIter) {
+    {
+        let mut tree = tree();
+        let mut stack = Vec::default();
+
+        let root = tree.root().unwrap();
+        let ptr = root.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr.clone()));
+        {
+            let mut iter = unsafe {
+                PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
+            };
+            match use_iter {
+                UseIter::All => for _ in iter {},
+                UseIter::Once => {
+                    let first = iter.next();
+                    assert!(first.is_some());
+                }
+                UseIter::Nonce => {}
+            }
+        }
+
+        assert!(tree.is_empty());
+        assert_eq!(tree.len(), 0);
+        assert_eq!(tree.root(), None);
+    }
+
+    {
+        let mut tree = tree();
+
+        let root = tree.root().unwrap();
+        let n3 = root.child(1).unwrap();
+        let ptr = n3.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
+        {
+            let mut iter = unsafe {
+                PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
+            };
+            match use_iter {
+                UseIter::All => for _ in iter {},
+                UseIter::Once => {
+                    let first = iter.next();
+                    assert!(first.is_some());
+                }
+                UseIter::Nonce => {}
+            }
+        }
+
+        assert!(!tree.is_empty());
+        assert_eq!(tree.len(), 5);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
+    }
+
+    {
+        let mut tree = tree();
+
+        let root = tree.root().unwrap();
+        let n3 = root.child(1).unwrap();
+        let n7 = n3.child(1).unwrap();
+        let ptr = n7.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
+        {
+            let mut iter = unsafe {
+                PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
+            };
+            match use_iter {
+                UseIter::All => for _ in iter {},
+                UseIter::Once => {
+                    let first = iter.next();
+                    assert!(first.is_some());
+                }
+                UseIter::Nonce => {}
+            }
+        }
+
+        assert!(!tree.is_empty());
+        assert_eq!(tree.len(), 8);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
+    }
 }
 
 #[test]
@@ -53,7 +148,10 @@ fn post_order_into_iter_val() {
             PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
         };
         let values: Vec<_> = iter.collect();
-        assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+        assert_eq!(
+            values,
+            [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1].map(|x| x.to_string())
+        );
 
         assert!(tree.is_empty());
         assert_eq!(tree.len(), 0);
@@ -71,13 +169,13 @@ fn post_order_into_iter_val() {
             PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
         };
         let values: Vec<_> = iter.collect();
-        assert_eq!(values, [9, 6, 10, 11, 7, 3]);
+        assert_eq!(values, [9, 6, 10, 11, 7, 3].map(|x| x.to_string()));
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 4, 5, 8]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
     {
@@ -92,13 +190,13 @@ fn post_order_into_iter_val() {
             PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
         };
         let values: Vec<_> = iter.collect();
-        assert_eq!(values, [10, 11, 7]);
+        assert_eq!(values, [10, 11, 7].map(|x| x.to_string()));
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
 
@@ -119,8 +217,11 @@ fn post_order_into_iter_depth() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.1).collect();
-        assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+        let values: Vec<_> = result.iter().map(|x| x.1.clone()).collect();
+        assert_eq!(
+            values,
+            [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1].map(|x| x.to_string())
+        );
         let depths: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(depths, [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]);
 
@@ -144,16 +245,16 @@ fn post_order_into_iter_depth() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.1).collect();
-        assert_eq!(values, [9, 6, 10, 11, 7, 3]);
+        let values: Vec<_> = result.iter().map(|x| x.1.clone()).collect();
+        assert_eq!(values, [9, 6, 10, 11, 7, 3].map(|x| x.to_string()));
         let depths: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(depths, [2, 1, 2, 2, 1, 0]);
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 4, 5, 8]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
     {
@@ -172,16 +273,16 @@ fn post_order_into_iter_depth() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.1).collect();
-        assert_eq!(values, [10, 11, 7]);
+        let values: Vec<_> = result.iter().map(|x| x.1.clone()).collect();
+        assert_eq!(values, [10, 11, 7].map(|x| x.to_string()));
         let depths: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(depths, [1, 1, 0]);
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
 
@@ -202,8 +303,11 @@ fn post_order_into_iter_sibling_idx() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.1).collect();
-        assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+        let values: Vec<_> = result.iter().map(|x| x.1.clone()).collect();
+        assert_eq!(
+            values,
+            [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1].map(|x| x.to_string())
+        );
         let sibling: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(sibling, [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]);
 
@@ -227,16 +331,16 @@ fn post_order_into_iter_sibling_idx() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.1).collect();
-        assert_eq!(values, [9, 6, 10, 11, 7, 3]);
+        let values: Vec<_> = result.iter().map(|x| x.1.clone()).collect();
+        assert_eq!(values, [9, 6, 10, 11, 7, 3].map(|x| x.to_string()));
         let sibling: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(sibling, [0, 0, 0, 1, 1, 0]);
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 4, 5, 8]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
     {
@@ -255,16 +359,16 @@ fn post_order_into_iter_sibling_idx() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.1).collect();
-        assert_eq!(values, [10, 11, 7]);
+        let values: Vec<_> = result.iter().map(|x| x.1.clone()).collect();
+        assert_eq!(values, [10, 11, 7].map(|x| x.to_string()));
         let sibling: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(sibling, [0, 1, 0]);
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
 
@@ -285,8 +389,11 @@ fn post_order_into_iter_depth_sibling_idx() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.2).collect();
-        assert_eq!(values, [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
+        let values: Vec<_> = result.iter().map(|x| x.2.clone()).collect();
+        assert_eq!(
+            values,
+            [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1].map(|x| x.to_string())
+        );
         let depths: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(depths, [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]);
         let sibling: Vec<_> = result.iter().map(|x| x.1).collect();
@@ -313,8 +420,8 @@ fn post_order_into_iter_depth_sibling_idx() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.2).collect();
-        assert_eq!(values, [9, 6, 10, 11, 7, 3]);
+        let values: Vec<_> = result.iter().map(|x| x.2.clone()).collect();
+        assert_eq!(values, [9, 6, 10, 11, 7, 3].map(|x| x.to_string()));
         let depths: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(depths, [2, 1, 2, 2, 1, 0]);
         let sibling: Vec<_> = result.iter().map(|x| x.1).collect();
@@ -322,9 +429,9 @@ fn post_order_into_iter_depth_sibling_idx() {
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 5);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 4, 5, 8]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
     {
@@ -344,8 +451,8 @@ fn post_order_into_iter_depth_sibling_idx() {
             ))
         };
         let result: Vec<_> = iter.collect();
-        let values: Vec<_> = result.iter().map(|x| x.2).collect();
-        assert_eq!(values, [10, 11, 7]);
+        let values: Vec<_> = result.iter().map(|x| x.2.clone()).collect();
+        assert_eq!(values, [10, 11, 7].map(|x| x.to_string()));
         let depths: Vec<_> = result.iter().map(|x| x.0).collect();
         assert_eq!(depths, [1, 1, 0]);
         let sibling: Vec<_> = result.iter().map(|x| x.1).collect();
@@ -353,8 +460,8 @@ fn post_order_into_iter_depth_sibling_idx() {
 
         assert!(!tree.is_empty());
         assert_eq!(tree.len(), 8);
-        assert_eq!(tree.root().map(|x| *x.data()), Some(1));
-        let values: Vec<_> = tree.root().unwrap().bfs().copied().collect();
-        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9]);
+        assert_eq!(tree.root().map(|x| x.data().clone()), Some(1.to_string()));
+        let values: Vec<_> = tree.root().unwrap().bfs().cloned().collect();
+        assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }

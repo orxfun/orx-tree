@@ -60,6 +60,13 @@ where
 
         Self { col, iter }
     }
+
+    fn take_element(&mut self, element: E::Item<NodePtr<V>>) -> E::Item<V::Item> {
+        E::map_node_data(element, |ptr| {
+            let col = unsafe { &mut *(self.col as *mut Col<V, M, P>) };
+            col.close(&ptr)
+        })
+    }
 }
 
 impl<'a, V, M, P, E, S> Iterator for PostOrderIterInto<'a, V, M, P, E, S>
@@ -73,12 +80,7 @@ where
     type Item = E::Item<V::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|element| {
-            E::map_node_data(element, |ptr| {
-                let col = unsafe { &mut *(self.col as *mut Col<V, M, P>) };
-                col.close(&ptr)
-            })
-        })
+        self.iter.next().map(|element| self.take_element(element))
     }
 }
 
@@ -91,6 +93,8 @@ where
     S: SoM<States<V>>,
 {
     fn drop(&mut self) {
-        // to be done later
+        while let Some(element) = self.iter.next() {
+            self.take_element(element);
+        }
     }
 }
