@@ -1011,7 +1011,23 @@ where
         T::iter_with_owned_storage::<V, M, P>(self)
     }
 
+    /// Creates an iterator that traverses all nodes belonging to the subtree rooted at this node.
     ///
+    /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// As opposed to [`walk`], this method does require internal allocation.
+    /// Furthermore, it allows to iterate over nodes rather than data; and to attach node depths or sibling
+    /// indices to the yield values.
+    /// Please see the examples below.
+    ///
+    /// [`walk`]: crate::NodeRef::walk
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
     ///
     /// # Examples
     ///
