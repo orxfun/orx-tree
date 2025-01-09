@@ -909,7 +909,7 @@ where
     ///     [1, 102, 204, 308, 10205, 10103, 206, 309, 10207, 310, 10311]
     /// );
     /// ```
-    pub fn dfs_mut_over<O: OverMut<V> + 'a>(
+    pub fn dfs_mut_over<O: OverMut>(
         &mut self,
     ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
@@ -1105,7 +1105,7 @@ where
     ///     [1, 102, 10103, 204, 10205, 206, 10207, 308, 309, 310, 10311]
     /// );
     /// ```
-    pub fn bfs_mut_over<O: OverMut<V> + 'a>(
+    pub fn bfs_mut_over<O: OverMut>(
         &mut self,
     ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
@@ -1132,7 +1132,7 @@ where
     ///
     /// # Allocation
     ///
-    /// Note that post  order traversal requires a vector (alloc::vec::Vec) to be allocated, with a length equal to
+    /// Note that post order traversal requires a vector (alloc::vec::Vec) to be allocated, with a length equal to
     /// the max depth of the traversed nodes.
     /// Each time this method is called, a vector is allocated, used and dropped.
     ///
@@ -1222,7 +1222,7 @@ where
     ///
     /// # Allocation
     ///
-    /// Note that post  order traversal requires a vector (alloc::vec::Vec) to be allocated, with a length equal to
+    /// Note that post order traversal requires a vector (alloc::vec::Vec) to be allocated, with a length equal to
     /// the max depth of the traversed nodes.
     /// Each time this method is called, a vector is allocated, used and dropped.
     ///
@@ -1313,7 +1313,7 @@ where
     ///     [308, 204, 10205, 102, 309, 206, 310, 10311, 10207, 10103, 1]
     /// );
     /// ```
-    pub fn post_order_mut_over<O: OverMut<V> + 'a>(
+    pub fn post_order_mut_over<O: OverMut>(
         &mut self,
     ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::post_order::{
@@ -1322,6 +1322,89 @@ where
         let root = self.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, O::Enumeration>::from((Default::default(), root));
         unsafe { PostOrderIterMut::from((self.col, iter)) }
+    }
+
+    /// Similar to [`remove`], this method removes this node and all of its descendants from the tree.
+    ///
+    /// However, they differ in the returned value:
+    ///
+    /// * `remove` returns only the data of this node and ignores the data of the descendants,
+    /// * `remove_post_order` returns an iterator which returns the data of all descendants of
+    ///   this node in the order of the **post-order** traversal
+    ///   ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN)).
+    ///
+    /// [`remove`]: Self::remove
+    ///
+    /// # Allocation
+    ///
+    /// Note that post order traversal requires a vector (alloc::vec::Vec) to be allocated, with a length equal to
+    /// the max depth of the traversed nodes.
+    /// Each time this method is called, a vector is allocated, used and dropped.
+    ///
+    /// For situations where we repeatedly traverse over the tree and the allocation might be considered expensive,
+    /// it is recommended to use the [`PostOrder`] traverser, which can be created using [`Traversal::post_order`] method.
+    /// By this, we would allocate the vector only once and re-use it to create many iterators.
+    ///
+    /// [`PostOrder`]: crate::traversal::post_order::PostOrder
+    /// [`Traversal::post_order`]: crate::Traversal::post_order
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // remove node 3 and its descendants
+    /// // collect the removed values into a vector in the traversal's order
+    /// let n3 = id3.node_mut(&mut tree);
+    /// let removed_values: Vec<_> = n3.remove_post_order().collect();
+    /// assert_eq!(removed_values, [9, 6, 10, 11, 7, 3]);
+    ///
+    /// let remaining_values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
+    /// assert_eq!(remaining_values, [8, 4, 5, 2, 1]);
+    ///
+    /// // let's remove root and its descendants (empty the tree)
+    /// // and collect remaining nodes in the traversal's order
+    ///
+    /// let root = tree.root_mut().unwrap();
+    /// let removed_values: Vec<_> = root.remove_post_order().collect();
+    /// assert_eq!(removed_values, [8, 4, 5, 2, 1]);
+    ///
+    /// assert!(tree.is_empty());
+    /// assert_eq!(tree.root(), None);
+    /// ```
+    pub fn remove_post_order(self) -> impl Iterator<Item = V::Item> + use<'a, V, M, P, MO> {
+        let ptr = self.node_ptr.clone();
+        use crate::traversal::post_order::{
+            into_iter::PostOrderIterInto, iter_ptr::PostOrderIterPtr,
+        };
+        let root = self.node_ptr().clone();
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), root));
+        unsafe { PostOrderIterInto::<V, M, P, Val, _>::from((self.col, iter, ptr)) }
     }
 
     // helpers
@@ -1350,6 +1433,10 @@ where
         parent.next_mut().push(child_ptr.clone());
 
         child_ptr
+    }
+
+    pub(crate) fn into_inner(self) -> (&'a mut Col<V, M, P>, NodePtr<V>) {
+        (self.col, self.node_ptr)
     }
 }
 

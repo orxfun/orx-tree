@@ -1,11 +1,10 @@
 use crate::{
     traversal::{
         depth_first::traverser::Dfs,
-        over::{OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
-        traverser_mut::TraverserMut,
+        over::{OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
         Traversal, Traverser,
     },
-    Dyn, DynTree,
+    DynTree,
 };
 use alloc::vec::Vec;
 
@@ -42,7 +41,7 @@ fn tree() -> DynTree<i32> {
 #[test]
 fn dfs_iter_mut_val() {
     let mut tree = tree();
-    let mut traverser = Dfs::<Dyn<i32>, OverData>::default();
+    let mut traverser = Dfs::default();
 
     let mut root = tree.root_mut().unwrap();
     let iter = traverser.iter_mut(&mut root);
@@ -60,7 +59,7 @@ fn dfs_iter_mut_val() {
 
 #[test]
 fn dfs_iter_mut_depth() {
-    fn test(mut traverser: Dfs<Dyn<i32>, OverDepthData>) {
+    fn test(mut traverser: Dfs<OverDepthData>) {
         let mut tree = tree();
 
         let mut root = tree.root_mut().unwrap();
@@ -77,22 +76,17 @@ fn dfs_iter_mut_depth() {
         );
     }
 
-    test(Dfs::<Dyn<i32>, OverDepthData>::default());
-    test(Dfs::default());
-    test(Dfs::<_, OverData>::default().with_depth());
-    test(
-        Dfs::<_, OverData>::default()
-            .with_depth()
-            .over_nodes()
-            .over_data(),
-    );
+    test(Dfs::<OverDepthData>::new());
+    test(Dfs::new());
+    test(Dfs::default().with_depth());
+    test(Dfs::default().with_depth().over_nodes().over_data());
 
     test(Traversal.dfs().with_depth());
 }
 
 #[test]
 fn dfs_iter_mut_sibling() {
-    fn test(mut traverser: Dfs<Dyn<i32>, OverSiblingIdxData>) {
+    fn test(mut traverser: Dfs<OverSiblingIdxData>) {
         let mut tree = tree();
 
         let mut root = tree.root_mut().unwrap();
@@ -109,22 +103,17 @@ fn dfs_iter_mut_sibling() {
         );
     }
 
-    test(Dfs::<Dyn<i32>, OverSiblingIdxData>::default());
-    test(Dfs::default());
-    test(Dfs::<_, OverData>::default().with_sibling_idx());
-    test(
-        Dfs::<_, OverData>::default()
-            .with_sibling_idx()
-            .over_nodes()
-            .over_data(),
-    );
+    test(Dfs::<OverSiblingIdxData>::new());
+    test(Dfs::new());
+    test(Dfs::default().with_sibling_idx());
+    test(Dfs::default().with_sibling_idx().over_nodes().over_data());
 
     test(Traversal.dfs().with_sibling_idx());
 }
 
 #[test]
 fn dfs_iter_mut_depth_sibling() {
-    fn test(mut traverser: Dfs<Dyn<i32>, OverDepthSiblingIdxData>) {
+    fn test(mut traverser: Dfs<OverDepthSiblingIdxData>) {
         let mut tree = tree();
 
         let mut root = tree.root_mut().unwrap();
@@ -141,20 +130,12 @@ fn dfs_iter_mut_depth_sibling() {
         );
     }
 
-    test(Dfs::<Dyn<i32>, OverDepthSiblingIdxData>::default());
-    test(Dfs::default());
+    test(Dfs::<OverDepthSiblingIdxData>::new());
+    test(Dfs::new());
+    test(Dfs::default().with_sibling_idx().with_depth());
+    test(Dfs::default().with_depth().with_sibling_idx());
     test(
-        Dfs::<_, OverData>::default()
-            .with_sibling_idx()
-            .with_depth(),
-    );
-    test(
-        Dfs::<_, OverData>::default()
-            .with_depth()
-            .with_sibling_idx(),
-    );
-    test(
-        Dfs::<_, OverData>::default()
+        Dfs::default()
             .with_sibling_idx()
             .with_depth()
             .over_nodes()

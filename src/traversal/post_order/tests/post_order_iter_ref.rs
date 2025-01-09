@@ -47,16 +47,15 @@ fn tree() -> DynTree<i32> {
 fn post_order_iter_ref_empty() {
     let tree = DynTree::<i32>::empty();
     let iter = PostOrderIterPtr::<Dyn<i32>, Val>::default();
-    let mut iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, NodePtr<_>>::from(
-        (&tree.0, iter),
-    );
+    let mut iter =
+        PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, NodePtr<_>>::from((&tree.0, iter));
     assert_eq!(iter.next(), None);
 }
 
-type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, SplitRecursive>;
+type Item<'a, O> = <O as Over>::NodeItem<'a, Dyn<i32>, Auto, SplitRecursive>;
 
-fn post_order_iter_for<O: Over<Dyn<i32>>>() {
-    fn data<'a, O: Over<Dyn<i32>> + 'a>(
+fn post_order_iter_for<O: Over>() {
+    fn data<'a, O: Over>(
         iter: impl Iterator<Item = Item<'a, O>>,
     ) -> Vec<<Dyn<i32> as Variant>::Item> {
         iter.map(|x| x.node_data().clone()).collect()
@@ -107,10 +106,8 @@ fn post_order_iter_ref_depth() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
-    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((
-        root.col(),
-        iter,
-    ));
+    let iter =
+        PostOrderIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.map(|x| x.0).collect::<Vec<_>>(),
         [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
@@ -119,10 +116,8 @@ fn post_order_iter_ref_depth() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
-    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((
-        root.col(),
-        iter,
-    ));
+    let iter =
+        PostOrderIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((root.col(), iter));
     assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
 }
 
@@ -134,9 +129,10 @@ fn post_order_iter_ref_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
-    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from(
-        (root.col(), iter),
-    );
+    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from((
+        root.col(),
+        iter,
+    ));
     assert_eq!(
         iter.map(|x| x.0).collect::<Vec<_>>(),
         [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
@@ -145,9 +141,10 @@ fn post_order_iter_ref_sibling() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
-    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from(
-        (root.col(), iter),
-    );
+    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from((
+        root.col(),
+        iter,
+    ));
     assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
 }
 
@@ -158,11 +155,10 @@ fn post_order_iter_ref_depth_sibling() {
     let root = tree.root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
-    let iter =
-        PostOrderIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((
-            root.col(),
-            iter,
-        ));
+    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((
+        root.col(),
+        iter,
+    ));
     assert_eq!(
         iter.clone().map(|x| x.0).collect::<Vec<_>>(),
         [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
@@ -176,11 +172,10 @@ fn post_order_iter_ref_depth_sibling() {
     let n3 = root.child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
-    let iter =
-        PostOrderIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((
-            root.col(),
-            iter,
-        ));
+    let iter = PostOrderIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((
+        root.col(),
+        iter,
+    ));
     assert_eq!(
         iter.clone().map(|x| x.0).collect::<Vec<_>>(),
         [2, 1, 2, 2, 1, 0]

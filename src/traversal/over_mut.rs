@@ -8,68 +8,72 @@ use crate::{
     pinned_storage::{PinnedStorage, SplitRecursive},
     TreeVariant,
 };
+use orx_selfref_col::Variant;
 
 pub type OverItemMut<'a, V, O, M = Auto, P = SplitRecursive> =
-    <<O as Over<V>>::Enumeration as Enumeration>::Item<<O as OverMut<V>>::NodeItemMut<'a, M, P>>;
+    <<O as Over>::Enumeration as Enumeration>::Item<<O as OverMut>::NodeItemMut<'a, V, M, P>>;
+
+pub type OverItemInto<'a, V, O> =
+    <<O as Over>::Enumeration as Enumeration>::Item<<V as Variant>::Item>;
 
 /// Type that defines the type of the mutable items that iterators created by a traverser such as the [`Dfs`] or [`PostOrder`].
 ///
 /// [`Dfs`]: crate::traversal::Dfs
 /// [`PostOrder`]: crate::traversal::PostOrder
-pub trait OverMut<V: TreeVariant>: Over<V> {
+pub trait OverMut: Over {
     /// Part of the mutable iterator item which only depends on the node's internal data.
-    type NodeItemMut<'a, M, P>: NodeItemMut<'a, V, M, P>
+    type NodeItemMut<'a, V, M, P>: NodeItemMut<'a, V, M, P>
     where
         M: MemoryPolicy,
         P: PinnedStorage,
-        V: 'a,
+        V: TreeVariant + 'a,
         Self: 'a;
 }
 
 // val
 
-impl<V: TreeVariant> OverMut<V> for OverData {
-    type NodeItemMut<'a, M, P>
+impl OverMut for OverData {
+    type NodeItemMut<'a, V, M, P>
         = &'a mut V::Item
     where
         M: MemoryPolicy,
         P: PinnedStorage,
-        V: 'a,
+        V: TreeVariant + 'a,
         Self: 'a;
 }
 
 // depth & val
 
-impl<V: TreeVariant> OverMut<V> for OverDepthData {
-    type NodeItemMut<'a, M, P>
+impl OverMut for OverDepthData {
+    type NodeItemMut<'a, V, M, P>
         = &'a mut V::Item
     where
         M: MemoryPolicy,
         P: PinnedStorage,
-        V: 'a,
+        V: TreeVariant + 'a,
         Self: 'a;
 }
 
 // sibling & val
 
-impl<V: TreeVariant> OverMut<V> for OverSiblingIdxData {
-    type NodeItemMut<'a, M, P>
+impl OverMut for OverSiblingIdxData {
+    type NodeItemMut<'a, V, M, P>
         = &'a mut V::Item
     where
         M: MemoryPolicy,
         P: PinnedStorage,
-        V: 'a,
+        V: TreeVariant + 'a,
         Self: 'a;
 }
 
 // depth & sibling & val
 
-impl<V: TreeVariant> OverMut<V> for OverDepthSiblingIdxData {
-    type NodeItemMut<'a, M, P>
+impl OverMut for OverDepthSiblingIdxData {
+    type NodeItemMut<'a, V, M, P>
         = &'a mut V::Item
     where
         M: MemoryPolicy,
         P: PinnedStorage,
-        V: 'a,
+        V: TreeVariant + 'a,
         Self: 'a;
 }

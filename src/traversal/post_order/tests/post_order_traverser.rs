@@ -46,20 +46,20 @@ fn tree() -> DynTree<i32> {
     tree
 }
 
-type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, SplitRecursive>;
+type Item<'a, O> = <O as Over>::NodeItem<'a, Dyn<i32>, Auto, SplitRecursive>;
 
-fn dfs_iter_for<O: Over<Dyn<i32>, Enumeration = Val>>()
+fn post_order_iter_for<O: Over<Enumeration = Val>>()
 where
     O::Enumeration: PostOrderEnumeration,
 {
-    fn data<'a, O: Over<Dyn<i32>> + 'a>(
+    fn data<'a, O: Over>(
         iter: impl Iterator<Item = Item<'a, O>>,
     ) -> Vec<<Dyn<i32> as Variant>::Item> {
         iter.map(|x| x.node_data().clone()).collect()
     }
 
     let tree = tree();
-    let mut traverser = PostOrder::<Dyn<i32>, O>::default();
+    let mut traverser = PostOrder::<O>::new();
 
     let root = tree.root().unwrap();
     let iter = traverser.iter(&root);
@@ -75,23 +75,23 @@ where
 }
 
 #[test]
-fn dfs_traverser_ptr() {
-    dfs_iter_for::<OverPtr>();
+fn post_order_traverser_ptr() {
+    post_order_iter_for::<OverPtr>();
 }
 
 #[test]
-fn dfs_traverser_val() {
-    dfs_iter_for::<OverNode>();
+fn post_order_traverser_val() {
+    post_order_iter_for::<OverNode>();
 }
 
 #[test]
-fn dfs_traverser_node() {
-    dfs_iter_for::<OverData>();
+fn post_order_traverser_node() {
+    post_order_iter_for::<OverData>();
 }
 
 #[test]
-fn dfs_iter_ref_depth() {
-    fn test(mut traverser: PostOrder<Dyn<i32>, OverDepthData>) {
+fn post_order_iter_ref_depth() {
+    fn test(mut traverser: PostOrder<OverDepthData>) {
         let tree = tree();
 
         let root = tree.root().unwrap();
@@ -106,22 +106,17 @@ fn dfs_iter_ref_depth() {
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
     }
 
-    test(PostOrder::<Dyn<i32>, OverDepthData>::default());
-    test(PostOrder::default());
-    test(PostOrder::<_, OverData>::default().with_depth());
-    test(
-        PostOrder::<_, OverData>::default()
-            .with_depth()
-            .over_nodes()
-            .over_data(),
-    );
+    test(PostOrder::<OverDepthData>::new());
+    test(PostOrder::new());
+    test(PostOrder::default().with_depth());
+    test(PostOrder::default().with_depth().over_nodes().over_data());
 
     test(Traversal.post_order().with_depth());
 }
 
 #[test]
-fn dfs_iter_ref_sibling() {
-    fn test(mut traverser: PostOrder<Dyn<i32>, OverSiblingIdxData>) {
+fn post_order_iter_ref_sibling() {
+    fn test(mut traverser: PostOrder<OverSiblingIdxData>) {
         let tree = tree();
 
         let root = tree.root().unwrap();
@@ -136,11 +131,11 @@ fn dfs_iter_ref_sibling() {
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
     }
 
-    test(PostOrder::<Dyn<i32>, OverSiblingIdxData>::default());
-    test(PostOrder::default());
-    test(PostOrder::<_, OverData>::default().with_sibling_idx());
+    test(PostOrder::<OverSiblingIdxData>::new());
+    test(PostOrder::new());
+    test(PostOrder::default().with_sibling_idx());
     test(
-        PostOrder::<_, OverData>::default()
+        PostOrder::default()
             .with_sibling_idx()
             .over_nodes()
             .over_data(),
@@ -150,8 +145,8 @@ fn dfs_iter_ref_sibling() {
 }
 
 #[test]
-fn dfs_iter_ref_depth_sibling() {
-    fn test(mut traverser: PostOrder<Dyn<i32>, OverDepthSiblingIdxData>) {
+fn post_order_iter_ref_depth_sibling() {
+    fn test(mut traverser: PostOrder<OverDepthSiblingIdxData>) {
         let tree = tree();
 
         let root = tree.root().unwrap();
@@ -173,20 +168,12 @@ fn dfs_iter_ref_depth_sibling() {
         assert_eq!(iter.map(|x| x.1).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
     }
 
-    test(PostOrder::<Dyn<i32>, OverDepthSiblingIdxData>::default());
-    test(PostOrder::default());
+    test(PostOrder::<OverDepthSiblingIdxData>::new());
+    test(PostOrder::new());
+    test(PostOrder::default().with_sibling_idx().with_depth());
+    test(PostOrder::default().with_depth().with_sibling_idx());
     test(
-        PostOrder::<_, OverData>::default()
-            .with_sibling_idx()
-            .with_depth(),
-    );
-    test(
-        PostOrder::<_, OverData>::default()
-            .with_depth()
-            .with_sibling_idx(),
-    );
-    test(
-        PostOrder::<_, OverData>::default()
+        PostOrder::default()
             .with_sibling_idx()
             .with_depth()
             .over_nodes()

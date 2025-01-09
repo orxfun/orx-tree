@@ -2,10 +2,9 @@ use crate::{
     traversal::{
         over::{OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
         post_order::traverser::PostOrder,
-        traverser_mut::TraverserMut,
         Traversal, Traverser,
     },
-    Dyn, DynTree,
+    DynTree,
 };
 use alloc::vec::Vec;
 
@@ -40,9 +39,9 @@ fn tree() -> DynTree<i32> {
 }
 
 #[test]
-fn dfs_iter_mut_val() {
+fn post_order_iter_mut_val() {
     let mut tree = tree();
-    let mut traverser = PostOrder::<Dyn<i32>, OverData>::default();
+    let mut traverser = PostOrder::<OverData>::default();
 
     let mut root = tree.root_mut().unwrap();
     let iter = traverser.iter_mut(&mut root);
@@ -59,8 +58,8 @@ fn dfs_iter_mut_val() {
 }
 
 #[test]
-fn dfs_iter_mut_depth() {
-    fn test(mut traverser: PostOrder<Dyn<i32>, OverDepthData>) {
+fn post_order_iter_mut_depth() {
+    fn test(mut traverser: PostOrder<OverDepthData>) {
         let mut tree = tree();
 
         let mut root = tree.root_mut().unwrap();
@@ -77,22 +76,17 @@ fn dfs_iter_mut_depth() {
         );
     }
 
-    test(PostOrder::<Dyn<i32>, OverDepthData>::default());
-    test(PostOrder::default());
-    test(PostOrder::<_, OverData>::default().with_depth());
-    test(
-        PostOrder::<_, OverData>::default()
-            .with_depth()
-            .over_nodes()
-            .over_data(),
-    );
+    test(PostOrder::<OverDepthData>::new());
+    test(PostOrder::new());
+    test(PostOrder::default().with_depth());
+    test(PostOrder::default().with_depth().over_nodes().over_data());
 
     test(Traversal.post_order().with_depth());
 }
 
 #[test]
-fn dfs_iter_mut_sibling() {
-    fn test(mut traverser: PostOrder<Dyn<i32>, OverSiblingIdxData>) {
+fn post_order_iter_mut_sibling() {
+    fn test(mut traverser: PostOrder<OverSiblingIdxData>) {
         let mut tree = tree();
 
         let mut root = tree.root_mut().unwrap();
@@ -109,11 +103,11 @@ fn dfs_iter_mut_sibling() {
         );
     }
 
-    test(PostOrder::<Dyn<i32>, OverSiblingIdxData>::default());
-    test(PostOrder::default());
-    test(PostOrder::<_, OverData>::default().with_sibling_idx());
+    test(PostOrder::<OverSiblingIdxData>::new());
+    test(PostOrder::new());
+    test(PostOrder::default().with_sibling_idx());
     test(
-        PostOrder::<_, OverData>::default()
+        PostOrder::default()
             .with_sibling_idx()
             .over_nodes()
             .over_data(),
@@ -123,8 +117,8 @@ fn dfs_iter_mut_sibling() {
 }
 
 #[test]
-fn dfs_iter_mut_depth_sibling() {
-    fn test(mut traverser: PostOrder<Dyn<i32>, OverDepthSiblingIdxData>) {
+fn post_order_iter_mut_depth_sibling() {
+    fn test(mut traverser: PostOrder<OverDepthSiblingIdxData>) {
         let mut tree = tree();
 
         let mut root = tree.root_mut().unwrap();
@@ -141,20 +135,12 @@ fn dfs_iter_mut_depth_sibling() {
         );
     }
 
-    test(PostOrder::<Dyn<i32>, OverDepthSiblingIdxData>::default());
-    test(PostOrder::default());
+    test(PostOrder::<OverDepthSiblingIdxData>::new());
+    test(PostOrder::new());
+    test(PostOrder::default().with_sibling_idx().with_depth());
+    test(PostOrder::default().with_depth().with_sibling_idx());
     test(
-        PostOrder::<_, OverData>::default()
-            .with_sibling_idx()
-            .with_depth(),
-    );
-    test(
-        PostOrder::<_, OverData>::default()
-            .with_depth()
-            .with_sibling_idx(),
-    );
-    test(
-        PostOrder::<_, OverData>::default()
+        PostOrder::default()
             .with_sibling_idx()
             .with_depth()
             .over_nodes()

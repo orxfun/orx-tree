@@ -9,6 +9,9 @@ orx-split-vec = "3.11"
 orx-selfref-col = { path = "../orx-selfref-col" }
 orx-self-or = "1.0"
 
+[dev-dependencies]
+test-case = { version = "3.3.1", default-features = false }
+
 [features]
 default = ["std"]
 std = []

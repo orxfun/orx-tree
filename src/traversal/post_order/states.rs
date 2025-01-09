@@ -1,11 +1,10 @@
-use crate::TreeVariant;
+use crate::{Dyn, TreeVariant};
 use alloc::vec::Vec;
 use orx_selfref_col::NodePtr;
 
 pub type State<V> = (NodePtr<V>, usize); // (pointer, child_idx)
-pub type States<V> = Vec<State<V>>;
 
-pub fn set<V: TreeVariant>(states: &mut States<V>, depth: usize, pointer: NodePtr<V>) {
+pub fn set<V: TreeVariant>(states: &mut Vec<State<V>>, depth: usize, pointer: NodePtr<V>) {
     match states.get_mut(depth) {
         Some(x) => *x = (pointer, 0),
         None => {
@@ -15,6 +14,25 @@ pub fn set<V: TreeVariant>(states: &mut States<V>, depth: usize, pointer: NodePt
     }
 }
 
-pub fn increment_child_idx<V: TreeVariant>(states: &mut States<V>, depth: usize) {
+pub fn increment_child_idx<V: TreeVariant>(states: &mut [State<V>], depth: usize) {
     states[depth].1 += 1;
+}
+
+#[derive(Default)]
+pub struct States {
+    states: Vec<State<Dyn<i32>>>,
+}
+
+impl States {
+    pub(crate) fn for_variant<V>(&mut self) -> &mut Vec<State<V>>
+    where
+        V: TreeVariant,
+    {
+        // # SAFETY: Size and layout of stored elements in the states
+        // do not change => (NodePtr<V>, usize)
+        //
+        // Since NodePtr<V> under the hood contains only one raw pointer,
+        // memory size and layout of elements are independent of V.
+        unsafe { core::mem::transmute(&mut self.states) }
+    }
 }

@@ -3,8 +3,8 @@ use orx_selfref_col::{MemoryState, NodeIdxError, NodePtr};
 
 const INVALID_IDX_ERROR: &str = "\n
 NodeIdx is not valid for the given tree.
-Please see the notes and examples of NodeIdx and MemoryPolicy:\n
-* https://docs.rs/orx-tree/latest/orx_tree/struct.NodeIdx.html\n
+Please see the notes and examples of NodeIdx and MemoryPolicy:
+* https://docs.rs/orx-tree/latest/orx_tree/struct.NodeIdx.html
 * https://docs.rs/orx-tree/latest/orx_tree/trait.MemoryPolicy.html\n
 \n";
 

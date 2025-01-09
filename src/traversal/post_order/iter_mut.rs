@@ -1,11 +1,12 @@
 use super::iter_ptr::PostOrderIterPtr;
-use super::states::States;
+use super::states::State;
 use super::{iter_ptr::Item, post_enumeration::PostOrderEnumeration};
 use crate::helpers::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;
 use crate::TreeVariant;
+use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;
 
@@ -15,7 +16,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
     D: NodeItemMut<'a, V, M, P>,
 {
     col: &'a Col<V, M, P>,
@@ -29,7 +30,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
     D: NodeItemMut<'a, V, M, P>,
 {
     /// # Safety
@@ -58,7 +59,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: PostOrderEnumeration,
-    S: SoM<States<V>>,
+    S: SoM<Vec<State<V>>>,
     D: NodeItemMut<'a, V, M, P>,
 {
     type Item = E::Item<D>;

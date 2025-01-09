@@ -1,4 +1,7 @@
-use super::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef, stack::Stack};
+use super::{
+    into_iter::DfsIterInto, iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef,
+    stack::Stack,
+};
 use crate::{
     memory::MemoryPolicy,
     node_ref::NodeRefCore,
@@ -7,7 +10,6 @@ use crate::{
         over::{Over, OverData, OverItem},
         over_mut::{OverItemMut, OverMut},
         traverser::Traverser,
-        traverser_mut::TraverserMut,
     },
     NodeMut, NodeRef, TreeVariant,
 };
@@ -28,75 +30,82 @@ use crate::{
 ///   * `Traversal.dfs()` or `Traversal.dfs().with_depth().with_sibling_idx()`.
 ///
 /// [`Traversal`]: crate::Traversal
-pub struct Dfs<V, O = OverData>
+pub struct Dfs<O = OverData>
 where
-    V: TreeVariant,
-    O: Over<V>,
+    O: Over,
 {
-    stack: Stack<V, O::Enumeration>,
+    stack: Stack<O::Enumeration>,
 }
 
-impl<V, O> Default for Dfs<V, O>
-where
-    V: TreeVariant,
-    O: Over<V>,
-{
+impl Default for Dfs {
     fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<O> Traverser<O> for Dfs<O>
+where
+    O: Over,
+{
+    type IntoOver<O2>
+        = Dfs<O2>
+    where
+        O2: Over;
+
+    fn new() -> Self {
         Self {
             stack: Default::default(),
         }
     }
-}
 
-impl<V, O> Traverser<V, O> for Dfs<V, O>
-where
-    V: TreeVariant,
-    O: Over<V>,
-{
-    type IntoOver<O2>
-        = Dfs<V, O2>
-    where
-        O2: Over<V>;
-
-    fn iter<'a, M, P>(
-        &mut self,
+    fn iter<'a, V, M, P>(
+        &'a mut self,
         node: &'a impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: 'a,
-        Self: 'a,
     {
         let root = node.node_ptr().clone();
-        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((&mut self.stack, root));
+        let stack = self.stack.for_variant::<V>();
+        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((stack, root));
         DfsIterRef::from((node.col(), iter_ptr))
     }
 
-    fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2> {
-        Dfs::<V, O2>::default()
+    fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
+        Dfs::<O2>::new()
     }
-}
 
-impl<V, O> TraverserMut<V, O> for Dfs<V, O>
-where
-    V: TreeVariant,
-    O: OverMut<V>,
-{
-    fn iter_mut<'a, M, P>(
-        &mut self,
+    fn iter_mut<'a, V, M, P>(
+        &'a mut self,
         node_mut: &'a mut NodeMut<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: 'a,
-        Self: 'a,
+        O: OverMut,
     {
         let root = node_mut.node_ptr().clone();
-        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((&mut self.stack, root));
+        let stack = self.stack.for_variant::<V>();
+        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((stack, root));
         unsafe { DfsIterMut::from((node_mut.col(), iter_ptr)) }
+    }
+
+    fn into_iter<'a, V, M, P>(
+        &'a mut self,
+        node_mut: NodeMut<'a, V, M, P>,
+    ) -> impl Iterator<Item = crate::traversal::over_mut::OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        O: OverMut,
+    {
+        let (col, root) = node_mut.into_inner();
+        let stack = self.stack.for_variant::<V>();
+        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((stack, root.clone()));
+        unsafe { DfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
     }
 }

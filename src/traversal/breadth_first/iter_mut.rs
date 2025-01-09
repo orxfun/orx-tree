@@ -1,11 +1,12 @@
 use super::bfs_enumeration::BreadthFirstEnumeration;
 use super::iter_ptr::BfsIterPtr;
-use super::queue::{Item, Queue};
+use super::queue::Item;
 use crate::helpers::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;
 use crate::TreeVariant;
+use alloc::collections::VecDeque;
 use core::marker::PhantomData;
 use orx_self_or::SoM;
 
@@ -15,7 +16,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
-    S: SoM<Queue<V, E>>,
+    S: SoM<VecDeque<Item<V, E>>>,
     D: NodeItemMut<'a, V, M, P>,
 {
     col: &'a Col<V, M, P>,
@@ -29,7 +30,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
-    S: SoM<Queue<V, E>>,
+    S: SoM<VecDeque<Item<V, E>>>,
     D: NodeItemMut<'a, V, M, P>,
 {
     /// # Safety
@@ -58,7 +59,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: BreadthFirstEnumeration,
-    S: SoM<Queue<V, E>>,
+    S: SoM<VecDeque<Item<V, E>>>,
     D: NodeItemMut<'a, V, M, P>,
 {
     type Item = E::Item<D>;

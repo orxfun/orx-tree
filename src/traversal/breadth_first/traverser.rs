@@ -1,13 +1,15 @@
-use super::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, iter_ref::BfsIterRef, queue::Queue};
+use super::{
+    into_iter::BfsIterInto, iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, iter_ref::BfsIterRef,
+    queue::Queue,
+};
 use crate::{
     memory::MemoryPolicy,
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
         over::{Over, OverData, OverItem},
-        over_mut::{OverItemMut, OverMut},
+        over_mut::{OverItemInto, OverItemMut, OverMut},
         traverser::Traverser,
-        traverser_mut::TraverserMut,
     },
     NodeMut, NodeRef, TreeVariant,
 };
@@ -29,75 +31,82 @@ use crate::{
 ///   * `Traversal.dfs()` or `Traversal.dfs().with_depth().with_sibling_idx()`.
 ///
 /// [`Traversal`]: crate::Traversal
-pub struct Bfs<V, O = OverData>
+pub struct Bfs<O = OverData>
 where
-    V: TreeVariant,
-    O: Over<V>,
+    O: Over,
 {
-    stack: Queue<V, O::Enumeration>,
+    queue: Queue<O::Enumeration>,
 }
 
-impl<V, O> Default for Bfs<V, O>
-where
-    V: TreeVariant,
-    O: Over<V>,
-{
+impl Default for Bfs {
     fn default() -> Self {
-        Self {
-            stack: Default::default(),
-        }
+        Self::new()
     }
 }
 
-impl<V, O> Traverser<V, O> for Bfs<V, O>
+impl<O> Traverser<O> for Bfs<O>
 where
-    V: TreeVariant,
-    O: Over<V>,
+    O: Over,
 {
     type IntoOver<O2>
-        = Bfs<V, O2>
+        = Bfs<O2>
     where
-        O2: Over<V>;
+        O2: Over;
 
-    fn iter<'a, M, P>(
-        &mut self,
+    fn new() -> Self {
+        Self {
+            queue: Default::default(),
+        }
+    }
+
+    fn iter<'a, V, M, P>(
+        &'a mut self,
         node: &'a impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: 'a,
-        Self: 'a,
     {
         let root = node.node_ptr().clone();
-        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((&mut self.stack, root));
+        let queue = self.queue.for_variant::<V>();
+        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((queue, root));
         BfsIterRef::from((node.col(), iter_ptr))
     }
 
-    fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2> {
-        Bfs::<V, O2>::default()
+    fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
+        Bfs::<O2>::new()
     }
-}
 
-impl<V, O> TraverserMut<V, O> for Bfs<V, O>
-where
-    V: TreeVariant,
-    O: OverMut<V>,
-{
-    fn iter_mut<'a, M, P>(
-        &mut self,
+    fn iter_mut<'a, V, M, P>(
+        &'a mut self,
         node_mut: &'a mut NodeMut<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: 'a,
-        Self: 'a,
+        O: OverMut,
     {
         let root = node_mut.node_ptr().clone();
-        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((&mut self.stack, root));
+        let queue = self.queue.for_variant::<V>();
+        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((queue, root));
         unsafe { BfsIterMut::from((node_mut.col(), iter_ptr)) }
+    }
+
+    fn into_iter<'a, V, M, P>(
+        &'a mut self,
+        node_mut: NodeMut<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        O: OverMut,
+    {
+        let (col, root) = node_mut.into_inner();
+        let queue = self.queue.for_variant::<V>();
+        let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((queue, root.clone()));
+        unsafe { BfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
     }
 }

@@ -290,7 +290,7 @@ impl MemoryPolicy for Lazy {
 /// please see the Examples section of [`MemoryPolicy`].
 ///
 /// [`ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
-/// ```
+/// [`remove`]: crate::NodeMut::remove
 pub struct Auto;
 impl MemoryPolicy for Auto {
     type MemoryReclaimPolicy<V>
@@ -329,7 +329,6 @@ impl MemoryPolicy for Auto {
 ///
 /// In order to observe the impact of the memory reclaim policy on validity of the node indices,
 /// please see the Examples section of [`MemoryPolicy`].
-/// ```
 pub struct AutoWithThreshold<const D: usize>;
 impl<const D: usize> MemoryPolicy for AutoWithThreshold<D> {
     type MemoryReclaimPolicy<V>
