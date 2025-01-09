@@ -1,6 +1,9 @@
 use super::Dary;
 use crate::{memory::Auto, pinned_storage::SplitRecursive, Node, Tree};
 
+/// A binary tree where each of the nodes might have at most 2 children.
+pub type Binary<T> = Dary<2, T>;
+
 /// A d-ary tree where each of the nodes might have at most `D` children.
 ///
 /// # Type Aliases and Generic Parameters
@@ -38,8 +41,7 @@ use crate::{memory::Auto, pinned_storage::SplitRecursive, Node, Tree};
 /// ```
 ///
 /// TODO: documentation & examples here
-pub type DaryTree<const D: usize, T, M = Auto, P = SplitRecursive> =
-    Tree<Dary<D, T>, M, P>;
+pub type DaryTree<const D: usize, T, M = Auto, P = SplitRecursive> = Tree<Dary<D, T>, M, P>;
 
 /// A binary tree where each node might have 0, 1 or 2 children.
 ///
@@ -78,13 +80,12 @@ pub type DaryTree<const D: usize, T, M = Auto, P = SplitRecursive> =
 /// ```
 ///
 /// TODO: documentation & examples here
-pub type BinaryTree<T, M = Auto, P = SplitRecursive> = DaryTree<2, T, M, P>;
+pub type BinaryTree<T, M = Auto, P = SplitRecursive> = Tree<Binary<T>, M, P>;
 
 // nodes
 
 /// Node of a [`DaryTree`].
-pub type DaryNode<'a, const D: usize, T, M = Auto, P = SplitRecursive> =
-    Node<'a, Dary<D, T>, M, P>;
+pub type DaryNode<'a, const D: usize, T, M = Auto, P = SplitRecursive> = Node<'a, Dary<D, T>, M, P>;
 
 /// Node of a [`BinaryTree`].
 pub type BinaryNode<'a, T, M = Auto, P = SplitRecursive> = Node<'a, Dary<2, T>, M, P>;

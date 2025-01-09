@@ -40,7 +40,7 @@ mod tree;
 mod tree_node_idx;
 mod tree_variant;
 
-pub use dary::{BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
+pub use dary::{Binary, BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
 pub use memory::{Auto, AutoWithThreshold, Lazy, MemoryPolicy};
 pub use node::Node;
 pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
