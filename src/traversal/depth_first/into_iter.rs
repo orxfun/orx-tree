@@ -1,10 +1,11 @@
 use super::iter_ptr::DfsIterPtr;
-use super::stack::Stack;
+use super::stack::Item;
 use super::DepthFirstEnumeration;
 use crate::helpers::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::TreeVariant;
+use alloc::vec::Vec;
 use orx_self_or::SoM;
 use orx_selfref_col::{NodePtr, Refs};
 
@@ -14,7 +15,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: DepthFirstEnumeration,
-    S: SoM<Stack<V, E>>,
+    S: SoM<Vec<Item<V, E>>>,
 {
     col: &'a mut Col<V, M, P>,
     iter: DfsIterPtr<V, E, S>,
@@ -26,7 +27,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: DepthFirstEnumeration,
-    S: SoM<Stack<V, E>>,
+    S: SoM<Vec<Item<V, E>>>,
 {
     /// # Safety
     ///
@@ -76,7 +77,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: DepthFirstEnumeration,
-    S: SoM<Stack<V, E>>,
+    S: SoM<Vec<Item<V, E>>>,
 {
     type Item = E::Item<V::Item>;
 
@@ -91,7 +92,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
     E: DepthFirstEnumeration,
-    S: SoM<Stack<V, E>>,
+    S: SoM<Vec<Item<V, E>>>,
 {
     fn drop(&mut self) {
         while let Some(element) = self.iter.next() {

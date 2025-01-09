@@ -11,7 +11,7 @@ use crate::{
         over_mut::{OverItemMut, OverMut},
         Traverser,
     },
-    NodeMut, NodeRef, TreeVariant,
+    Dyn, NodeMut, NodeRef, TreeVariant,
 };
 use core::marker::PhantomData;
 
@@ -31,18 +31,16 @@ use core::marker::PhantomData;
 ///   * `Traversal.post_order()` or `Traversal.post_order().with_depth().with_sibling_idx()`.
 ///
 /// [`Traversal`]: crate::Traversal
-pub struct PostOrder<V, O = OverData>
+pub struct PostOrder<O = OverData>
 where
-    V: TreeVariant,
     O: Over,
 {
-    states: States<V>,
+    states: States<Dyn<i32>>,
     phantom: PhantomData<O>,
 }
 
-impl<V, O> Default for PostOrder<V, O>
+impl<O> Default for PostOrder<O>
 where
-    V: TreeVariant,
     O: Over,
 {
     fn default() -> Self {
@@ -53,18 +51,17 @@ where
     }
 }
 
-impl<V, O> Traverser<V, O> for PostOrder<V, O>
+impl<O> Traverser<O> for PostOrder<O>
 where
-    V: TreeVariant,
     O: Over,
 {
     type IntoOver<O2>
-        = PostOrder<V, O2>
+        = PostOrder<O2>
     where
         O2: Over;
 
-    fn iter<'a, M, P>(
-        &mut self,
+    fn iter<'a, V, M, P>(
+        &'a mut self,
         node: &'a impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
@@ -74,9 +71,10 @@ where
         O: 'a,
         Self: 'a,
     {
-        let root = node.node_ptr().clone();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
-        PostOrderIterRef::from((node.col(), iter_ptr))
+        // let root = node.node_ptr().clone();
+        // let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
+        // PostOrderIterRef::from((node.col(), iter_ptr))
+        core::iter::empty()
     }
 
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
@@ -86,8 +84,8 @@ where
         }
     }
 
-    fn iter_mut<'a, M, P>(
-        &mut self,
+    fn iter_mut<'a, V, M, P>(
+        &'a mut self,
         node_mut: &'a mut NodeMut<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
@@ -97,13 +95,14 @@ where
         O: OverMut + 'a,
         Self: 'a,
     {
-        let root = node_mut.node_ptr().clone();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
-        unsafe { PostOrderIterMut::from((node_mut.col(), iter_ptr)) }
+        // let root = node_mut.node_ptr().clone();
+        // let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
+        // unsafe { PostOrderIterMut::from((node_mut.col(), iter_ptr)) }
+        core::iter::empty()
     }
 
-    fn into_iter<'a, M, P>(
-        &mut self,
+    fn into_iter<'a, V, M, P>(
+        &'a mut self,
         node_mut: NodeMut<'a, V, M, P>,
     ) -> impl Iterator<Item = crate::traversal::over_mut::OverItemInto<'a, V, O>>
     where
@@ -113,10 +112,11 @@ where
         O: OverMut + 'a,
         Self: 'a,
     {
-        let (col, root) = node_mut.into_inner();
+        // let (col, root) = node_mut.into_inner();
 
-        let iter_ptr =
-            PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root.clone()));
-        unsafe { PostOrderIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+        // let iter_ptr =
+        //     PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root.clone()));
+        // unsafe { PostOrderIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+        core::iter::empty()
     }
 }

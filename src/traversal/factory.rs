@@ -28,7 +28,7 @@ impl Traversal {
     /// [`over_nodes`]: crate::traversal::Traverser::over_nodes
     /// [`with_depth`]: crate::traversal::Traverser::with_depth
     /// [`with_sibling_idx`]: crate::traversal::Traverser::with_sibling_idx
-    pub fn dfs<V: TreeVariant>(self) -> Dfs<V> {
+    pub fn dfs(self) -> Dfs {
         Default::default()
     }
 
@@ -51,7 +51,7 @@ impl Traversal {
     /// [`over_nodes`]: crate::traversal::Traverser::over_nodes
     /// [`with_depth`]: crate::traversal::Traverser::with_depth
     /// [`with_sibling_idx`]: crate::traversal::Traverser::with_sibling_idx
-    pub fn bfs<V: TreeVariant>(self) -> Bfs<V> {
+    pub fn bfs(self) -> Bfs {
         Default::default()
     }
 
@@ -74,7 +74,7 @@ impl Traversal {
     /// [`over_nodes`]: crate::traversal::Traverser::over_nodes
     /// [`with_depth`]: crate::traversal::Traverser::with_depth
     /// [`with_sibling_idx`]: crate::traversal::Traverser::with_sibling_idx
-    pub fn post_order<V: TreeVariant>(self) -> PostOrder<V> {
+    pub fn post_order(self) -> PostOrder {
         Default::default()
     }
 }

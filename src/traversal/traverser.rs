@@ -1,7 +1,7 @@
 use super::{
     over::{Over, OverItem},
     over_mut::{OverItemInto, OverItemMut},
-    OverMut,
+    OverData, OverMut,
 };
 use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRef, TreeVariant};
 
@@ -197,9 +197,8 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 /// [`OverDepthNode`]: crate::traversal::OverDepthNode
 /// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
 /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
-pub trait Traverser<V, O>: Default
+pub trait Traverser<O = OverData>: Default
 where
-    V: TreeVariant,
     O: Over,
 {
     /// Transformed version of the traverser from creating iterators over `O` to `O2`.
@@ -313,8 +312,8 @@ where
     /// assert_eq!(depth, 0); // as it is the root of the traversed subtree
     /// assert_eq!(sibling_idx, 0);
     /// ```
-    fn iter<'a, M, P>(
-        &mut self,
+    fn iter<'a, V, M, P>(
+        &'a mut self,
         node: &'a impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
@@ -410,8 +409,8 @@ where
     /// let values: Vec<_> = dfs.iter(&root).map(|(_, _, data)| *data).collect();
     /// assert_eq!(values, [1, 102, 203, 10305, 404]);
     /// ```
-    fn iter_mut<'a, M, P>(
-        &mut self,
+    fn iter_mut<'a, V, M, P>(
+        &'a mut self,
         node: &'a mut NodeMut<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
@@ -520,8 +519,8 @@ where
     /// assert_eq!(tree.root(), None);
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    fn into_iter<'a, M, P>(
-        &mut self,
+    fn into_iter<'a, V, M, P>(
+        &'a mut self,
         node: NodeMut<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
