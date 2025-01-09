@@ -4,15 +4,11 @@ use crate::{
     pinned_storage::SplitRecursive,
     traversal::{
         enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
-        over::Over,
-        post_order::{
-            into_iter::PostOrderIterInto, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
-        },
+        post_order::{into_iter::PostOrderIterInto, iter_ptr::PostOrderIterPtr},
     },
-    Dyn, DynTree, NodeRef,
+    DynTree, NodeRef,
 };
 use alloc::vec::Vec;
-use orx_selfref_col::NodePtr;
 
 /// ```
 ///      1
@@ -42,15 +38,6 @@ fn tree() -> DynTree<i32> {
     id7.node_mut(&mut tree).extend([10, 11]);
 
     tree
-}
-
-#[test]
-fn post_order_iter_ref_empty() {
-    let tree = DynTree::<i32>::empty();
-    let iter = PostOrderIterPtr::<Dyn<i32>, Val>::default();
-    let mut iter =
-        PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, NodePtr<_>>::from((&tree.0, iter));
-    assert_eq!(iter.next(), None);
 }
 
 #[test]
