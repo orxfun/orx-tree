@@ -46,10 +46,10 @@ fn tree() -> DynTree<i32> {
     tree
 }
 
-type Item<'a, O> = <O as Over<Dyn<i32>>>::NodeItem<'a, Auto, SplitRecursive>;
+type Item<'a, O> = <O as Over>::NodeItem<'a, Dyn<i32>, Auto, SplitRecursive>;
 
-fn bfs_iter_for<O: Over<Dyn<i32>, Enumeration = Val>>() {
-    fn data<'a, O: Over<Dyn<i32>> + 'a>(
+fn bfs_iter_for<O: Over<Enumeration = Val>>() {
+    fn data<'a, O: Over + 'a>(
         iter: impl Iterator<Item = Item<'a, O>>,
     ) -> Vec<<Dyn<i32> as Variant>::Item> {
         iter.map(|x| x.node_data().clone()).collect()

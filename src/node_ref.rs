@@ -494,7 +494,7 @@ where
     /// ```
     fn dfs_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
-        O: Over<V> + 'a,
+        O: Over + 'a,
     {
         use crate::traversal::depth_first::{iter_ptr::DfsIterPtr, iter_ref::DfsIterRef};
         let root = self.node_ptr().clone();
@@ -704,7 +704,7 @@ where
     /// ```
     fn bfs_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
-        O: Over<V> + 'a,
+        O: Over + 'a,
     {
         use crate::traversal::breadth_first::{iter_ptr::BfsIterPtr, iter_ref::BfsIterRef};
         let root = self.node_ptr().clone();
@@ -927,7 +927,7 @@ where
     /// ```
     fn post_order_over<O>(&'a self) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
-        O: Over<V> + 'a,
+        O: Over + 'a,
     {
         use crate::traversal::post_order::{
             iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,

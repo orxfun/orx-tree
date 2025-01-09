@@ -200,12 +200,12 @@ use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRe
 pub trait Traverser<V, O>: Default
 where
     V: TreeVariant,
-    O: Over<V>,
+    O: Over,
 {
     /// Transformed version of the traverser from creating iterators over `O` to `O2`.
     type IntoOver<O2>
     where
-        O2: Over<V>;
+        O2: Over;
 
     /// Returns an iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
@@ -418,7 +418,7 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: OverMut<V> + 'a,
+        O: OverMut + 'a,
         Self: 'a;
 
     /// Returns an iterator which:
@@ -528,12 +528,12 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: OverMut<V> + 'a,
+        O: OverMut + 'a,
         Self: 'a;
 
     /// Consumes this traverser and returns a transformed version of it
     /// which creates iterators over `O2` rather than `O2`.
-    fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2>;
+    fn transform_into<O2: Over>(self) -> Self::IntoOver<O2>;
 
     /// Returns the transformed version of the traverser where it yields:
     /// * data rather than [`Node`]

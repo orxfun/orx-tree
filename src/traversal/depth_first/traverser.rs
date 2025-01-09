@@ -33,7 +33,7 @@ use crate::{
 pub struct Dfs<V, O = OverData>
 where
     V: TreeVariant,
-    O: Over<V>,
+    O: Over,
 {
     stack: Stack<V, O::Enumeration>,
 }
@@ -41,7 +41,7 @@ where
 impl<V, O> Default for Dfs<V, O>
 where
     V: TreeVariant,
-    O: Over<V>,
+    O: Over,
 {
     fn default() -> Self {
         Self {
@@ -53,12 +53,12 @@ where
 impl<V, O> Traverser<V, O> for Dfs<V, O>
 where
     V: TreeVariant,
-    O: Over<V>,
+    O: Over,
 {
     type IntoOver<O2>
         = Dfs<V, O2>
     where
-        O2: Over<V>;
+        O2: Over;
 
     fn iter<'a, M, P>(
         &mut self,
@@ -76,7 +76,7 @@ where
         DfsIterRef::from((node.col(), iter_ptr))
     }
 
-    fn transform_into<O2: Over<V>>(self) -> Self::IntoOver<O2> {
+    fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
         Dfs::<V, O2>::default()
     }
 
@@ -88,7 +88,7 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: OverMut<V> + 'a,
+        O: OverMut + 'a,
         Self: 'a,
     {
         let root = node_mut.node_ptr().clone();
@@ -104,7 +104,7 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: OverMut<V> + 'a,
+        O: OverMut + 'a,
         Self: 'a,
     {
         let (col, root) = node_mut.into_inner();

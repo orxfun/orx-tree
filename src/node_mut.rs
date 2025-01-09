@@ -909,7 +909,7 @@ where
     ///     [1, 102, 204, 308, 10205, 10103, 206, 309, 10207, 310, 10311]
     /// );
     /// ```
-    pub fn dfs_mut_over<O: OverMut<V> + 'a>(
+    pub fn dfs_mut_over<O: OverMut + 'a>(
         &mut self,
     ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr};
@@ -1105,7 +1105,7 @@ where
     ///     [1, 102, 10103, 204, 10205, 206, 10207, 308, 309, 310, 10311]
     /// );
     /// ```
-    pub fn bfs_mut_over<O: OverMut<V> + 'a>(
+    pub fn bfs_mut_over<O: OverMut + 'a>(
         &mut self,
     ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::breadth_first::{iter_mut::BfsIterMut, iter_ptr::BfsIterPtr};
@@ -1313,7 +1313,7 @@ where
     ///     [308, 204, 10205, 102, 309, 206, 310, 10311, 10207, 10103, 1]
     /// );
     /// ```
-    pub fn post_order_mut_over<O: OverMut<V> + 'a>(
+    pub fn post_order_mut_over<O: OverMut + 'a>(
         &mut self,
     ) -> impl Iterator<Item = OverItemMut<'_, V, O, M, P>> {
         use crate::traversal::post_order::{
