@@ -86,13 +86,7 @@ where
             phantom: PhantomData,
         }
     }
-}
 
-impl<V, O> TraverserMut<V, O> for PostOrder<V, O>
-where
-    V: TreeVariant,
-    O: OverMut<V>,
-{
     fn iter_mut<'a, M, P>(
         &mut self,
         node_mut: &'a mut NodeMut<'a, V, M, P>,
@@ -101,7 +95,7 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: 'a,
+        O: OverMut<V> + 'a,
         Self: 'a,
     {
         let root = node_mut.node_ptr().clone();
@@ -117,7 +111,7 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
-        O: 'a,
+        O: OverMut<V> + 'a,
         Self: 'a,
     {
         let (col, root) = node_mut.into_inner();
