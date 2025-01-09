@@ -1,6 +1,6 @@
 use super::{
-    iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
-    states::States,
+    into_iter::PostOrderIterInto, iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
+    iter_ref::PostOrderIterRef, states::States,
 };
 use crate::{
     memory::MemoryPolicy,
@@ -107,5 +107,23 @@ where
         let root = node_mut.node_ptr().clone();
         let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root));
         unsafe { PostOrderIterMut::from((node_mut.col(), iter_ptr)) }
+    }
+
+    fn into_iter<'a, M, P>(
+        &mut self,
+        node_mut: NodeMut<'a, V, M, P>,
+    ) -> impl Iterator<Item = crate::traversal::over_mut::OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        O: 'a,
+        Self: 'a,
+    {
+        let (col, root) = node_mut.into_inner();
+
+        let iter_ptr =
+            PostOrderIterPtr::<V, O::Enumeration, _>::from((&mut self.states, root.clone()));
+        unsafe { PostOrderIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
     }
 }

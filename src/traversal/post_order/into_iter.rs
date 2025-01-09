@@ -39,6 +39,7 @@ where
     /// * This method requires a mutable reference to a mutable node `NodeMut` which is guaranteed to
     ///   be the only reference to the collection.
     /// * Finally, this iterator's lifetime is equal to the borrow duration of the mutable node.
+    #[allow(clippy::type_complexity)]
     pub(crate) unsafe fn from(
         (col, iter, node_ptr): (&'a mut Col<V, M, P>, PostOrderIterPtr<V, E, S>, NodePtr<V>),
     ) -> Self {
@@ -69,7 +70,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, S> Iterator for PostOrderIterInto<'a, V, M, P, E, S>
+impl<V, M, P, E, S> Iterator for PostOrderIterInto<'_, V, M, P, E, S>
 where
     V: TreeVariant,
     M: MemoryPolicy,
@@ -84,7 +85,7 @@ where
     }
 }
 
-impl<'a, V, M, P, E, S> Drop for PostOrderIterInto<'a, V, M, P, E, S>
+impl<V, M, P, E, S> Drop for PostOrderIterInto<'_, V, M, P, E, S>
 where
     V: TreeVariant,
     M: MemoryPolicy,

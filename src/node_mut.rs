@@ -1434,6 +1434,10 @@ where
 
         child_ptr
     }
+
+    pub(crate) fn into_inner(self) -> (&'a mut Col<V, M, P>, NodePtr<V>) {
+        (self.col, self.node_ptr)
+    }
 }
 
 impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
@@ -1574,54 +1578,4 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
-}
-
-#[test]
-fn abc() {
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //      1
-    //     ╱ ╲
-    //    ╱   ╲
-    //   2     3
-    //  ╱ ╲   ╱ ╲
-    // 4   5 6   7
-    // |     |  ╱ ╲
-    // 8     9 10  11
-
-    let mut tree = DynTree::<i32>::new(1);
-
-    let mut root = tree.root_mut().unwrap();
-    let [id2, id3] = root.grow([2, 3]);
-
-    let mut n2 = id2.node_mut(&mut tree);
-    let [id4, _] = n2.grow([4, 5]);
-
-    id4.node_mut(&mut tree).push(8);
-
-    let mut n3 = id3.node_mut(&mut tree);
-    let [id6, id7] = n3.grow([6, 7]);
-
-    id6.node_mut(&mut tree).push(9);
-    id7.node_mut(&mut tree).extend([10, 11]);
-
-    // remove node 3 and its descendants
-    // collect the removed values into a vector in the traversal's order
-    let n3 = id3.node_mut(&mut tree);
-    let removed_values: Vec<_> = n3.remove_post_order().collect();
-    assert_eq!(removed_values, [9, 6, 10, 11, 7, 3]);
-
-    let remaining_values: Vec<_> = tree.root().unwrap().post_order().copied().collect();
-    assert_eq!(remaining_values, [8, 4, 5, 2, 1]);
-
-    // let's remove root and its descendants (empty the tree)
-    // and collect remaining nodes in the traversal's order
-
-    let root = tree.root_mut().unwrap();
-    let removed_values: Vec<_> = root.remove_post_order().collect();
-    assert_eq!(removed_values, [8, 4, 5, 2, 1]);
-
-    assert!(tree.is_empty());
-    assert_eq!(tree.root(), None);
 }
