@@ -1,14 +1,7 @@
 use super::states::States;
-use crate::{
-    memory::MemoryPolicy,
-    pinned_storage::PinnedStorage,
-    traversal::{
-        over::{Over, OverData, OverItem},
-        over_mut::{OverItemMut, OverMut},
-        traverser_core::TraverserCore,
-        Traverser,
-    },
-    NodeMut, NodeRef, TreeVariant,
+use crate::traversal::{
+    over::{Over, OverData},
+    Traverser,
 };
 use core::marker::PhantomData;
 
@@ -32,7 +25,7 @@ pub struct PostOrder<O = OverData>
 where
     O: Over,
 {
-    states: States,
+    pub(super) states: States,
     phantom: PhantomData<O>,
 }
 
@@ -58,51 +51,10 @@ where
         }
     }
 
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        let states = self.states.for_variant::<V>();
-        Self::iter_with_storage(node, states)
-    }
-
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
         PostOrder {
             states: self.states,
             phantom: PhantomData,
         }
-    }
-
-    fn iter_mut<'a, V, M, P>(
-        &'a mut self,
-        node_mut: &'a mut NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-        O: OverMut,
-    {
-        let states = self.states.for_variant::<V>();
-        Self::iter_mut_with_storage(node_mut, states)
-    }
-
-    fn into_iter<'a, V, M, P>(
-        &'a mut self,
-        node_mut: NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = crate::traversal::over_mut::OverItemInto<'a, V, O>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-        O: OverMut,
-    {
-        let states = self.states.for_variant::<V>();
-        Self::into_iter_with_storage(node_mut, states)
     }
 }

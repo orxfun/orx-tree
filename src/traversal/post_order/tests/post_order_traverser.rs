@@ -9,6 +9,7 @@ use crate::{
             OverSiblingIdxData,
         },
         post_order::{post_enumeration::PostOrderEnumeration, traverser::PostOrder},
+        traverser_core::TraverserCore,
         Traversal, Traverser,
     },
     Dyn, DynTree, NodeRef,

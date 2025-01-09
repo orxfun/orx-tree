@@ -2,6 +2,7 @@ use crate::{
     traversal::{
         breadth_first::traverser::Bfs,
         over::{OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
+        traverser_core::TraverserCore,
         Traversal, Traverser,
     },
     DynTree,

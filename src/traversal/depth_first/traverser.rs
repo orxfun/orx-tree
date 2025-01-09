@@ -1,14 +1,7 @@
 use super::stack::Stack;
-use crate::{
-    memory::MemoryPolicy,
-    pinned_storage::PinnedStorage,
-    traversal::{
-        over::{Over, OverData, OverItem},
-        over_mut::{OverItemMut, OverMut},
-        traverser::Traverser,
-        traverser_core::TraverserCore,
-    },
-    NodeMut, NodeRef, TreeVariant,
+use crate::traversal::{
+    over::{Over, OverData},
+    traverser::Traverser,
 };
 
 /// A depth first search traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
@@ -31,7 +24,7 @@ pub struct Dfs<O = OverData>
 where
     O: Over,
 {
-    stack: Stack<O::Enumeration>,
+    pub(super) stack: Stack<O::Enumeration>,
 }
 
 impl Default for Dfs {
@@ -55,48 +48,7 @@ where
         }
     }
 
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        let stack = self.stack.for_variant::<V>();
-        Self::iter_with_storage(node, stack)
-    }
-
     fn transform_into<O2: Over>(self) -> Self::IntoOver<O2> {
         Dfs::<O2>::new()
-    }
-
-    fn iter_mut<'a, V, M, P>(
-        &'a mut self,
-        node_mut: &'a mut NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-        O: OverMut,
-    {
-        let stack = self.stack.for_variant::<V>();
-        Self::iter_mut_with_storage(node_mut, stack)
-    }
-
-    fn into_iter<'a, V, M, P>(
-        &'a mut self,
-        node_mut: NodeMut<'a, V, M, P>,
-    ) -> impl Iterator<Item = crate::traversal::over_mut::OverItemInto<'a, V, O>>
-    where
-        V: TreeVariant + 'a,
-        M: MemoryPolicy,
-        P: PinnedStorage,
-        O: OverMut,
-    {
-        let stack = self.stack.for_variant::<V>();
-        Self::into_iter_with_storage(node_mut, stack)
     }
 }
