@@ -9,7 +9,7 @@ pub trait DepthFirstEnumeration: Enumeration {
     fn children<D>(
         parent: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
-    ) -> impl DoubleEndedIterator<Item = Self::Item<D>>;
+    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> + ExactSizeIterator;
 }
 
 // impl
@@ -28,7 +28,7 @@ impl DepthFirstEnumeration for Val {
     fn children<D>(
         _: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
-    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
+    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> + ExactSizeIterator {
         children_data
     }
 }
@@ -47,7 +47,7 @@ impl DepthFirstEnumeration for DepthVal {
     fn children<D>(
         parent: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
-    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
+    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> + ExactSizeIterator {
         let depth = parent.0 + 1;
         children_data.map(move |data| (depth, data))
     }
@@ -67,7 +67,7 @@ impl DepthFirstEnumeration for SiblingIdxVal {
     fn children<D>(
         _: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
-    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
+    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> + ExactSizeIterator {
         children_data.enumerate()
     }
 }
@@ -86,7 +86,7 @@ impl DepthFirstEnumeration for DepthSiblingIdxVal {
     fn children<D>(
         parent: &Self::Item<D>,
         children_data: impl DoubleEndedIterator<Item = D> + ExactSizeIterator,
-    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> {
+    ) -> impl DoubleEndedIterator<Item = Self::Item<D>> + ExactSizeIterator {
         let depth = parent.0 + 1;
         children_data
             .enumerate()
