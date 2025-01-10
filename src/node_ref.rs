@@ -2,11 +2,11 @@ use crate::{
     helpers::{Col, N},
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
-    traversal::{over::OverItem, traverser_core::TraverserCore, Over, OverData, OverNode},
+    traversal::{enumeration::Enumeration, over::OverItem, Over, OverData},
     tree_variant::RefsChildren,
     Node, NodeIdx, Traverser, TreeVariant,
 };
-use orx_selfref_col::NodePtr;
+use orx_selfref_col::{NodePtr, Refs};
 
 pub trait NodeRefCore<'a, V, M, P>
 where
@@ -352,7 +352,7 @@ where
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Bfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// See also [`walk_mut`] and [`into_walk`] for iterators over mutable references and owned (removed) values,
@@ -581,65 +581,92 @@ where
 
     // traversal shorthands
 
-    fn leaves<T>(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>>
+    /// Returns an iterator of references to data of leaves of the subtree rooted at this node.
+    ///
+    /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// Note that `leaves` is a shorthand of a chain of iterator methods over the more general [`walk_with`] method.
+    /// This is demonstrated in the example below.
+    ///
+    /// [`walk_with`]: crate::NodeRef::walk_with
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // access the leaves in different orders that is determined by traversal
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs_leaves: Vec<_> = root.leaves::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);
+    ///
+    /// let dfs_leaves: Vec<_> = root.leaves::<Dfs>().copied().collect();
+    /// assert_eq!(dfs_leaves, [8, 5, 9, 10, 11]);
+    ///
+    /// // get the leaves from any node
+    ///
+    /// let n3 = id3.node(&tree);
+    /// let leaves: Vec<_> = n3.leaves::<PostOrder>().copied().collect();
+    /// assert_eq!(leaves, [9, 10, 11]);
+    ///
+    /// // ALTERNATIVELY: get the leaves with walk_with
+    ///
+    /// let mut tr = Traversal.bfs().over_nodes(); // we need Node to filter leaves
+    ///
+    /// let bfs_leaves: Vec<_> = root
+    ///     .walk_with(&mut tr)
+    ///     .filter(|x| x.is_leaf())
+    ///     .map(|x| *x.data())
+    ///     .collect();
+    /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);
+    /// ```
+    fn leaves<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
     where
         T: Traverser<OverData>,
         Self: Sized,
         V::Item: Clone,
     {
-        // core::iter::empty()
-        <T::IntoOver<OverNode> as TraverserCore<OverNode>>::iter_with_owned_storage::<V, M, P>(self)
-            .filter(|x| x.is_leaf())
-        // .map(|x| x.data())
-        // self.walk::<T::IntoOver<OverNode>>().filter(|x| x.is_leaf())
+        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+            .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+            .map(|x: NodePtr<V>| {
+                <OverData as Over>::Enumeration::from_element_ptr::<'a, V, M, P, &'a V::Item>(
+                    self.col(),
+                    x,
+                )
+            })
     }
-}
-
-#[test]
-fn abc() {
-    use crate::*;
-    use alloc::vec::Vec;
-    use std::dbg;
-
-    //      1
-    //     ╱ ╲
-    //    ╱   ╲
-    //   2     3
-    //  ╱ ╲   ╱ ╲
-    // 4   5 6   7
-    // |     |  ╱ ╲
-    // 8     9 10  11
-
-    let mut tree = DynTree::<i32>::new(1);
-
-    let mut root = tree.root_mut().unwrap();
-    let [id2, id3] = root.grow([2, 3]);
-
-    let mut n2 = id2.node_mut(&mut tree);
-    let [id4, _] = n2.grow([4, 5]);
-
-    id4.node_mut(&mut tree).push(8);
-
-    let mut n3 = id3.node_mut(&mut tree);
-    let [id6, id7] = n3.grow([6, 7]);
-
-    id6.node_mut(&mut tree).push(9);
-    id7.node_mut(&mut tree).extend([10, 11]);
-
-    // walk over any subtree rooted at a selected node
-    // with different traversals
-
-    let mut tr = Traversal.bfs().over_nodes();
-    let t = &mut tr;
-
-    let root = tree.root().unwrap();
-    let leaves: Vec<_> = root
-        .walk_with(t)
-        .filter(|x| x.is_leaf())
-        .map(|x| *x.data())
-        .collect();
-    std::println!("\n\n{:?}\n\n", leaves);
-
-    let all: Vec<_> = root.walk_with(t).map(|x| *x.data()).collect();
-    assert_eq!(all, []);
 }

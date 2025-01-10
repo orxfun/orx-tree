@@ -198,6 +198,15 @@ where
 
     // provided
 
+    fn iter_ptr_with_owned_storage<'a, V>(
+        node_ptr: NodePtr<V>,
+    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodePtr<V>>>
+    where
+        V: TreeVariant + 'a,
+    {
+        Self::iter_ptr_with_storage(node_ptr, Self::Storage::default())
+    }
+
     fn iter_with_owned_storage<'a, V, M, P>(
         node: &'a impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
