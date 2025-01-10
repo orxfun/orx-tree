@@ -237,60 +237,68 @@ where
     }
 
     /// Returns the position of this node in the children collection of its parent;
-    /// returns None if this is the root node.
+    /// returns 0 if this is the root node (root has no other siblings).
     ///
     /// **O(S)** where S is the number of siblings; i.e.,
     /// requires linear search over the children of the parent of this node.
+    /// Therefore, S depends on the tree size. It bounded by 2 in a [`BinaryTree`],
+    /// by 4 in a [`DaryTree`] with D=4. In a [`DynTree`] the children list can grow
+    /// arbitrarily, therefore, it is not bounded.
+    ///
+    /// [`BinaryTree`]: crate::BinaryTree
+    /// [`DaryTree`]: crate::DaryTree
+    /// [`DynTree`]: crate::DynTree
     ///
     /// # Examples
     ///
     /// ```
     /// use orx_tree::*;
     ///
-    /// // build the following tree using into_child_mut and into_parent_mut:
-    /// // r
-    /// // +-- a
-    /// // |   +-- c, d, e
-    /// // |
-    /// // +-- b
-    /// //     +-- f, g
-    /// //            +-- h, i, j
+    /// //      r
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   a     b
+    /// //  ╱|╲   ╱ ╲
+    /// // c d e f   g
+    /// //          ╱|╲
+    /// //         h i j
+    ///
     /// let mut tree = DynTree::<char>::new('r');
     ///
     /// let mut root = tree.root_mut().unwrap();
-    /// root.extend(['a', 'b']);
+    /// let [id_a, id_b] = root.grow(['a', 'b']);
     ///
-    /// let mut a = root.into_child_mut(0).unwrap();
+    /// let mut a = id_a.node_mut(&mut tree);
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = a.into_parent_mut().unwrap().into_child_mut(1).unwrap();
-    /// b.extend(['f', 'g']);
+    /// let mut b = id_b.node_mut(&mut tree);
+    /// let [_, id_g] = b.grow(['f', 'g']);
     ///
-    /// let mut g = b.into_child_mut(1).unwrap();
-    /// g.extend(['h', 'i', 'j']);
+    /// let mut g = id_g.node_mut(&mut tree);
+    /// let [id_h, id_i, id_j] = g.grow(['h', 'i', 'j']);
     ///
-    /// // check data - breadth first
+    /// // check sibling positions
     ///
     /// let root = tree.root().unwrap();
-    /// assert_eq!(root.sibling_position(), None);
+    /// assert_eq!(root.sibling_position(), 0);
     ///
-    /// let b = root.child(1).unwrap();
-    /// assert_eq!(b.sibling_position(), Some(1));
+    /// for (i, node) in root.children().enumerate() {
+    ///     assert_eq!(node.sibling_position(), i);
+    /// }
     ///
-    /// let g = b.child(1).unwrap();
-    /// assert_eq!(g.sibling_position(), Some(1));
-    ///
-    /// let j = g.child(2).unwrap();
-    /// assert_eq!(j.sibling_position(), Some(2));
+    /// assert_eq!(id_h.node(&tree).sibling_position(), 0);
+    /// assert_eq!(id_i.node(&tree).sibling_position(), 1);
+    /// assert_eq!(id_j.node(&tree).sibling_position(), 2);
     /// ```
-    fn sibling_position(&self) -> Option<usize> {
+    fn sibling_position(&self) -> usize {
         let parent = self.node().prev().get().map(|ptr| unsafe { ptr.node() });
-
-        parent.map(|parent| {
-            let ptr = self.node_ptr();
-            let mut children = parent.next().children_ptr();
-            children.position(|x| x == ptr).expect("this node exists")
-        })
+        parent
+            .map(|parent| {
+                let ptr = self.node_ptr();
+                let mut children = parent.next().children_ptr();
+                children.position(|x| x == ptr).expect("this node exists")
+            })
+            .unwrap_or(0)
     }
 
     // traversal
