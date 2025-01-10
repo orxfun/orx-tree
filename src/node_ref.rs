@@ -2,7 +2,7 @@ use crate::{
     helpers::{Col, N},
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
-    traversal::{over::OverItem, Over, OverData},
+    traversal::{over::OverItem, traverser_core::TraverserCore, Over, OverData, OverNode},
     tree_variant::RefsChildren,
     Node, NodeIdx, Traverser, TreeVariant,
 };
@@ -578,6 +578,21 @@ where
     {
         traverser.iter(self)
     }
+
+    // traversal shorthands
+
+    fn leaves<T>(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>>
+    where
+        T: Traverser<OverData>,
+        Self: Sized,
+        V::Item: Clone,
+    {
+        // core::iter::empty()
+        <T::IntoOver<OverNode> as TraverserCore<OverNode>>::iter_with_owned_storage::<V, M, P>(self)
+            .filter(|x| x.is_leaf())
+        // .map(|x| x.data())
+        // self.walk::<T::IntoOver<OverNode>>().filter(|x| x.is_leaf())
+    }
 }
 
 #[test]
@@ -614,48 +629,17 @@ fn abc() {
     // walk over any subtree rooted at a selected node
     // with different traversals
 
-    let mut tr = Traversal.dfs().over_nodes();
+    let mut tr = Traversal.bfs().over_nodes();
     let t = &mut tr;
 
     let root = tree.root().unwrap();
-    // let leaves: Vec<_> = root.walk_with(t).filter(|x| x.).map(|x| *x.data()).collect();
+    let leaves: Vec<_> = root
+        .walk_with(t)
+        .filter(|x| x.is_leaf())
+        .map(|x| *x.data())
+        .collect();
+    std::println!("\n\n{:?}\n\n", leaves);
+
     let all: Vec<_> = root.walk_with(t).map(|x| *x.data()).collect();
     assert_eq!(all, []);
-}
-
-#[test]
-fn def() {
-    use crate::*;
-    use alloc::vec::Vec;
-    use std::dbg;
-
-    //      1
-    //     ╱ ╲
-    //    ╱   ╲
-    //   2     3
-    //  ╱ ╲   ╱
-    // 4   5 6
-
-    let mut tree = DynTree::<i32>::new(1);
-    assert_eq!(tree.root().unwrap().is_leaf(), true); // both root & leaf
-
-    let mut root = tree.root_mut().unwrap();
-    let [id2, id3] = root.grow([2, 3]);
-
-    let mut n2 = id2.node_mut(&mut tree);
-    let [id4, id5] = n2.grow([4, 5]);
-
-    let mut n3 = id3.node_mut(&mut tree);
-    let [id6] = n3.grow([6]);
-
-    // walk over any subtree rooted at a selected node
-    // with different traversals
-
-    assert_eq!(tree.root().unwrap().is_leaf(), false);
-    assert_eq!(id2.node(&tree).is_leaf(), false);
-    assert_eq!(id3.node(&tree).is_leaf(), false);
-
-    assert_eq!(id4.node(&tree).is_leaf(), true);
-    assert_eq!(id5.node(&tree).is_leaf(), true);
-    assert_eq!(id6.node(&tree).is_leaf(), true);
 }

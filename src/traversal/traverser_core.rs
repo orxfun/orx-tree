@@ -1,4 +1,5 @@
 use super::{
+    enumeration::Enumeration,
     over::{Over, OverItem},
     over_mut::{OverItemInto, OverItemMut},
     OverData, OverMut,
@@ -8,6 +9,7 @@ use crate::{
     TreeVariant,
 };
 use orx_self_or::SoM;
+use orx_selfref_col::NodePtr;
 
 pub trait TraverserCore<O = OverData>: Sized
 where
@@ -16,6 +18,13 @@ where
     type Storage<V>: Default
     where
         V: TreeVariant;
+
+    fn iter_ptr_with_storage<'a, V>(
+        node_ptr: NodePtr<V>,
+        storage: impl SoM<Self::Storage<V>>,
+    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodePtr<V>>>
+    where
+        V: TreeVariant + 'a;
 
     fn iter_with_storage<'a, V, M, P>(
         node: &'a impl NodeRef<'a, V, M, P>,

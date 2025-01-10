@@ -6,6 +6,7 @@ use crate::{
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
+        enumeration::Enumeration,
         over::OverItem,
         over_mut::{OverItemInto, OverItemMut},
         traverser_core::TraverserCore,
@@ -15,12 +16,23 @@ use crate::{
 };
 use alloc::vec::Vec;
 use orx_self_or::SoM;
+use orx_selfref_col::NodePtr;
 
 impl<O: Over> TraverserCore<O> for PostOrder<O> {
     type Storage<V>
         = Vec<State<V>>
     where
         V: TreeVariant;
+
+    fn iter_ptr_with_storage<'a, V>(
+        node_ptr: NodePtr<V>,
+        storage: impl SoM<Self::Storage<V>>,
+    ) -> impl Iterator<Item = <<O as Over>::Enumeration as Enumeration>::Item<NodePtr<V>>>
+    where
+        V: TreeVariant + 'a,
+    {
+        PostOrderIterPtr::<_, O::Enumeration, _>::from((storage, node_ptr))
+    }
 
     fn iter_with_storage<'a, V, M, P>(
         node: &'a impl NodeRef<'a, V, M, P>,

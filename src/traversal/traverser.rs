@@ -113,7 +113,7 @@ where
     O: Over,
 {
     /// Transformed version of the traverser from creating iterators over `O` to `O2`.
-    type IntoOver<O2>
+    type IntoOver<O2>: TraverserCore<O2> + Traverser<O2>
     where
         O2: Over;
 
