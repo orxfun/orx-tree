@@ -40,6 +40,7 @@ where
     // TODO: additional info, such as depth
     f.debug_struct("Node")
         .field("is_root", &node.is_root())
+        .field("is_leaf", &node.is_leaf())
         .field("sibling_position", &node.sibling_position())
         .field("num_children", &node.num_children())
         .field("data", node.data())

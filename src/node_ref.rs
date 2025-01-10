@@ -2,11 +2,11 @@ use crate::{
     helpers::{Col, N},
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
-    traversal::{over::OverItem, Over, OverData},
+    traversal::{enumeration::Enumeration, over::OverItem, Over, OverData},
     tree_variant::RefsChildren,
     Node, NodeIdx, Traverser, TreeVariant,
 };
-use orx_selfref_col::NodePtr;
+use orx_selfref_col::{NodePtr, Refs};
 
 pub trait NodeRefCore<'a, V, M, P>
 where
@@ -66,8 +66,51 @@ where
     ///     assert!(!node.is_root());
     /// }
     /// ```
+    #[inline(always)]
     fn is_root(&self) -> bool {
         self.node().prev().get().is_none()
+    }
+
+    /// Returns true if this is a leaf node; equivalently, if [`num_children`] is zero.
+    ///
+    /// [`num_children`]: NodeRef::num_children
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱
+    /// // 4   5 6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    /// assert_eq!(tree.root().unwrap().is_leaf(), true); // both root & leaf
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, id5] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6] = n3.grow([6]);
+    ///
+    /// // walk over any subtree rooted at a selected node
+    /// // with different traversals
+    ///
+    /// assert_eq!(tree.root().unwrap().is_leaf(), false);
+    /// assert_eq!(id2.node(&tree).is_leaf(), false);
+    /// assert_eq!(id3.node(&tree).is_leaf(), false);
+    ///
+    /// assert_eq!(id4.node(&tree).is_leaf(), true);
+    /// assert_eq!(id5.node(&tree).is_leaf(), true);
+    /// assert_eq!(id6.node(&tree).is_leaf(), true);
+    /// ```
+    #[inline(always)]
+    fn is_leaf(&self) -> bool {
+        self.num_children() == 0
     }
 
     /// Returns a reference to the data of the node.
@@ -119,6 +162,7 @@ where
     ///
     /// assert_eq!(id_b.node(&tree).num_children(), 0);
     /// ```
+    #[inline(always)]
     fn num_children(&self) -> usize {
         self.node().next().num_children()
     }
@@ -308,7 +352,7 @@ where
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Bfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// See also [`walk_mut`] and [`into_walk`] for iterators over mutable references and owned (removed) values,
@@ -533,5 +577,96 @@ where
         Self: Sized,
     {
         traverser.iter(self)
+    }
+
+    // traversal shorthands
+
+    /// Returns an iterator of references to data of leaves of the subtree rooted at this node.
+    ///
+    /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// Note that `leaves` is a shorthand of a chain of iterator methods over the more general [`walk_with`] method.
+    /// This is demonstrated in the example below.
+    ///
+    /// [`walk_with`]: crate::NodeRef::walk_with
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// id4.node_mut(&mut tree).push(8);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// id6.node_mut(&mut tree).push(9);
+    /// id7.node_mut(&mut tree).extend([10, 11]);
+    ///
+    /// // access the leaves in different orders that is determined by traversal
+    ///
+    /// let root = tree.root().unwrap();
+    ///
+    /// let bfs_leaves: Vec<_> = root.leaves::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);
+    ///
+    /// let dfs_leaves: Vec<_> = root.leaves::<Dfs>().copied().collect();
+    /// assert_eq!(dfs_leaves, [8, 5, 9, 10, 11]);
+    ///
+    /// // get the leaves from any node
+    ///
+    /// let n3 = id3.node(&tree);
+    /// let leaves: Vec<_> = n3.leaves::<PostOrder>().copied().collect();
+    /// assert_eq!(leaves, [9, 10, 11]);
+    ///
+    /// // ALTERNATIVELY: get the leaves with walk_with
+    ///
+    /// let mut tr = Traversal.bfs().over_nodes(); // we need Node to filter leaves
+    ///
+    /// let bfs_leaves: Vec<_> = root
+    ///     .walk_with(&mut tr)
+    ///     .filter(|x| x.is_leaf())
+    ///     .map(|x| *x.data())
+    ///     .collect();
+    /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);
+    /// ```
+    fn leaves<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
+    where
+        T: Traverser<OverData>,
+        Self: Sized,
+        V::Item: Clone,
+    {
+        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+            .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+            .map(|x: NodePtr<V>| {
+                <OverData as Over>::Enumeration::from_element_ptr::<'a, V, M, P, &'a V::Item>(
+                    self.col(),
+                    x,
+                )
+            })
     }
 }
