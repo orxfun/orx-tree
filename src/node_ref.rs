@@ -66,8 +66,51 @@ where
     ///     assert!(!node.is_root());
     /// }
     /// ```
+    #[inline(always)]
     fn is_root(&self) -> bool {
         self.node().prev().get().is_none()
+    }
+
+    /// Returns true if this is a leaf node; equivalently, if [`num_children`] is zero.
+    ///
+    /// [`num_children`]: NodeRef::num_children
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱
+    /// // 4   5 6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    /// assert_eq!(tree.root().unwrap().is_leaf(), true); // both root & leaf
+    ///
+    /// let mut root = tree.root_mut().unwrap();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let [id4, id5] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let [id6] = n3.grow([6]);
+    ///
+    /// // walk over any subtree rooted at a selected node
+    /// // with different traversals
+    ///
+    /// assert_eq!(tree.root().unwrap().is_leaf(), false);
+    /// assert_eq!(id2.node(&tree).is_leaf(), false);
+    /// assert_eq!(id3.node(&tree).is_leaf(), false);
+    ///
+    /// assert_eq!(id4.node(&tree).is_leaf(), true);
+    /// assert_eq!(id5.node(&tree).is_leaf(), true);
+    /// assert_eq!(id6.node(&tree).is_leaf(), true);
+    /// ```
+    #[inline(always)]
+    fn is_leaf(&self) -> bool {
+        self.num_children() == 0
     }
 
     /// Returns a reference to the data of the node.
@@ -119,6 +162,7 @@ where
     ///
     /// assert_eq!(id_b.node(&tree).num_children(), 0);
     /// ```
+    #[inline(always)]
     fn num_children(&self) -> usize {
         self.node().next().num_children()
     }
@@ -534,4 +578,84 @@ where
     {
         traverser.iter(self)
     }
+}
+
+#[test]
+fn abc() {
+    use crate::*;
+    use alloc::vec::Vec;
+    use std::dbg;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲   ╱ ╲
+    // 4   5 6   7
+    // |     |  ╱ ╲
+    // 8     9 10  11
+
+    let mut tree = DynTree::<i32>::new(1);
+
+    let mut root = tree.root_mut().unwrap();
+    let [id2, id3] = root.grow([2, 3]);
+
+    let mut n2 = id2.node_mut(&mut tree);
+    let [id4, _] = n2.grow([4, 5]);
+
+    id4.node_mut(&mut tree).push(8);
+
+    let mut n3 = id3.node_mut(&mut tree);
+    let [id6, id7] = n3.grow([6, 7]);
+
+    id6.node_mut(&mut tree).push(9);
+    id7.node_mut(&mut tree).extend([10, 11]);
+
+    // walk over any subtree rooted at a selected node
+    // with different traversals
+
+    let mut tr = Traversal.dfs().over_nodes();
+    let t = &mut tr;
+
+    let root = tree.root().unwrap();
+    // let leaves: Vec<_> = root.walk_with(t).filter(|x| x.).map(|x| *x.data()).collect();
+    let all: Vec<_> = root.walk_with(t).map(|x| *x.data()).collect();
+    assert_eq!(all, []);
+}
+
+#[test]
+fn def() {
+    use crate::*;
+    use alloc::vec::Vec;
+    use std::dbg;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲   ╱
+    // 4   5 6
+
+    let mut tree = DynTree::<i32>::new(1);
+    assert_eq!(tree.root().unwrap().is_leaf(), true); // both root & leaf
+
+    let mut root = tree.root_mut().unwrap();
+    let [id2, id3] = root.grow([2, 3]);
+
+    let mut n2 = id2.node_mut(&mut tree);
+    let [id4, id5] = n2.grow([4, 5]);
+
+    let mut n3 = id3.node_mut(&mut tree);
+    let [id6] = n3.grow([6]);
+
+    // walk over any subtree rooted at a selected node
+    // with different traversals
+
+    assert_eq!(tree.root().unwrap().is_leaf(), false);
+    assert_eq!(id2.node(&tree).is_leaf(), false);
+    assert_eq!(id3.node(&tree).is_leaf(), false);
+
+    assert_eq!(id4.node(&tree).is_leaf(), true);
+    assert_eq!(id5.node(&tree).is_leaf(), true);
+    assert_eq!(id6.node(&tree).is_leaf(), true);
 }
