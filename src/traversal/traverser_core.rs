@@ -3,7 +3,10 @@ use super::{
     over_mut::{OverItemInto, OverItemMut},
     OverData, OverMut,
 };
-use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeRef, TreeVariant};
+use crate::{
+    memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeMut, NodeMutOrientation, NodeRef,
+    TreeVariant,
+};
 use orx_self_or::SoM;
 
 pub trait TraverserCore<O = OverData>: Sized
@@ -69,14 +72,15 @@ where
         M: MemoryPolicy,
         P: PinnedStorage;
 
-    fn iter_mut_with_storage<'a, V, M, P>(
-        node_mut: &'a mut NodeMut<'a, V, M, P>,
+    fn iter_mut_with_storage<'a, V, M, P, MO>(
+        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        MO: NodeMutOrientation,
         O: OverMut;
 
     /// Returns a mutable iterator which yields all nodes including the `node` and all its descendants; i.e.,
@@ -109,24 +113,26 @@ where
     /// [`OverDepthData`]: crate::traversal::OverDepthData
     /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
     /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
-    fn iter_mut<'a, V, M, P>(
+    fn iter_mut<'a, V, M, P, MO>(
         &'a mut self,
-        node: &'a mut NodeMut<'a, V, M, P>,
+        node: &'a mut NodeMut<'a, V, M, P, MO>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        MO: NodeMutOrientation,
         O: OverMut;
 
-    fn into_iter_with_storage<'a, V, M, P>(
-        node_mut: NodeMut<'a, V, M, P>,
+    fn into_iter_with_storage<'a, V, M, P, MO>(
+        node_mut: NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        MO: NodeMutOrientation,
         O: OverMut;
 
     /// Returns an iterator which:
@@ -170,14 +176,15 @@ where
     /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
     /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
     #[allow(clippy::wrong_self_convention)]
-    fn into_iter<'a, V, M, P>(
+    fn into_iter<'a, V, M, P, MO>(
         &'a mut self,
-        node: NodeMut<'a, V, M, P>,
+        node: NodeMut<'a, V, M, P, MO>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        MO: NodeMutOrientation,
         O: OverMut;
 
     // provided
@@ -193,25 +200,27 @@ where
         Self::iter_with_storage(node, Self::Storage::default())
     }
 
-    fn iter_mut_with_owned_storage<'a, V, M, P>(
-        node_mut: &'a mut NodeMut<'a, V, M, P>,
+    fn iter_mut_with_owned_storage<'a, V, M, P, MO>(
+        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        MO: NodeMutOrientation,
         O: OverMut,
     {
         Self::iter_mut_with_storage(node_mut, Self::Storage::default())
     }
 
-    fn into_iter_with_owned_storage<'a, V, M, P>(
-        node_mut: NodeMut<'a, V, M, P>,
+    fn into_iter_with_owned_storage<'a, V, M, P, MO>(
+        node_mut: NodeMut<'a, V, M, P, MO>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        MO: NodeMutOrientation,
         O: OverMut,
     {
         Self::into_iter_with_storage(node_mut, Self::Storage::default())
