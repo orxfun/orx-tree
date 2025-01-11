@@ -227,7 +227,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// * Growth methods never lead to implicit invalidation.
 /// * We can only experience implicit invalidation when we are using [`Auto`] (or auto with threshold)
 ///   memory policy and remove nodes from the tree.
-pub struct NodeIdx<V: TreeVariant>(orx_selfref_col::NodeIdx<V>);
+pub struct NodeIdx<V: TreeVariant>(pub(crate) orx_selfref_col::NodeIdx<V>);
 
 impl<V: TreeVariant> Clone for NodeIdx<V> {
     fn clone(&self) -> Self {
@@ -270,6 +270,8 @@ impl<V: TreeVariant> NodeIdx<V> {
 
     /// Returns the node that this index is pointing to in constant time.
     ///
+    /// Note that `tree.node(&idx)` is identical to `idx.node(&tree)`.
+    ///
     /// # Panics
     ///
     /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
@@ -288,6 +290,8 @@ impl<V: TreeVariant> NodeIdx<V> {
     }
 
     /// Returns the mutable node that this index is pointing to in constant time.
+    ///
+    /// Note that `tree.node_mut(&idx)` is identical to `idx.node_mut(&mut tree)`.
     ///
     /// # Panics
     ///
@@ -308,6 +312,8 @@ impl<V: TreeVariant> NodeIdx<V> {
 
     /// Returns the node that this index is pointing to in constant time if the index is valid.
     ///
+    /// Note that `tree.get_node(&idx)` is identical to `idx.get_node(&tree)`.
+    ///
     /// Returns None when either of the following holds:
     /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
     /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
@@ -325,6 +331,8 @@ impl<V: TreeVariant> NodeIdx<V> {
     }
 
     /// Returns the mutable node that this index is pointing to in constant time if the index is valid.
+    ///
+    /// Note that `tree.get_node_mut(&idx)` is identical to `idx.get_node_mut(&mut tree)`.
     ///
     /// Returns None when either of the following holds:
     /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]

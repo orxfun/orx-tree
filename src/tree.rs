@@ -5,7 +5,7 @@ use crate::{
     tree_node_idx::INVALID_IDX_ERROR,
     Node, NodeIdx, NodeMut, TreeVariant,
 };
-use orx_selfref_col::{NodePtr, RefsSingle};
+use orx_selfref_col::{NodeIdxError, NodePtr, RefsSingle};
 
 /// Core tree structure.
 pub struct Tree<V, M = Auto, P = SplitRecursive>(pub(crate) Col<V, M, P>)
@@ -160,7 +160,7 @@ where
         self.0.ends_mut().set_none();
     }
 
-    // get nodes
+    // get root
 
     /// Returns the root node of the tree.
     ///
@@ -296,9 +296,24 @@ where
             .map(|p| NodeMut::new(&mut self.0, p))
     }
 
-    /// Returns the node with the given `node_idx`.
+    // get nodes
+
+    /// Returns true if the `node_idx` is valid for this tree.
     ///
-    /// Note that `tree.node(&idx)` is identical to `idx.node(&tree)`.
+    /// Returns false if any of the following holds:
+    ///
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
+    ///
+    /// Please see [`NodeIdx`] documentation for details on the validity of node indices.
+    #[inline(always)]
+    pub fn is_node_idx_valid(&self, node_idx: &NodeIdx<V>) -> bool {
+        node_idx.0.is_valid_for(&self.0)
+    }
+
+    /// Returns the node with the given `node_idx`.
     ///
     /// # Panics
     ///
@@ -311,6 +326,8 @@ where
     ///
     /// When not certain, you may use [`is_valid_for`] or [`get_node`] methods to have a safe access.
     ///
+    /// Please see [`NodeIdx`] documentation for details on the validity of node indices.
+    ///
     /// [`is_valid_for`]: crate::NodeIdx::is_valid_for
     /// [`get_node`]: Self::get_node
     ///
@@ -320,10 +337,9 @@ where
     ///
     /// # Examples
     ///
-    /// You may find a simple example below.
-    /// For more detailed examples and important notes about node index validity, please see [`NodeIdx`].
-    ///
     /// ```
+    /// use orx_tree::*;
+    ///
     /// //      1
     /// //     ╱ ╲
     /// //    ╱   ╲
@@ -347,7 +363,8 @@ where
     /// ```
     #[inline(always)]
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Node<V, M, P> {
-        node_idx.node(self)
+        assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
+        Node::new(&self.0, node_idx.0.node_ptr())
     }
 
     /// Returns the mutable node with the given `node_idx`.
@@ -363,6 +380,8 @@ where
     ///
     /// When not certain, you may use [`is_valid_for`] or [`get_node_mut`] methods to have a safe access.
     ///
+    /// Please see [`NodeIdx`] documentation for details on the validity of node indices.
+    ///
     /// [`is_valid_for`]: crate::NodeIdx::is_valid_for
     /// [`get_node_mut`]: Self::get_node_mut
     ///
@@ -372,10 +391,9 @@ where
     ///
     /// # Examples
     ///
-    /// You may find a simple example below.
-    /// For more detailed examples and important notes about node index validity, please see [`NodeIdx`].
-    ///
     /// ```
+    /// use orx_tree::*;
+    ///
     /// //      1
     /// //     ╱ ╲
     /// //    ╱   ╲
@@ -399,7 +417,8 @@ where
     /// ```
     #[inline(always)]
     pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<V, M, P> {
-        node_idx.node_mut(self)
+        assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
+        NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
