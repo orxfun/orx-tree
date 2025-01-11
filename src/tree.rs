@@ -33,7 +33,7 @@ where
     /// let tree: DynTree<i32> = DynTree::empty();
     ///
     /// assert!(tree.is_empty());
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     /// ```
     pub fn empty() -> Self
     where
@@ -52,7 +52,7 @@ where
     /// let tree: DynTree<i32> = DynTree::new(42);
     ///
     /// assert_eq!(tree.len(), 1);
-    /// assert_eq!(tree.root().unwrap().data(), &42);
+    /// assert_eq!(tree.get_root().unwrap().data(), &42);
     /// ```
     pub fn new(root_value: V::Item) -> Self
     where
@@ -76,7 +76,7 @@ where
     /// let mut tree: DynTree<i32> = DynTree::new(42);
     /// assert_eq!(tree.len(), 1);
     ///
-    /// let mut root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [_, idx] = root.grow([4, 2]);
     ///
     /// assert_eq!(tree.len(), 3);
@@ -111,12 +111,12 @@ where
     /// let mut tree: DynTree<i32> = DynTree::empty();
     ///
     /// assert!(tree.is_empty());
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     ///
     /// tree.push_root(42);
     /// assert!(!tree.is_empty());
     /// assert_eq!(tree.len(), 1);
-    /// assert_eq!(tree.root().unwrap().data(), &42);
+    /// assert_eq!(tree.get_root().unwrap().data(), &42);
     /// ```
     pub fn push_root(&mut self, root_value: V::Item) -> NodeIdx<V> {
         assert!(
@@ -140,7 +140,7 @@ where
     ///
     /// let mut tree: BinaryTree<i32> = BinaryTree::new(42);
     ///
-    /// let mut root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// root.push(4);
     /// let [idx] = root.grow([2]);
     ///
@@ -148,11 +148,11 @@ where
     /// node.push(7);
     ///
     /// assert_eq!(tree.len(), 4);
-    /// assert_eq!(tree.root().unwrap().data(), &42);
+    /// assert_eq!(tree.get_root().unwrap().data(), &42);
     ///
     /// tree.clear();
     /// assert!(tree.is_empty());
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -160,6 +160,88 @@ where
     }
 
     // get nodes
+
+    /// Returns the root node of the tree.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the tree is empty and has no root.
+    ///
+    /// When not certain, you may use [`is_empty`] or [`get_root`] methods to have a safe access.
+    ///
+    /// [`is_empty`]: Self::is_empty
+    /// [`get_root`]: Self::get_root
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // initiate a rooted tree
+    /// let mut tree = DynTree::<_>::new('a');
+    /// assert_eq!(tree.root().data(), &'a');
+    ///
+    /// tree.clear();
+    /// // assert_eq!(tree.get_root().data(), 'x'); // panics!
+    ///
+    /// // initiate an empty tree
+    /// let mut tree = BinaryTree::<_>::empty();
+    /// // assert_eq!(tree.get_root().data(), 'x'); // panics!
+    ///
+    /// tree.push_root('a');
+    /// assert_eq!(tree.root().data(), &'a');
+    /// ```
+    pub fn root(&self) -> Node<V, M, P> {
+        self.root_ptr()
+            .cloned()
+            .map(|p| Node::new(&self.0, p))
+            .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
+    }
+
+    /// Returns the mutable root node of the tree.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the tree is empty and has no root.
+    ///
+    /// When not certain, you may use [`is_empty`] or [`get_root_mut`] methods to have a safe access.
+    ///
+    /// [`is_empty`]: Self::is_empty
+    /// [`get_root_mut`]: Self::get_root_mut
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // initiate a rooted tree
+    /// let mut tree = DynTree::<_>::new('a');
+    /// *tree.root_mut().data_mut() = 'x';
+    /// assert_eq!(tree.root().data(), &'x');
+    ///
+    /// tree.clear();
+    /// // *tree.root_mut().data_mut() = 'x'; // panics!
+    ///
+    /// // initiate an empty tree
+    /// let mut tree = BinaryTree::<_>::empty();
+    /// // *tree.root_mut().data_mut() = 'x'; // panics!
+    ///
+    /// tree.push_root('a');
+    ///
+    /// // build the tree from the root
+    /// let mut root = tree.root_mut();
+    /// assert_eq!(root.data(), &'a');
+    ///
+    /// let [b, c] = root.grow(['b', 'c']);
+    /// b.node_mut(&mut tree).push('d');
+    /// c.node_mut(&mut tree).extend(['e', 'f']);
+    /// ```
+    pub fn root_mut(&mut self) -> NodeMut<V, M, P> {
+        self.root_ptr()
+            .cloned()
+            .map(|p| NodeMut::new(&mut self.0, p))
+            .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
+    }
 
     /// Returns the root node of the tree; None if the tree is empty.
     ///
@@ -170,19 +252,19 @@ where
     ///
     /// // initiate a rooted tree
     /// let mut tree = DynTree::<_>::new('a');
-    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    /// assert_eq!(tree.get_root().unwrap().data(), &'a');
     ///
     /// tree.clear();
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     ///
     /// // initiate an empty tree
     /// let mut tree = BinaryTree::<_>::empty();
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     ///
     /// tree.push_root('a');
-    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    /// assert_eq!(tree.get_root().unwrap().data(), &'a');
     /// ```
-    pub fn root(&self) -> Option<Node<V, M, P>> {
+    pub fn get_root(&self) -> Option<Node<V, M, P>> {
         self.root_ptr().cloned().map(|p| Node::new(&self.0, p))
     }
 
@@ -195,7 +277,7 @@ where
     ///
     /// let mut tree = DynTree::<_>::new('a');
     ///
-    /// let mut root = tree.root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     ///
     /// assert_eq!(root.data(), &'a');
     /// *root.data_mut() = 'x';
@@ -205,9 +287,9 @@ where
     /// let idx = root.push('c');
     ///
     /// tree.clear();
-    /// assert_eq!(tree.root_mut(), None);
+    /// assert_eq!(tree.get_root_mut(), None);
     /// ```
-    pub fn root_mut(&mut self) -> Option<NodeMut<V, M, P>> {
+    pub fn get_root_mut(&mut self) -> Option<NodeMut<V, M, P>> {
         self.root_ptr()
             .cloned()
             .map(|p| NodeMut::new(&mut self.0, p))

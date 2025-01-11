@@ -30,7 +30,7 @@ use orx_selfref_col::Variant;
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.root_mut().unwrap();
+    let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -62,7 +62,7 @@ where
     let tree = tree();
     let mut traverser = Dfs::<O>::new();
 
-    let root = tree.root().unwrap();
+    let root = tree.root();
     let iter = traverser.iter(&root);
     assert_eq!(data::<O>(iter), [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
 
@@ -95,7 +95,7 @@ fn dfs_iter_ref_depth() {
     fn test(mut traverser: Dfs<OverDepthData>) {
         let tree = tree();
 
-        let root = tree.root().unwrap();
+        let root = tree.root();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| x.0).collect::<Vec<_>>(),
@@ -120,7 +120,7 @@ fn dfs_iter_ref_sibling() {
     fn test(mut traverser: Dfs<OverSiblingIdxData>) {
         let tree = tree();
 
-        let root = tree.root().unwrap();
+        let root = tree.root();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| x.0).collect::<Vec<_>>(),
@@ -145,7 +145,7 @@ fn dfs_iter_ref_depth_sibling() {
     fn test(mut traverser: Dfs<OverDepthSiblingIdxData>) {
         let tree = tree();
 
-        let root = tree.root().unwrap();
+        let root = tree.root();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| x.0).collect::<Vec<_>>(),

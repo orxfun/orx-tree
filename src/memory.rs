@@ -62,14 +62,14 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // 8     9 10  11
 ///
 /// fn bfs_values(tree: &DynTree<i32>) -> Vec<i32> {
-///     tree.root().unwrap().walk::<Bfs>().copied().collect()
+///     tree.get_root().unwrap().walk::<Bfs>().copied().collect()
 /// }
 ///
 /// // # 1. GROW
 ///
 /// let mut tree = DynTree::<i32>::new(1); // equivalently => DynTree::<i32, Auto>::new(1)
 ///
-/// let mut root = tree.root_mut().unwrap();
+/// let mut root = tree.root_mut();
 /// let [id2, id3] = root.grow([2, 3]);
 ///
 /// let mut n2 = id2.node_mut(&mut tree);
@@ -125,7 +125,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // all indices obtained prior to reorganization are now invalid
 /// // we can restore the valid indices again
 ///
-/// let id2 = tree.root().unwrap().child(0).unwrap().idx();
+/// let id2 = tree.get_root().unwrap().child(0).unwrap().idx();
 /// assert!(id2.is_valid_for(&tree));
 /// assert!(id2.try_get_node(&tree).is_ok());
 /// let n2 = id2.node(&tree);
@@ -153,7 +153,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // 8     9 10  11
 ///
 /// fn bfs_values<M: MemoryPolicy>(tree: &DynTree<i32, M>) -> Vec<i32> {
-///     tree.root().unwrap().walk::<Bfs>().copied().collect()
+///     tree.get_root().unwrap().walk::<Bfs>().copied().collect()
 /// }
 ///
 /// // # 1. GROW
@@ -161,7 +161,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let tree = DynTree::<i32>::new(1);
 /// let mut tree = tree.into_lazy_reclaim(); // or just => DynTree::<i32, Lazy>::new(1);
 ///
-/// let mut root = tree.root_mut().unwrap();
+/// let mut root = tree.root_mut();
 /// let [id2, id3] = root.grow([2, 3]);
 ///
 /// let mut n2 = id2.node_mut(&mut tree);

@@ -26,7 +26,7 @@ use orx_selfref_col::{NodePtr, Variant};
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.root_mut().unwrap();
+    let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -63,7 +63,7 @@ fn dfs_iter_for<O: Over>() {
     let tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = DfsIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
@@ -102,7 +102,7 @@ fn dfs_iter_ref_depth() {
     let tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((root.col(), iter));
@@ -123,7 +123,7 @@ fn dfs_iter_ref_sibling() {
     let tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter =
@@ -145,7 +145,7 @@ fn dfs_iter_ref_sibling() {
 fn dfs_iter_ref_depth_sibling() {
     let tree = tree();
 
-    let root = tree.root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((
