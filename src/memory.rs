@@ -89,7 +89,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
 /// assert!(id4.get_node(&tree).is_some()); // get_node => Some(Node)
 /// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let _node7 = id7.node(&tree); // no panic
+/// let _node7 = tree.node(&id7); // no panic
 ///
 /// // # 2 - SHRINK BUT WITHOUT A MEMORY RECLAIM
 ///
@@ -100,7 +100,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
 /// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let node7 = id7.node(&tree); // no panic
+/// let node7 = tree.node(&id7); // no panic
 ///
 /// // what about id4 & id8 => invalidated due to RemovedNode
 /// assert!(!id4.is_valid_for(&tree));
@@ -128,7 +128,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let id2 = tree.get_root().unwrap().child(0).unwrap().idx();
 /// assert!(id2.is_valid_for(&tree));
 /// assert!(id2.try_get_node(&tree).is_ok());
-/// let n2 = id2.node(&tree);
+/// let n2 = tree.node(&id2);
 /// assert_eq!(n2.data(), &2);
 /// ```
 ///
@@ -181,7 +181,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
 /// assert!(id4.get_node(&tree).is_some()); // get_node => Some(Node)
 /// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let _node7 = id7.node(&tree); // no panic!
+/// let _node7 = tree.node(&id7); // no panic!
 ///
 /// // # 2 - SHRINK, NO MEMORY RECLAIM
 ///
@@ -191,7 +191,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
 /// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let node7 = id7.node(&tree); // no panic
+/// let node7 = tree.node(&id7); // no panic
 ///
 /// // only id4 & id8 are affected (explicit) => invalidated due to RemovedNode
 /// assert!(!id4.is_valid_for(&tree));
@@ -209,7 +209,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // all indices are still valid
 /// assert!(id2.is_valid_for(&tree));
 /// assert!(id2.try_get_node(&tree).is_ok());
-/// let n2 = id2.node(&tree);
+/// let n2 = tree.node(&id2);
 /// assert_eq!(n2.data(), &2);
 ///
 /// // # 4 - END OF HEAVY MUTATIONS, RECLAIM THE MEMORY

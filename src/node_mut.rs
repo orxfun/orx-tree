@@ -923,7 +923,7 @@ where
     /// let mut bfs = Bfs::default().over_nodes();
     /// // OR: Bfs::<OverNode>::new();
     ///
-    /// let n7 = id7.node(&tree);
+    /// let n7 = tree.node(&id7);
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
@@ -934,7 +934,7 @@ where
     /// let mut dfs = Dfs::default().with_depth().with_sibling_idx();
     /// // OR: Dfs::<OverDepthSiblingIdxData>::new()
     ///
-    /// let n3 = id3.node(&tree);
+    /// let n3 = tree.node(&id3);
     /// let result: Vec<_> = n3
     ///     .walk_with(&mut dfs)
     ///     .map(|(depth, sibling_idx, data)| (depth, sibling_idx, *data))
@@ -1170,7 +1170,7 @@ where
     /// let mut bfs = Bfs::default().over_nodes();
     /// // OR: Bfs::<OverNode>::new();
     ///
-    /// let n7 = id7.node(&tree);
+    /// let n7 = tree.node(&id7);
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
@@ -1181,7 +1181,7 @@ where
     /// let mut dfs = Dfs::default().with_depth().with_sibling_idx();
     /// // OR: Dfs::<OverDepthSiblingIdxData>::new()
     ///
-    /// let n3 = id3.node(&tree);
+    /// let n3 = tree.node(&id3);
     /// let result: Vec<_> = n3
     ///     .walk_with(&mut dfs)
     ///     .map(|(depth, sibling_idx, data)| (depth, sibling_idx, *data))
