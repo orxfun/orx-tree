@@ -247,6 +247,11 @@ impl<V: TreeVariant> NodeIdx<V> {
         Self(orx_selfref_col::NodeIdx::new(state, node_ptr))
     }
 
+    #[inline(always)]
+    pub(crate) fn from_idx(node_idx: orx_selfref_col::NodeIdx<V>) -> Self {
+        Self(node_idx)
+    }
+
     /// Returns true if this node index is valid for the given `tree`.
     ///
     /// Returns false if either of the following holds:

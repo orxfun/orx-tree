@@ -3,9 +3,9 @@ use crate::{
     memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
     tree_node_idx::INVALID_IDX_ERROR,
-    Node, NodeMut, TreeVariant,
+    Node, NodeIdx, NodeMut, TreeVariant,
 };
-use orx_selfref_col::{NodeIdx, NodePtr, RefsSingle};
+use orx_selfref_col::{NodePtr, RefsSingle};
 
 /// Core tree structure.
 pub struct Tree<V, M = Auto, P = SplitRecursive>(pub(crate) Col<V, M, P>)
@@ -129,7 +129,7 @@ where
         let root_mut: &mut RefsSingle<V> = self.0.ends_mut();
         root_mut.set_some(root_idx.node_ptr());
 
-        root_idx
+        NodeIdx::from_idx(root_idx)
     }
 
     /// Removes all the nodes including the root of the tree.
@@ -298,6 +298,8 @@ where
 
     /// Returns the node with the given `node_idx`.
     ///
+    /// Note that `tree.node(&idx)` is identical to `idx.node(&tree)`.
+    ///
     /// # Panics
     ///
     /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
@@ -318,12 +320,10 @@ where
     ///
     /// # Examples
     ///
-    /// TODO: examples mentioning the memory state
+    ///
+    #[inline(always)]
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Node<V, M, P> {
-        self.0
-            .get_ptr(node_idx)
-            .map(|p| Node::new(&self.0, p))
-            .expect(INVALID_IDX_ERROR)
+        node_idx.node(self)
     }
 
     /// Returns the mutable node with the given `node_idx`.
@@ -349,11 +349,9 @@ where
     /// # Examples
     ///
     /// TODO: examples mentioning the memory state
+    #[inline(always)]
     pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<V, M, P> {
-        self.0
-            .get_ptr(node_idx)
-            .map(|p| NodeMut::new(&mut self.0, p))
-            .expect(INVALID_IDX_ERROR)
+        node_idx.node_mut(self)
     }
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
@@ -367,8 +365,9 @@ where
     /// # Examples
     ///
     /// TODO: examples mentioning the memory state
+    #[inline(always)]
     pub fn get_node(&self, node_idx: &NodeIdx<V>) -> Option<Node<V, M, P>> {
-        self.0.get_ptr(node_idx).map(|p| Node::new(&self.0, p))
+        node_idx.get_node(self)
     }
 
     /// Returns the mutable node with the given `node_idx`; returns None if the index is invalid.
@@ -382,10 +381,9 @@ where
     /// # Examples
     ///
     /// TODO: examples mentioning the memory state
+    #[inline(always)]
     pub fn get_node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<V, M, P>> {
-        self.0
-            .get_ptr(node_idx)
-            .map(|p| NodeMut::new(&mut self.0, p))
+        node_idx.get_node_mut(self)
     }
 
     // helpers
@@ -394,4 +392,26 @@ where
     fn root_ptr(&self) -> Option<&NodePtr<V>> {
         self.0.ends().get()
     }
+}
+
+#[test]
+fn abc() {
+    use crate::*;
+    use alloc::vec::Vec;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲   ╱ ╲
+    // 4   5 6   7
+    // |     |  ╱ ╲
+    // 8     9 10  11
+
+    let mut tree = DynTree::<i32>::new(1);
+
+    let mut root = tree.root_mut();
+    let [id2, id3] = root.grow([2, 3]);
+
+    let n2 = tree.node(&id2);
 }
