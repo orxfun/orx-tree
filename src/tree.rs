@@ -161,6 +161,88 @@ where
 
     // get nodes
 
+    /// Returns the root node of the tree.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the tree is empty and has no root.
+    ///
+    /// When not certain, you may use [`is_empty`] or [`get_root`] methods to have a safe access.
+    ///
+    /// [`is_empty`]: Self::is_empty
+    /// [`get_root`]: Self::get_root
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // initiate a rooted tree
+    /// let mut tree = DynTree::<_>::new('a');
+    /// assert_eq!(tree.root().data(), &'a');
+    ///
+    /// tree.clear();
+    /// // assert_eq!(tree.get_root().data(), 'x'); // panics!
+    ///
+    /// // initiate an empty tree
+    /// let mut tree = BinaryTree::<_>::empty();
+    /// // assert_eq!(tree.get_root().data(), 'x'); // panics!
+    ///
+    /// tree.push_root('a');
+    /// assert_eq!(tree.root().data(), &'a');
+    /// ```
+    pub fn root(&self) -> Node<V, M, P> {
+        self.root_ptr()
+            .cloned()
+            .map(|p| Node::new(&self.0, p))
+            .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
+    }
+
+    /// Returns the mutable root node of the tree.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the tree is empty and has no root.
+    ///
+    /// When not certain, you may use [`is_empty`] or [`get_root_mut`] methods to have a safe access.
+    ///
+    /// [`is_empty`]: Self::is_empty
+    /// [`get_root_mut`]: Self::get_root_mut
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // initiate a rooted tree
+    /// let mut tree = DynTree::<_>::new('a');
+    /// *tree.root_mut().data_mut() = 'x';
+    /// assert_eq!(tree.root().data(), &'x');
+    ///
+    /// tree.clear();
+    /// // *tree.root_mut().data_mut() = 'x'; // panics!
+    ///
+    /// // initiate an empty tree
+    /// let mut tree = BinaryTree::<_>::empty();
+    /// // *tree.root_mut().data_mut() = 'x'; // panics!
+    ///
+    /// tree.push_root('a');
+    ///
+    /// // build the tree from the root
+    /// let mut root = tree.root_mut();
+    /// assert_eq!(root.data(), &'a');
+    ///
+    /// let [b, c] = root.grow(['b', 'c']);
+    /// b.node_mut(&mut tree).push('d');
+    /// c.node_mut(&mut tree).extend(['e', 'f']);
+    /// ```
+    pub fn root_mut(&mut self) -> NodeMut<V, M, P> {
+        self.root_ptr()
+            .cloned()
+            .map(|p| NodeMut::new(&mut self.0, p))
+            .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
+    }
+
     /// Returns the root node of the tree; None if the tree is empty.
     ///
     /// # Examples
