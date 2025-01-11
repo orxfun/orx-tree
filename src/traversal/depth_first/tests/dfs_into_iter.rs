@@ -28,17 +28,16 @@ fn tree() -> DynTree<String> {
     let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2.to_string(), 3.to_string()]);
 
-    let mut n2 = id2.node_mut(&mut tree);
+    let mut n2 = tree.node_mut(&id2);
     let [id4, _] = n2.grow([4.to_string(), 5.to_string()]);
 
-    id4.node_mut(&mut tree).push(8.to_string());
+    tree.node_mut(&id4).push(8.to_string());
 
-    let mut n3 = id3.node_mut(&mut tree);
+    let mut n3 = tree.node_mut(&id3);
     let [id6, id7] = n3.grow([6.to_string(), 7.to_string()]);
 
-    id6.node_mut(&mut tree).push(9.to_string());
-    id7.node_mut(&mut tree)
-        .extend([10.to_string(), 11.to_string()]);
+    tree.node_mut(&id6).push(9.to_string());
+    tree.node_mut(&id7).extend([10.to_string(), 11.to_string()]);
 
     tree
 }
@@ -55,7 +54,7 @@ fn dfs_into_iter_partially_used(use_iter: UseIter) {
         let mut tree = tree();
         let mut stack = Vec::default();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let ptr = root.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr.clone()));
         {
@@ -80,7 +79,7 @@ fn dfs_into_iter_partially_used(use_iter: UseIter) {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
@@ -111,7 +110,7 @@ fn dfs_into_iter_partially_used(use_iter: UseIter) {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let n7 = n3.child(1).unwrap();
         let ptr = n7.node_ptr().clone();
@@ -147,7 +146,7 @@ fn dfs_into_iter_val() {
         let mut tree = tree();
         let mut stack = Vec::default();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let ptr = root.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
@@ -167,7 +166,7 @@ fn dfs_into_iter_val() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = DfsIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
@@ -190,7 +189,7 @@ fn dfs_into_iter_val() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let n7 = n3.child(1).unwrap();
         let ptr = n7.node_ptr().clone();
@@ -218,7 +217,7 @@ fn dfs_into_iter_depth() {
         let mut tree = tree();
         let mut stack = Vec::default();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let ptr = root.node_ptr().clone();
         let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
@@ -241,7 +240,7 @@ fn dfs_into_iter_depth() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = DfsIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr.clone()));
@@ -267,7 +266,7 @@ fn dfs_into_iter_depth() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let n7 = n3.child(1).unwrap();
         let ptr = n7.node_ptr().clone();
@@ -298,7 +297,7 @@ fn dfs_into_iter_sibling_idx() {
         let mut tree = tree();
         let mut stack = Vec::default();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let ptr = root.node_ptr().clone();
         let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
@@ -321,7 +320,7 @@ fn dfs_into_iter_sibling_idx() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
@@ -347,7 +346,7 @@ fn dfs_into_iter_sibling_idx() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let n7 = n3.child(1).unwrap();
         let ptr = n7.node_ptr().clone();
@@ -378,7 +377,7 @@ fn dfs_into_iter_depth_sibling_idx() {
         let mut tree = tree();
         let mut stack = Vec::default();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let ptr = root.node_ptr().clone();
         let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
@@ -407,7 +406,7 @@ fn dfs_into_iter_depth_sibling_idx() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
@@ -439,7 +438,7 @@ fn dfs_into_iter_depth_sibling_idx() {
     {
         let mut tree = tree();
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let n3 = root.child(1).unwrap();
         let n7 = n3.child(1).unwrap();
         let ptr = n7.node_ptr().clone();

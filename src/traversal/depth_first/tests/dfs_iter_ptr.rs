@@ -22,16 +22,16 @@ fn tree() -> DynTree<i32> {
     let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2, 3]);
 
-    let mut n2 = id2.node_mut(&mut tree);
+    let mut n2 = tree.node_mut(&id2);
     let [id4, _] = n2.grow([4, 5]);
 
-    id4.node_mut(&mut tree).push(8);
+    tree.node_mut(&id4).push(8);
 
-    let mut n3 = id3.node_mut(&mut tree);
+    let mut n3 = tree.node_mut(&id3);
     let [id6, id7] = n3.grow([6, 7]);
 
-    id6.node_mut(&mut tree).push(9);
-    id7.node_mut(&mut tree).extend([10, 11]);
+    tree.node_mut(&id6).push(9);
+    tree.node_mut(&id7).extend([10, 11]);
 
     tree
 }

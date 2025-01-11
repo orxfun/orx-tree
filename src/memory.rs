@@ -72,16 +72,16 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut root = tree.root_mut();
 /// let [id2, id3] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// let [id4, _] = n2.grow([4, 5]);
 ///
-/// let [id8] = id4.node_mut(&mut tree).grow([8]);
+/// let [id8] = tree.node_mut(&id4).grow([8]);
 ///
-/// let mut n3 = id3.node_mut(&mut tree);
+/// let mut n3 = tree.node_mut(&id3);
 /// let [id6, id7] = n3.grow([6, 7]);
 ///
-/// id6.node_mut(&mut tree).push(9);
-/// id7.node_mut(&mut tree).extend([10, 11]);
+/// tree.node_mut(&id6).push(9);
+/// tree.node_mut(&id7).extend([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
@@ -95,7 +95,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // let's close two nodes (nodes 4 & 8)
 /// // this is not enough to trigger a memory reclaim
-/// id4.node_mut(&mut tree).remove();
+/// tree.node_mut(&id4).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
 /// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
@@ -111,7 +111,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // # 3 - SHRINK TRIGGERING MEMORY RECLAIM
 ///
 /// // let's close more nodes (7, 10, 11) to trigger the memory reclaim
-/// id7.node_mut(&mut tree).remove();
+/// tree.node_mut(&id7).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // even node 2 is still on the tree;
@@ -164,16 +164,16 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut root = tree.root_mut();
 /// let [id2, id3] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// let [id4, _] = n2.grow([4, 5]);
 ///
-/// let [id8] = id4.node_mut(&mut tree).grow([8]);
+/// let [id8] = tree.node_mut(&id4).grow([8]);
 ///
-/// let mut n3 = id3.node_mut(&mut tree);
+/// let mut n3 = tree.node_mut(&id3);
 /// let [id6, id7] = n3.grow([6, 7]);
 ///
-/// id6.node_mut(&mut tree).push(9);
-/// id7.node_mut(&mut tree).extend([10, 11]);
+/// tree.node_mut(&id6).push(9);
+/// tree.node_mut(&id7).extend([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
@@ -186,7 +186,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // # 2 - SHRINK, NO MEMORY RECLAIM
 ///
 /// // let's close two nodes (nodes 4 & 8)
-/// id4.node_mut(&mut tree).remove();
+/// tree.node_mut(&id4).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
 /// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
@@ -203,7 +203,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // let's close more nodes (7, 10, 11)
 /// // this would've triggered memory reclaim in Auto policy, but not in Lazy policy
-/// id7.node_mut(&mut tree).remove();
+/// tree.node_mut(&id7).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // all indices are still valid

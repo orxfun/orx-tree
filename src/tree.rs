@@ -82,7 +82,7 @@ where
     ///
     /// assert_eq!(tree.len(), 3);
     ///
-    /// let mut node = idx.node_mut(&mut tree);
+    /// let mut node = tree.node_mut(&idx);
     /// node.push(7);
     ///
     /// assert_eq!(tree.len(), 4);
@@ -145,7 +145,7 @@ where
     /// root.push(4);
     /// let [idx] = root.grow([2]);
     ///
-    /// let mut node = idx.node_mut(&mut tree);
+    /// let mut node = tree.node_mut(&idx);
     /// node.push(7);
     ///
     /// assert_eq!(tree.len(), 4);
@@ -234,8 +234,8 @@ where
     /// assert_eq!(root.data(), &'a');
     ///
     /// let [b, c] = root.grow(['b', 'c']);
-    /// b.node_mut(&mut tree).push('d');
-    /// c.node_mut(&mut tree).extend(['e', 'f']);
+    /// tree.node_mut(&b).push('d');
+    /// tree.node_mut(&c).extend(['e', 'f']);
     /// ```
     pub fn root_mut(&mut self) -> NodeMut<V, M, P> {
         self.root_ptr()

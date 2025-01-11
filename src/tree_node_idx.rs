@@ -141,7 +141,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let [id2, _] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// n2.extend([4, 5]);
 ///
 /// // task: access node 5 and get its index
@@ -176,7 +176,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let [id2, _] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// n2.extend([4, 5]);
 ///
 /// // task: collect all indices in breadth first order
@@ -266,27 +266,6 @@ impl<V: TreeVariant> NodeIdx<V> {
         P: PinnedStorage,
     {
         self.0.is_valid_for(&tree.0)
-    }
-
-    /// Returns the mutable node that this index is pointing to in constant time.
-    ///
-    /// Note that `tree.node_mut(&idx)` is identical to `idx.node_mut(&mut tree)`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn node_mut<'a, M, P>(&self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        assert!(self.0.is_valid_for(&tree.0), "{}", INVALID_IDX_ERROR);
-        NodeMut::new(&mut tree.0, self.0.node_ptr())
     }
 
     /// Returns the node that this index is pointing to in constant time if the index is valid.
