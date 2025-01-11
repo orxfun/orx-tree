@@ -467,6 +467,53 @@ where
             .then(|| NodeMut::new(&mut self.0, node_idx.0.node_ptr()))
     }
 
+    /// Returns the node with the given `node_idx`; returns the corresponding error if the node index is invalid.
+    ///
+    /// The node index is invalid if any of the following holds:
+    ///
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
+    ///
+    /// Please see [`NodeIdx`] documentation for details on the validity of node indices.
+    ///
+    /// [`try_node`]: Self::try_node
+    /// [`NodeIdxError::OutOfBounds`]: crate::NodeIdxError::OutOfBounds
+    /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
+    /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
+    #[inline(always)]
+    pub fn try_node(&self, node_idx: &NodeIdx<V>) -> Result<Node<V, M, P>, NodeIdxError> {
+        self.0
+            .try_get_ptr(&node_idx.0)
+            .map(|ptr| Node::new(&self.0, ptr))
+    }
+
+    /// Returns the node with the given `node_idx`; returns the corresponding error if the node index is invalid.
+    ///
+    /// The node index is invalid if any of the following holds:
+    ///
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
+    ///
+    /// Please see [`NodeIdx`] documentation for details on the validity of node indices.
+    ///
+    /// [`try_node`]: Self::try_node
+    /// [`NodeIdxError::OutOfBounds`]: crate::NodeIdxError::OutOfBounds
+    /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
+    /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
+    #[inline(always)]
+    pub fn try_node_mut(
+        &mut self,
+        node_idx: &NodeIdx<V>,
+    ) -> Result<NodeMut<V, M, P>, NodeIdxError> {
+        self.0
+            .try_get_ptr(&node_idx.0)
+            .map(|ptr| NodeMut::new(&mut self.0, ptr))
+    }
+
     // helpers
 
     /// Returns the pointer to the root; None if empty.
