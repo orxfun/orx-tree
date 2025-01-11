@@ -2,6 +2,7 @@ use crate::{
     helpers::Col,
     memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
+    tree_node_idx::INVALID_IDX_ERROR,
     Node, NodeMut, TreeVariant,
 };
 use orx_selfref_col::{NodeIdx, NodePtr, RefsSingle};
@@ -293,6 +294,66 @@ where
         self.root_ptr()
             .cloned()
             .map(|p| NodeMut::new(&mut self.0, p))
+    }
+
+    /// Returns the node with the given `node_idx`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
+    ///
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
+    ///
+    /// When not certain, you may use [`is_valid_for`] or [`get_node`] methods to have a safe access.
+    ///
+    /// [`is_valid_for`]: crate::NodeIdx::is_valid_for
+    /// [`get_node`]: Self::get_node
+    ///
+    /// [`NodeIdxError::OutOfBounds`]: crate::NodeIdxError::OutOfBounds
+    /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
+    /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
+    ///
+    /// # Examples
+    ///
+    /// TODO: examples mentioning the memory state
+    pub fn node(&self, node_idx: &NodeIdx<V>) -> Node<V, M, P> {
+        self.0
+            .get_ptr(node_idx)
+            .map(|p| Node::new(&self.0, p))
+            .expect(INVALID_IDX_ERROR)
+    }
+
+    /// Returns the mutable node with the given `node_idx`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
+    ///
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
+    ///
+    /// When not certain, you may use [`is_valid_for`] or [`get_node`] methods to have a safe access.
+    ///
+    /// [`is_valid_for`]: crate::NodeIdx::is_valid_for
+    /// [`get_node`]: Self::get_node
+    ///
+    /// [`NodeIdxError::OutOfBounds`]: crate::NodeIdxError::OutOfBounds
+    /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
+    /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
+    ///
+    /// # Examples
+    ///
+    /// TODO: examples mentioning the memory state
+    pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<V, M, P> {
+        self.0
+            .get_ptr(node_idx)
+            .map(|p| NodeMut::new(&mut self.0, p))
+            .expect(INVALID_IDX_ERROR)
     }
 
     /// Returns the node with the given `node_idx`; returns None if the index is invalid.
