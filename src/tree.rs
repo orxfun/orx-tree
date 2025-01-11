@@ -33,7 +33,7 @@ where
     /// let tree: DynTree<i32> = DynTree::empty();
     ///
     /// assert!(tree.is_empty());
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     /// ```
     pub fn empty() -> Self
     where
@@ -52,7 +52,7 @@ where
     /// let tree: DynTree<i32> = DynTree::new(42);
     ///
     /// assert_eq!(tree.len(), 1);
-    /// assert_eq!(tree.root().unwrap().data(), &42);
+    /// assert_eq!(tree.get_root().unwrap().data(), &42);
     /// ```
     pub fn new(root_value: V::Item) -> Self
     where
@@ -76,7 +76,7 @@ where
     /// let mut tree: DynTree<i32> = DynTree::new(42);
     /// assert_eq!(tree.len(), 1);
     ///
-    /// let mut root = tree.root_mut().unwrap();
+    /// let mut root = tree.get_root_mut().unwrap();
     /// let [_, idx] = root.grow([4, 2]);
     ///
     /// assert_eq!(tree.len(), 3);
@@ -111,12 +111,12 @@ where
     /// let mut tree: DynTree<i32> = DynTree::empty();
     ///
     /// assert!(tree.is_empty());
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     ///
     /// tree.push_root(42);
     /// assert!(!tree.is_empty());
     /// assert_eq!(tree.len(), 1);
-    /// assert_eq!(tree.root().unwrap().data(), &42);
+    /// assert_eq!(tree.get_root().unwrap().data(), &42);
     /// ```
     pub fn push_root(&mut self, root_value: V::Item) -> NodeIdx<V> {
         assert!(
@@ -140,7 +140,7 @@ where
     ///
     /// let mut tree: BinaryTree<i32> = BinaryTree::new(42);
     ///
-    /// let mut root = tree.root_mut().unwrap();
+    /// let mut root = tree.get_root_mut().unwrap();
     /// root.push(4);
     /// let [idx] = root.grow([2]);
     ///
@@ -148,11 +148,11 @@ where
     /// node.push(7);
     ///
     /// assert_eq!(tree.len(), 4);
-    /// assert_eq!(tree.root().unwrap().data(), &42);
+    /// assert_eq!(tree.get_root().unwrap().data(), &42);
     ///
     /// tree.clear();
     /// assert!(tree.is_empty());
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -170,19 +170,19 @@ where
     ///
     /// // initiate a rooted tree
     /// let mut tree = DynTree::<_>::new('a');
-    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    /// assert_eq!(tree.get_root().unwrap().data(), &'a');
     ///
     /// tree.clear();
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     ///
     /// // initiate an empty tree
     /// let mut tree = BinaryTree::<_>::empty();
-    /// assert_eq!(tree.root(), None);
+    /// assert_eq!(tree.get_root(), None);
     ///
     /// tree.push_root('a');
-    /// assert_eq!(tree.root().unwrap().data(), &'a');
+    /// assert_eq!(tree.get_root().unwrap().data(), &'a');
     /// ```
-    pub fn root(&self) -> Option<Node<V, M, P>> {
+    pub fn get_root(&self) -> Option<Node<V, M, P>> {
         self.root_ptr().cloned().map(|p| Node::new(&self.0, p))
     }
 
@@ -195,7 +195,7 @@ where
     ///
     /// let mut tree = DynTree::<_>::new('a');
     ///
-    /// let mut root = tree.root_mut().unwrap();
+    /// let mut root = tree.get_root_mut().unwrap();
     ///
     /// assert_eq!(root.data(), &'a');
     /// *root.data_mut() = 'x';
@@ -205,9 +205,9 @@ where
     /// let idx = root.push('c');
     ///
     /// tree.clear();
-    /// assert_eq!(tree.root_mut(), None);
+    /// assert_eq!(tree.get_root_mut(), None);
     /// ```
-    pub fn root_mut(&mut self) -> Option<NodeMut<V, M, P>> {
+    pub fn get_root_mut(&mut self) -> Option<NodeMut<V, M, P>> {
         self.root_ptr()
             .cloned()
             .map(|p| NodeMut::new(&mut self.0, p))

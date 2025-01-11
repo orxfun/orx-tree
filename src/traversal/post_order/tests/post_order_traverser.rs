@@ -30,7 +30,7 @@ use orx_selfref_col::Variant;
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.root_mut().unwrap();
+    let mut root = tree.get_root_mut().unwrap();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -62,7 +62,7 @@ where
     let tree = tree();
     let mut traverser = PostOrder::<O>::new();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let iter = traverser.iter(&root);
     assert_eq!(data::<O>(iter), [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
 
@@ -95,7 +95,7 @@ fn post_order_iter_ref_depth() {
     fn test(mut traverser: PostOrder<OverDepthData>) {
         let tree = tree();
 
-        let root = tree.root().unwrap();
+        let root = tree.get_root().unwrap();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| x.0).collect::<Vec<_>>(),
@@ -120,7 +120,7 @@ fn post_order_iter_ref_sibling() {
     fn test(mut traverser: PostOrder<OverSiblingIdxData>) {
         let tree = tree();
 
-        let root = tree.root().unwrap();
+        let root = tree.get_root().unwrap();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| x.0).collect::<Vec<_>>(),
@@ -150,7 +150,7 @@ fn post_order_iter_ref_depth_sibling() {
     fn test(mut traverser: PostOrder<OverDepthSiblingIdxData>) {
         let tree = tree();
 
-        let root = tree.root().unwrap();
+        let root = tree.get_root().unwrap();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| x.0).collect::<Vec<_>>(),

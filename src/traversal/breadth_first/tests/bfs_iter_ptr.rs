@@ -20,7 +20,7 @@ use orx_selfref_col::NodePtr;
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.root_mut().unwrap();
+    let mut root = tree.get_root_mut().unwrap();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -60,7 +60,7 @@ fn bfs_iter_ptr() {
     let tree = tree();
     let mut queue = VecDeque::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     assert_eq!(data(iter), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);

@@ -26,7 +26,7 @@ use orx_selfref_col::{NodePtr, Variant};
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.root_mut().unwrap();
+    let mut root = tree.get_root_mut().unwrap();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -64,7 +64,7 @@ fn post_order_iter_for<O: Over>() {
     let tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = PostOrderIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
@@ -103,7 +103,7 @@ fn post_order_iter_ref_depth() {
     let tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter =
@@ -126,7 +126,7 @@ fn post_order_iter_ref_sibling() {
     let tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from((
@@ -152,7 +152,7 @@ fn post_order_iter_ref_sibling() {
 fn post_order_iter_ref_depth_sibling() {
     let tree = tree();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((

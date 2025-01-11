@@ -54,7 +54,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut tree = DynTree::<i32>::new(1);
 ///
-/// let mut root = tree.root_mut().unwrap();
+/// let mut root = tree.get_root_mut().unwrap();
 ///
 /// root.push(2); // no idx is returned
 ///
@@ -78,7 +78,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut tree = DynTree::<i32>::new(1);
 ///
-/// let mut root = tree.root_mut().unwrap();
+/// let mut root = tree.get_root_mut().unwrap();
 ///
 /// root.extend([2, 3]); // no indices are returned
 ///
@@ -98,7 +98,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut tree = DynTree::<i32>::new(1);
 ///
-/// let mut root = tree.root_mut().unwrap();
+/// let mut root = tree.get_root_mut().unwrap();
 ///
 /// root.extend(2..4); // no indices are returned
 ///
@@ -137,7 +137,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut tree = DynTree::<i32>::new(1);
 ///
-/// let mut root = tree.root_mut().unwrap();
+/// let mut root = tree.get_root_mut().unwrap();
 ///
 /// let [id2, _] = root.grow([2, 3]);
 ///
@@ -145,7 +145,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// n2.extend([4, 5]);
 ///
 /// // task: access node 5 and get its index
-/// let root = tree.root().unwrap();
+/// let root = tree.get_root().unwrap();
 /// let n2 = root.child(0).unwrap();
 /// let n5 = n2.child(1).unwrap();
 /// let id5 = n5.idx();
@@ -172,7 +172,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut tree = DynTree::<i32>::new(1);
 ///
-/// let mut root = tree.root_mut().unwrap();
+/// let mut root = tree.get_root_mut().unwrap();
 ///
 /// let [id2, _] = root.grow([2, 3]);
 ///
@@ -181,7 +181,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// // task: collect all indices in breadth first order
 /// let mut bfs = Bfs::default().over_nodes();
-/// let root = tree.root().unwrap();
+/// let root = tree.get_root().unwrap();
 /// let indices: Vec<_> = root.walk_with(&mut bfs).map(|x| x.idx()).collect();
 ///
 /// // now we can use indices to directly access nodes

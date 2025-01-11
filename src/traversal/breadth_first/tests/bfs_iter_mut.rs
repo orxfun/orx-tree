@@ -24,7 +24,7 @@ use alloc::vec::Vec;
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.root_mut().unwrap();
+    let mut root = tree.get_root_mut().unwrap();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -55,7 +55,7 @@ fn bfs_iter_mut_val() {
     let tree = tree();
     let mut queue = VecDeque::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     let iter =
@@ -65,7 +65,7 @@ fn bfs_iter_mut_val() {
         *x += 100 * i as i32;
     }
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
@@ -80,7 +80,7 @@ fn bfs_iter_mut_depth() {
     let tree = tree();
     let mut queue = VecDeque::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthVal, _>::from((&mut queue, ptr));
     let iter = unsafe {
@@ -91,7 +91,7 @@ fn bfs_iter_mut_depth() {
         *x += 100 * d as i32;
     }
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((VecDeque::new(), ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
@@ -106,7 +106,7 @@ fn bfs_iter_mut_sibling() {
     let tree = tree();
     let mut queue = VecDeque::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, SiblingIdxVal, _>::from((&mut queue, ptr));
     let iter = unsafe {
@@ -117,7 +117,7 @@ fn bfs_iter_mut_sibling() {
         *x += 100 * s as i32;
     }
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((VecDeque::new(), ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
@@ -132,7 +132,7 @@ fn bfs_iter_mut_depth_sibling() {
     let tree = tree();
     let mut queue = VecDeque::default();
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut queue, ptr));
     let iter = unsafe {
@@ -145,7 +145,7 @@ fn bfs_iter_mut_depth_sibling() {
         *x += 10000 * d as i32 + 100 * s as i32;
     }
 
-    let root = tree.root().unwrap();
+    let root = tree.get_root().unwrap();
     let ptr = root.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((VecDeque::new(), ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
