@@ -58,7 +58,7 @@ where
     ///
     /// let mut tree = BinaryTree::<char>::new('r');
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// assert!(root.is_root());
     ///
     /// root.extend(['a', 'b']);
@@ -88,7 +88,7 @@ where
     /// let mut tree = DynTree::<i32>::new(1);
     /// assert_eq!(tree.get_root().unwrap().is_leaf(), true); // both root & leaf
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
     /// let mut n2 = id2.node_mut(&mut tree);
@@ -122,7 +122,7 @@ where
     ///
     /// let mut tree = DynTree::<i32>::new(0);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// assert_eq!(root.data(), &0);
     ///
     /// let [id_a] = root.grow([1]);
@@ -149,7 +149,7 @@ where
     ///
     /// let mut tree = DynTree::<i32>::new(0);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// assert_eq!(root.num_children(), 0);
     ///
     /// let [id_a, id_b] = root.grow([1, 2]);
@@ -181,7 +181,7 @@ where
     /// // |-- b
     /// let mut tree = DynTree::<char>::new('r');
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id_a] = root.grow(['a']);
     /// root.push('b');
     ///
@@ -190,7 +190,7 @@ where
     ///
     /// // iterate over children of nodes
     ///
-    /// let root = tree.get_root().unwrap();
+    /// let root = tree.root();
     /// let depth1: Vec<_> = root.children().map(|x| *x.data()).collect();
     /// assert_eq!(depth1, ['a', 'b']);
     ///
@@ -231,7 +231,7 @@ where
     /// // |-- b
     /// let mut tree = DynTree::<char>::new('r');
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id_a] = root.grow(['a']);
     /// root.push('b');
     ///
@@ -240,7 +240,7 @@ where
     ///
     /// // use child to access lower level nodes
     ///
-    /// let root = tree.get_root().unwrap();
+    /// let root = tree.root();
     ///
     /// let a = root.child(0).unwrap();
     /// assert_eq!(a.data(), &'a');
@@ -265,7 +265,7 @@ where
     ///
     /// let mut tree = BinaryTree::<char>::new('r');
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// assert_eq!(root.parent(), None);
     ///
     /// root.extend(['a', 'b']);
@@ -309,7 +309,7 @@ where
     ///
     /// let mut tree = DynTree::<char>::new('r');
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id_a, id_b] = root.grow(['a', 'b']);
     ///
     /// let mut a = id_a.node_mut(&mut tree);
@@ -323,7 +323,7 @@ where
     ///
     /// // check sibling positions
     ///
-    /// let root = tree.get_root().unwrap();
+    /// let root = tree.root();
     /// assert_eq!(root.sibling_position(), 0);
     ///
     /// for (i, node) in root.children().enumerate() {
@@ -391,7 +391,7 @@ where
     ///
     /// let mut tree = DynTree::<i32>::new(1);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
     /// let mut n2 = id2.node_mut(&mut tree);
@@ -408,7 +408,7 @@ where
     /// // walk over any subtree rooted at a selected node
     /// // with different traversals
     ///
-    /// let root = tree.get_root().unwrap();
+    /// let root = tree.root();
     /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
     ///
@@ -464,7 +464,7 @@ where
     ///
     /// let mut tree = DynTree::<i32>::new(1);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
     /// let mut n2 = id2.node_mut(&mut tree);
@@ -484,7 +484,7 @@ where
     ///
     /// let mut dfs = Dfs::default();
     ///
-    /// let root = tree.get_root().unwrap();
+    /// let root = tree.root();
     /// let values: Vec<_> = root.walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
     ///
@@ -519,7 +519,7 @@ where
     ///
     /// let mut tree = DynTree::<i32>::new(1);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
     /// let mut n2 = id2.node_mut(&mut tree);
@@ -613,7 +613,7 @@ where
     ///
     /// let mut tree = DynTree::<i32>::new(1);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
     /// let mut n2 = id2.node_mut(&mut tree);
@@ -629,7 +629,7 @@ where
     ///
     /// // access the leaves in different orders that is determined by traversal
     ///
-    /// let root = tree.get_root().unwrap();
+    /// let root = tree.root();
     ///
     /// let bfs_leaves: Vec<_> = root.leaves::<Bfs>().copied().collect();
     /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);

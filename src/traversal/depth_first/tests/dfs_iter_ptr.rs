@@ -19,7 +19,7 @@ use orx_selfref_col::NodePtr;
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.get_root_mut().unwrap();
+    let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -59,7 +59,7 @@ fn dfs_iter_ptr() {
     let tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
     assert_eq!(data(iter), [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);

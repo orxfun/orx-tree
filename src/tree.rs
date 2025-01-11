@@ -76,7 +76,7 @@ where
     /// let mut tree: DynTree<i32> = DynTree::new(42);
     /// assert_eq!(tree.len(), 1);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// let [_, idx] = root.grow([4, 2]);
     ///
     /// assert_eq!(tree.len(), 3);
@@ -140,7 +140,7 @@ where
     ///
     /// let mut tree: BinaryTree<i32> = BinaryTree::new(42);
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     /// root.push(4);
     /// let [idx] = root.grow([2]);
     ///
@@ -277,7 +277,7 @@ where
     ///
     /// let mut tree = DynTree::<_>::new('a');
     ///
-    /// let mut root = tree.get_root_mut().unwrap();
+    /// let mut root = tree.root_mut();
     ///
     /// assert_eq!(root.data(), &'a');
     /// *root.data_mut() = 'x';

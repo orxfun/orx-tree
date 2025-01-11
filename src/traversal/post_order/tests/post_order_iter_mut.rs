@@ -25,7 +25,7 @@ use alloc::vec::Vec;
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.get_root_mut().unwrap();
+    let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -57,7 +57,7 @@ fn post_order_iter_mut_val() {
     let mut tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = unsafe {
@@ -68,7 +68,7 @@ fn post_order_iter_mut_val() {
         *x += 100 * i as i32;
     }
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
@@ -83,7 +83,7 @@ fn post_order_iter_mut_depth() {
     let mut tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
@@ -97,7 +97,7 @@ fn post_order_iter_mut_depth() {
         *x += 100 * d as i32;
     }
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
@@ -112,7 +112,7 @@ fn post_order_iter_mut_sibling() {
     let mut tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
@@ -126,7 +126,7 @@ fn post_order_iter_mut_sibling() {
         *x += 100 * s as i32;
     }
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
@@ -141,7 +141,7 @@ fn post_order_iter_mut_depth_sibling() {
     let mut tree = tree();
     let mut stack = Vec::default();
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
@@ -155,7 +155,7 @@ fn post_order_iter_mut_depth_sibling() {
         *x += 10000 * d as i32 + 100 * s as i32;
     }
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let ptr = root.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));

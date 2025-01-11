@@ -25,7 +25,7 @@ use test_case::test_matrix;
 fn tree() -> DynTree<String> {
     let mut tree = DynTree::<String>::new(1.to_string());
 
-    let mut root = tree.get_root_mut().unwrap();
+    let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2.to_string(), 3.to_string()]);
 
     let mut n2 = id2.node_mut(&mut tree);

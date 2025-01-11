@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
-    let mut root = tree.get_root_mut().unwrap();
+    let mut root = tree.root_mut();
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = id2.node_mut(&mut tree);
@@ -44,13 +44,13 @@ fn post_order_iter_mut_val() {
     let mut tree = tree();
     let mut traverser = PostOrder::<OverData>::default();
 
-    let mut root = tree.get_root_mut().unwrap();
+    let mut root = tree.root_mut();
     let iter = traverser.iter_mut(&mut root);
     for (i, x) in iter.enumerate() {
         *x += 100 * i as i32;
     }
 
-    let root = tree.get_root().unwrap();
+    let root = tree.root();
     let iter = traverser.iter(&root);
     assert_eq!(
         iter.copied().collect::<Vec<_>>(),
@@ -63,13 +63,13 @@ fn post_order_iter_mut_depth() {
     fn test(mut traverser: PostOrder<OverDepthData>) {
         let mut tree = tree();
 
-        let mut root = tree.get_root_mut().unwrap();
+        let mut root = tree.root_mut();
         let iter = traverser.iter_mut(&mut root);
         for (d, x) in iter {
             *x += 100 * d as i32;
         }
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| *x.1).collect::<Vec<_>>(),
@@ -90,13 +90,13 @@ fn post_order_iter_mut_sibling() {
     fn test(mut traverser: PostOrder<OverSiblingIdxData>) {
         let mut tree = tree();
 
-        let mut root = tree.get_root_mut().unwrap();
+        let mut root = tree.root_mut();
         let iter = traverser.iter_mut(&mut root);
         for (s, x) in iter {
             *x += 100 * s as i32;
         }
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| *x.1).collect::<Vec<_>>(),
@@ -122,13 +122,13 @@ fn post_order_iter_mut_depth_sibling() {
     fn test(mut traverser: PostOrder<OverDepthSiblingIdxData>) {
         let mut tree = tree();
 
-        let mut root = tree.get_root_mut().unwrap();
+        let mut root = tree.root_mut();
         let iter = traverser.iter_mut(&mut root);
         for (d, s, x) in iter {
             *x += 10000 * d as i32 + 100 * s as i32;
         }
 
-        let root = tree.get_root().unwrap();
+        let root = tree.root();
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| *x.2).collect::<Vec<_>>(),
