@@ -1,5 +1,4 @@
-use crate::{pinned_storage::PinnedStorage, MemoryPolicy, Node, NodeMut, Tree, TreeVariant};
-use orx_selfref_col::{MemoryState, NodeIdxError, NodePtr};
+use crate::TreeVariant;
 
 pub(crate) const INVALID_IDX_ERROR: &str = "\n
 NodeIdx is not valid for the given tree.
@@ -238,17 +237,5 @@ impl<V: TreeVariant> Clone for NodeIdx<V> {
 impl<V: TreeVariant> PartialEq for NodeIdx<V> {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
-    }
-}
-
-impl<V: TreeVariant> NodeIdx<V> {
-    #[inline(always)]
-    pub(crate) fn new(state: MemoryState, node_ptr: &NodePtr<V>) -> Self {
-        Self(orx_selfref_col::NodeIdx::new(state, node_ptr))
-    }
-
-    #[inline(always)]
-    pub(crate) fn from_idx(node_idx: orx_selfref_col::NodeIdx<V>) -> Self {
-        Self(node_idx)
     }
 }

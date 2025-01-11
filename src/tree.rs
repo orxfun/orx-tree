@@ -129,7 +129,7 @@ where
         let root_mut: &mut RefsSingle<V> = self.0.ends_mut();
         root_mut.set_some(root_idx.node_ptr());
 
-        NodeIdx::from_idx(root_idx)
+        NodeIdx(root_idx)
     }
 
     /// Removes all the nodes including the root of the tree.

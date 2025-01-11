@@ -242,7 +242,10 @@ where
     pub fn grow<const N: usize>(&mut self, children: [V::Item; N]) -> [NodeIdx<V>; N] {
         children.map(|child| {
             let child_ptr = self.push_get_ptr(child);
-            NodeIdx::new(self.col.memory_state(), &child_ptr)
+            NodeIdx(orx_selfref_col::NodeIdx::new(
+                self.col.memory_state(),
+                &child_ptr,
+            ))
         })
     }
 
@@ -333,7 +336,10 @@ where
     {
         children.into_iter().map(|value| {
             let child_ptr = self.push_get_ptr(value);
-            NodeIdx::new(self.col.memory_state(), &child_ptr)
+            NodeIdx(orx_selfref_col::NodeIdx::new(
+                self.col.memory_state(),
+                &child_ptr,
+            ))
         })
     }
 

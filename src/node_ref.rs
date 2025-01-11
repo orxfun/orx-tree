@@ -44,7 +44,10 @@ where
     ///
     /// TODO: examples
     fn idx(&self) -> NodeIdx<V> {
-        NodeIdx::new(self.col().memory_state(), self.node_ptr())
+        NodeIdx(orx_selfref_col::NodeIdx::new(
+            self.col().memory_state(),
+            self.node_ptr(),
+        ))
     }
 
     /// Returns true if this is the root node; equivalently, if its [`parent`] is none.
