@@ -1,5 +1,6 @@
 use crate::{
     helpers::{Col, N},
+    iter::AncestorsIter,
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     traversal::{enumeration::Enumeration, over::OverItem, Over, OverData},
@@ -404,6 +405,62 @@ where
         }
 
         depth
+    }
+
+    /// Returns an iterator starting from this node moving upwards until the root:
+    ///
+    /// * yields all ancestors of this node including this node,
+    /// * the first element is always this node, and
+    /// * the last element is always the root node of the tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// let [id10, _] = tree.node_mut(&id7).grow([10, 11]);
+    ///
+    /// // ancestors iterator over nodes
+    /// // upwards from the node to the root
+    ///
+    /// let root = tree.root();
+    /// let mut iter = root.ancestors();
+    /// assert_eq!(iter.next().as_ref(), Some(&root));
+    /// assert_eq!(iter.next(), None);
+    ///
+    /// let n10 = tree.node(&id10);
+    /// let ancestors_data: Vec<_> = n10.ancestors().map(|x| *x.data()).collect();
+    /// assert_eq!(ancestors_data, [10, 7, 3, 1]);
+    ///
+    /// let n4 = tree.node(&id4);
+    /// let ancestors_data: Vec<_> = n4.ancestors().map(|x| *x.data()).collect();
+    /// assert_eq!(ancestors_data, [4, 2, 1]);
+    /// ```
+    fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
+        AncestorsIter::new(self.col(), self.node_ptr().clone())
     }
 
     // traversal
