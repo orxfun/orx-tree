@@ -89,7 +89,7 @@ where
     /// assert_eq!(root.data(), &10);
     ///
     /// let [idx_a] = root.grow([1]);
-    /// let mut node = idx_a.node_mut(&mut tree);
+    /// let mut node = tree.node_mut(&idx_a);
     ///
     /// *node.data_mut() += 10;
     /// assert_eq!(node.data(), &11);
@@ -218,16 +218,16 @@ where
     ///
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // validate the tree
     ///
@@ -242,7 +242,10 @@ where
     pub fn grow<const N: usize>(&mut self, children: [V::Item; N]) -> [NodeIdx<V>; N] {
         children.map(|child| {
             let child_ptr = self.push_get_ptr(child);
-            NodeIdx::new(self.col.memory_state(), &child_ptr)
+            NodeIdx(orx_selfref_col::NodeIdx::new(
+                self.col.memory_state(),
+                &child_ptr,
+            ))
         })
     }
 
@@ -301,7 +304,7 @@ where
     ///         .collect();
     ///
     ///     for parent_idx in parent_indices {
-    ///         let mut parent = parent_idx.node_mut(&mut tree);
+    ///         let mut parent = tree.node_mut(&parent_idx);
     ///         let parent_value = *parent.data();
     ///
     ///         let children = (0..2).map(|sibling_idx| val(parent_value, depth, sibling_idx));
@@ -333,7 +336,10 @@ where
     {
         children.into_iter().map(|value| {
             let child_ptr = self.push_get_ptr(value);
-            NodeIdx::new(self.col.memory_state(), &child_ptr)
+            NodeIdx(orx_selfref_col::NodeIdx::new(
+                self.col.memory_state(),
+                &child_ptr,
+            ))
         })
     }
 
@@ -378,7 +384,7 @@ where
     ///
     /// let idx_depth1 = root.grow_vec(vec![2, 3]);
     /// for idx in idx_depth1 {
-    ///     let mut node = idx.node_mut(&mut tree);
+    ///     let mut node = tree.node_mut(&idx);
     ///
     ///     let val = *node.data();
     ///     let children = (0..val).map(|x| x + 1 + val);
@@ -386,7 +392,7 @@ where
     ///     let idx_depth2 = node.grow_vec(children);
     ///
     ///     for idx in idx_depth2 {
-    ///         let mut node = idx.node_mut(&mut tree);
+    ///         let mut node = tree.node_mut(&idx);
     ///         node.push(*node.data() + 3);
     ///     }
     /// }
@@ -432,20 +438,20 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // remove n4 downwards (removes 4 and 8)
     ///
-    /// let data = id4.node_mut(&mut tree).remove();
+    /// let data = tree.node_mut(&id4).remove();
     /// assert_eq!(data, 4);
     /// assert_eq!(tree.len(), 9);
     ///
@@ -455,7 +461,7 @@ where
     ///
     /// // remove n3 downwards (3, 6, 7, 9, 10, 11)
     ///
-    /// let data = id3.node_mut(&mut tree).remove();
+    /// let data = tree.node_mut(&id3).remove();
     /// assert_eq!(data, 3);
     /// assert_eq!(tree.len(), 3);
     ///
@@ -683,18 +689,18 @@ where
     ///
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// n2.extend([4, 5]);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(10);
-    /// id7.node_mut(&mut tree).extend([711, 712]);
+    /// tree.node_mut(&id6).push(10);
+    /// tree.node_mut(&id7).extend([711, 712]);
     ///
     /// // push nodes 8 and 9 using children_mut of node 2
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// for mut child in n2.children_mut() {
     ///     let child_val = *child.data(); // 4 & 5
     ///     child.push(child_val + 4); // 8 & 9
@@ -702,7 +708,7 @@ where
     ///
     /// // update values using children_mut of node 7
     ///
-    /// let mut n7 = id7.node_mut(&mut tree);
+    /// let mut n7 = tree.node_mut(&id7);
     /// for mut child in n7.children_mut() {
     ///     *child.data_mut() -= 700;
     /// }
@@ -771,16 +777,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // walk over mutable references of nodes of any subtree
     /// // rooted at a selected node with different traversals
@@ -792,14 +798,14 @@ where
     ///     assert_eq!(bfs.next(), Some(&mut 2)); // ...
     /// }
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// {
     ///     let mut dfs = n3.walk_mut::<Dfs>();
     ///     assert_eq!(dfs.next(), Some(&mut 3));
     ///     assert_eq!(dfs.next(), Some(&mut 6)); // ...
     /// }
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// {
     ///     let mut post_order = n2.walk_mut::<PostOrder>();
     ///     assert_eq!(post_order.next(), Some(&mut 8));
@@ -851,16 +857,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // create the traverser 'dfs' only once, use it many times
     /// // to walk over references, mutable references or removed values
@@ -872,14 +878,14 @@ where
     /// let values: Vec<_> = root.walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
     ///
-    /// let mut n7 = id7.node_mut(&mut tree);
+    /// let mut n7 = tree.node_mut(&id7);
     /// for x in n7.walk_mut_with(&mut dfs) {
     ///     *x += 100;
     /// }
     /// let values: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 107, 110, 111]);
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let n3 = tree.node_mut(&id3);
     /// let removed: Vec<_> = n3.into_walk_with(&mut dfs).collect();
     /// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
     ///
@@ -906,16 +912,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // create the traverser 'bfs' iterator
     /// // to walk over nodes rather than data
@@ -923,7 +929,7 @@ where
     /// let mut bfs = Bfs::default().over_nodes();
     /// // OR: Bfs::<OverNode>::new();
     ///
-    /// let n7 = id7.node(&tree);
+    /// let n7 = tree.node(&id7);
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
@@ -934,7 +940,7 @@ where
     /// let mut dfs = Dfs::default().with_depth().with_sibling_idx();
     /// // OR: Dfs::<OverDepthSiblingIdxData>::new()
     ///
-    /// let n3 = id3.node(&tree);
+    /// let n3 = tree.node(&id3);
     /// let result: Vec<_> = n3
     ///     .walk_with(&mut dfs)
     ///     .map(|(depth, sibling_idx, data)| (depth, sibling_idx, *data))
@@ -1013,29 +1019,29 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // remove any subtree rooted at a selected node
     /// // from the tree, and collect the node values
     /// // in the order of different traversals
     ///
-    /// let n4 = id4.node_mut(&mut tree);
+    /// let n4 = tree.node_mut(&id4);
     /// let removed: Vec<_> = n4.into_walk::<PostOrder>().collect();
     /// assert_eq!(removed, [8, 4]);
     ///
     /// let remaining: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().copied().collect();
     /// assert_eq!(remaining, [1, 2, 3, 5, 6, 7, 9, 10, 11]);
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let n3 = tree.node_mut(&id3);
     /// let removed: Vec<_> = n3.into_walk::<Dfs>().collect();
     /// assert_eq!(removed, [3, 6, 9, 7, 10, 11]);
     ///
@@ -1098,16 +1104,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // create the traverser 'dfs' only once, use it many times
     /// // to walk over references, mutable references or removed values
@@ -1119,14 +1125,14 @@ where
     /// let values: Vec<_> = root.walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
     ///
-    /// let mut n7 = id7.node_mut(&mut tree);
+    /// let mut n7 = tree.node_mut(&id7);
     /// for x in n7.walk_mut_with(&mut dfs) {
     ///     *x += 100;
     /// }
     /// let values: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 107, 110, 111]);
     ///
-    /// let n3 = id3.node_mut(&mut tree);
+    /// let n3 = tree.node_mut(&id3);
     /// let removed: Vec<_> = n3.into_walk_with(&mut dfs).collect();
     /// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
     ///
@@ -1153,16 +1159,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.grow([2, 3]);
     ///
-    /// let mut n2 = id2.node_mut(&mut tree);
+    /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// id4.node_mut(&mut tree).push(8);
+    /// tree.node_mut(&id4).push(8);
     ///
-    /// let mut n3 = id3.node_mut(&mut tree);
+    /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// id6.node_mut(&mut tree).push(9);
-    /// id7.node_mut(&mut tree).extend([10, 11]);
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
     ///
     /// // create the traverser 'bfs' iterator
     /// // to walk over nodes rather than data
@@ -1170,7 +1176,7 @@ where
     /// let mut bfs = Bfs::default().over_nodes();
     /// // OR: Bfs::<OverNode>::new();
     ///
-    /// let n7 = id7.node(&tree);
+    /// let n7 = tree.node(&id7);
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
@@ -1181,7 +1187,7 @@ where
     /// let mut dfs = Dfs::default().with_depth().with_sibling_idx();
     /// // OR: Dfs::<OverDepthSiblingIdxData>::new()
     ///
-    /// let n3 = id3.node(&tree);
+    /// let n3 = tree.node(&id3);
     /// let result: Vec<_> = n3
     ///     .walk_with(&mut dfs)
     ///     .map(|(depth, sibling_idx, data)| (depth, sibling_idx, *data))
@@ -1284,13 +1290,13 @@ where
     /// let mut root = tree.root_mut();
     /// let [id_a, id_b] = root.grow(['a', 'b']);
     ///
-    /// let mut a = id_a.node_mut(&mut tree);
+    /// let mut a = tree.node_mut(&id_a);
     /// a.extend(['c', 'd', 'e']);
     ///
-    /// let mut b = id_b.node_mut(&mut tree);
+    /// let mut b = tree.node_mut(&id_b);
     /// let [_, id_g] = b.grow(['f', 'g']);
     ///
-    /// let mut g = id_g.node_mut(&mut tree);
+    /// let mut g = tree.node_mut(&id_g);
     /// let mut b = g.parent_mut().unwrap();
     /// let mut root = b.parent_mut().unwrap();
     ///

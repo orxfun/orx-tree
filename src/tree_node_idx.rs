@@ -1,7 +1,6 @@
-use crate::{pinned_storage::PinnedStorage, MemoryPolicy, Node, NodeMut, Tree, TreeVariant};
-use orx_selfref_col::{MemoryState, NodeIdxError, NodePtr};
+use crate::TreeVariant;
 
-const INVALID_IDX_ERROR: &str = "\n
+pub(crate) const INVALID_IDX_ERROR: &str = "\n
 NodeIdx is not valid for the given tree.
 Please see the notes and examples of NodeIdx and MemoryPolicy:
 * https://docs.rs/orx-tree/latest/orx_tree/struct.NodeIdx.html
@@ -61,7 +60,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let [id3] = root.grow([3]); // idx is received
 ///
 /// // use id3 to directly access node 3
-/// let n3 = id3.node(&tree);
+/// let n3 = tree.node(&id3);
 /// assert_eq!(n3.data(), &3);
 /// ```
 ///
@@ -105,7 +104,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let indices = root.grow_vec(4..6); // indices are collected into a vec
 ///
 /// let id5 = &indices[1];
-/// let n5 = id5.node(&tree);
+/// let n5 = tree.node(&id5);
 /// assert_eq!(n5.data(), &5);
 /// ```
 ///
@@ -141,7 +140,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let [id2, _] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// n2.extend([4, 5]);
 ///
 /// // task: access node 5 and get its index
@@ -151,9 +150,9 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let id5 = n5.idx();
 ///
 /// // now we can use idx5 to directly access node 5
-/// let n5 = id5.node(&tree);
+/// let n5 = tree.node(&id5);
 /// assert_eq!(n5.data(), &5);
-/// assert_eq!(n5.parent(), Some(id2.node(&tree)));
+/// assert_eq!(n5.parent(), Some(tree.node(&id2)));
 /// ```
 ///
 /// Since we can traverse the node in various ways and access the nodes in various orders,
@@ -176,7 +175,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let [id2, _] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// n2.extend([4, 5]);
 ///
 /// // task: collect all indices in breadth first order
@@ -186,9 +185,9 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// // now we can use indices to directly access nodes
 /// let id5 = &indices[4];
-/// let n5 = id5.node(&tree);
+/// let n5 = tree.node(&id5);
 /// assert_eq!(n5.data(), &5);
-/// assert_eq!(n5.parent(), Some(id2.node(&tree)));
+/// assert_eq!(n5.parent(), Some(tree.node(&id2)));
 /// ```
 ///
 /// # Validity of Node Indices
@@ -227,7 +226,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// * Growth methods never lead to implicit invalidation.
 /// * We can only experience implicit invalidation when we are using [`Auto`] (or auto with threshold)
 ///   memory policy and remove nodes from the tree.
-pub struct NodeIdx<V: TreeVariant>(orx_selfref_col::NodeIdx<V>);
+pub struct NodeIdx<V: TreeVariant>(pub(crate) orx_selfref_col::NodeIdx<V>);
 
 impl<V: TreeVariant> Clone for NodeIdx<V> {
     fn clone(&self) -> Self {
@@ -238,184 +237,5 @@ impl<V: TreeVariant> Clone for NodeIdx<V> {
 impl<V: TreeVariant> PartialEq for NodeIdx<V> {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
-    }
-}
-
-impl<V: TreeVariant> NodeIdx<V> {
-    #[inline(always)]
-    pub(crate) fn new(state: MemoryState, node_ptr: &NodePtr<V>) -> Self {
-        Self(orx_selfref_col::NodeIdx::new(state, node_ptr))
-    }
-
-    /// Returns true if this node index is valid for the given `tree`.
-    ///
-    /// Returns false if either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn is_valid_for<M, P>(&self, tree: &Tree<V, M, P>) -> bool
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        self.0.is_valid_for(&tree.0)
-    }
-
-    /// Returns the node that this index is pointing to in constant time.
-    ///
-    /// # Panics
-    ///
-    /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        assert!(self.0.is_valid_for(&tree.0), "{}", INVALID_IDX_ERROR);
-        Node::new(&tree.0, self.0.node_ptr())
-    }
-
-    /// Returns the mutable node that this index is pointing to in constant time.
-    ///
-    /// # Panics
-    ///
-    /// Panics if this node index is not valid for the given `tree`; i.e., when either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn node_mut<'a, M, P>(&self, tree: &'a mut Tree<V, M, P>) -> NodeMut<'a, V, M, P>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        assert!(self.0.is_valid_for(&tree.0), "{}", INVALID_IDX_ERROR);
-        NodeMut::new(&mut tree.0, self.0.node_ptr())
-    }
-
-    /// Returns the node that this index is pointing to in constant time if the index is valid.
-    ///
-    /// Returns None when either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn get_node<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Option<Node<'a, V, M, P>>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        self.0
-            .is_valid_for(&tree.0)
-            .then(|| Node::new(&tree.0, self.0.node_ptr()))
-    }
-
-    /// Returns the mutable node that this index is pointing to in constant time if the index is valid.
-    ///
-    /// Returns None when either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn get_node_mut<'a, M, P>(
-        &self,
-        tree: &'a mut Tree<V, M, P>,
-    ) -> Option<NodeMut<'a, V, M, P>>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        self.0
-            .is_valid_for(&tree.0)
-            .then(|| NodeMut::new(&mut tree.0, self.0.node_ptr()))
-    }
-
-    /// Returns the node that this index is pointing to in constant time if the index is valid.
-    ///
-    /// Returns the node index error when either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn try_get_node<'a, M, P>(
-        &self,
-        tree: &'a Tree<V, M, P>,
-    ) -> Result<Node<'a, V, M, P>, NodeIdxError>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        tree.0
-            .try_get_ptr(&self.0)
-            .map(|ptr| Node::new(&tree.0, ptr))
-    }
-
-    /// Returns the mutable node that this index is pointing to in constant time if the index is valid.
-    ///
-    /// Returns the node index error when either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn try_get_node_mut<'a, M, P>(
-        &self,
-        tree: &'a mut Tree<V, M, P>,
-    ) -> Result<NodeMut<'a, V, M, P>, NodeIdxError>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        tree.0
-            .try_get_ptr(&self.0)
-            .map(|ptr| NodeMut::new(&mut tree.0, ptr))
-    }
-
-    /// Returns the node that this index is pointing to in constant time.
-    ///
-    /// # Safety
-    ///
-    /// It omits the index validity assertions that [`node`] method performs; hence it is only safe to use
-    /// this method when we are certain that `node_idx.is_valid_for(tree)` would have returned true.
-    ///
-    /// [`node`]: Self::node
-    #[inline(always)]
-    pub unsafe fn node_unchecked<'a, M, P>(&self, tree: &'a Tree<V, M, P>) -> Node<'a, V, M, P>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        Node::new(&tree.0, self.0.node_ptr())
-    }
-
-    /// Returns the mutable node that this index is pointing to in constant time.
-    ///
-    /// # Safety
-    ///
-    /// It omits the index validity assertions that [`node_mut`] method performs; hence it is only safe to use
-    /// this method when we are certain that `node_idx.is_valid_for(tree)` would have returned true.
-    ///
-    /// [`node_mut`]: Self::node_mut
-    #[inline(always)]
-    pub unsafe fn node_mut_unchecked<'a, M, P>(
-        &self,
-        tree: &'a mut Tree<V, M, P>,
-    ) -> NodeMut<'a, V, M, P>
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        NodeMut::new(&mut tree.0, self.0.node_ptr())
     }
 }

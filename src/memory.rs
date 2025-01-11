@@ -72,53 +72,53 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut root = tree.root_mut();
 /// let [id2, id3] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// let [id4, _] = n2.grow([4, 5]);
 ///
-/// let [id8] = id4.node_mut(&mut tree).grow([8]);
+/// let [id8] = tree.node_mut(&id4).grow([8]);
 ///
-/// let mut n3 = id3.node_mut(&mut tree);
+/// let mut n3 = tree.node_mut(&id3);
 /// let [id6, id7] = n3.grow([6, 7]);
 ///
-/// id6.node_mut(&mut tree).push(9);
-/// id7.node_mut(&mut tree).extend([10, 11]);
+/// tree.node_mut(&id6).push(9);
+/// tree.node_mut(&id7).extend([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
 /// // all id's above are valid => the tree only grew
-/// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
-/// assert!(id4.get_node(&tree).is_some()); // get_node => Some(Node)
-/// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let _node7 = id7.node(&tree); // no panic
+/// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
+/// assert!(tree.get_node(&id4).is_some()); // get_node => Some(Node)
+/// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
+/// let _node7 = tree.node(&id7); // no panic
 ///
 /// // # 2 - SHRINK BUT WITHOUT A MEMORY RECLAIM
 ///
 /// // let's close two nodes (nodes 4 & 8)
 /// // this is not enough to trigger a memory reclaim
-/// id4.node_mut(&mut tree).remove();
+/// tree.node_mut(&id4).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
-/// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
-/// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let node7 = id7.node(&tree); // no panic
+/// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
+/// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
+/// let node7 = tree.node(&id7); // no panic
 ///
 /// // what about id4 & id8 => invalidated due to RemovedNode
-/// assert!(!id4.is_valid_for(&tree));
-/// assert!(id4.get_node(&tree).is_none());
-/// assert_eq!(id4.try_get_node(&tree), Err(NodeIdxError::RemovedNode));
+/// assert!(!tree.is_node_idx_valid(&id4));
+/// assert!(tree.get_node(&id4).is_none());
+/// assert_eq!(tree.try_node(&id4), Err(NodeIdxError::RemovedNode));
 /// // let node4 = id4.node(&tree); // panics!!!
 ///
 /// // # 3 - SHRINK TRIGGERING MEMORY RECLAIM
 ///
 /// // let's close more nodes (7, 10, 11) to trigger the memory reclaim
-/// id7.node_mut(&mut tree).remove();
+/// tree.node_mut(&id7).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // even node 2 is still on the tree;
 /// // its idx is invalidated => ReorganizedCollection
-/// assert!(!id2.is_valid_for(&tree));
+/// assert!(!tree.is_node_idx_valid(&id2));
 /// assert_eq!(
-///     id2.try_get_node(&tree),
+///     tree.try_node(&id2),
 ///     Err(NodeIdxError::ReorganizedCollection)
 /// );
 ///
@@ -126,9 +126,9 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // we can restore the valid indices again
 ///
 /// let id2 = tree.get_root().unwrap().child(0).unwrap().idx();
-/// assert!(id2.is_valid_for(&tree));
-/// assert!(id2.try_get_node(&tree).is_ok());
-/// let n2 = id2.node(&tree);
+/// assert!(tree.is_node_idx_valid(&id2));
+/// assert!(tree.try_node(&id2).is_ok());
+/// let n2 = tree.node(&id2);
 /// assert_eq!(n2.data(), &2);
 /// ```
 ///
@@ -164,52 +164,52 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut root = tree.root_mut();
 /// let [id2, id3] = root.grow([2, 3]);
 ///
-/// let mut n2 = id2.node_mut(&mut tree);
+/// let mut n2 = tree.node_mut(&id2);
 /// let [id4, _] = n2.grow([4, 5]);
 ///
-/// let [id8] = id4.node_mut(&mut tree).grow([8]);
+/// let [id8] = tree.node_mut(&id4).grow([8]);
 ///
-/// let mut n3 = id3.node_mut(&mut tree);
+/// let mut n3 = tree.node_mut(&id3);
 /// let [id6, id7] = n3.grow([6, 7]);
 ///
-/// id6.node_mut(&mut tree).push(9);
-/// id7.node_mut(&mut tree).extend([10, 11]);
+/// tree.node_mut(&id6).push(9);
+/// tree.node_mut(&id7).extend([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
 /// // all id's above are valid => we are in Lazy mode & the tree only grew
-/// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
-/// assert!(id4.get_node(&tree).is_some()); // get_node => Some(Node)
-/// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let _node7 = id7.node(&tree); // no panic!
+/// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
+/// assert!(tree.get_node(&id4).is_some()); // get_node => Some(Node)
+/// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
+/// let _node7 = tree.node(&id7); // no panic!
 ///
 /// // # 2 - SHRINK, NO MEMORY RECLAIM
 ///
 /// // let's close two nodes (nodes 4 & 8)
-/// id4.node_mut(&mut tree).remove();
+/// tree.node_mut(&id4).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
-/// assert!(id2.is_valid_for(&tree)); // is_valid_for => true
-/// assert!(id6.try_get_node(&tree).is_ok()); // try_get_node => Ok(Node)
-/// let node7 = id7.node(&tree); // no panic
+/// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
+/// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
+/// let node7 = tree.node(&id7); // no panic
 ///
 /// // only id4 & id8 are affected (explicit) => invalidated due to RemovedNode
-/// assert!(!id4.is_valid_for(&tree));
-/// assert!(id4.get_node(&tree).is_none());
-/// assert_eq!(id4.try_get_node(&tree), Err(NodeIdxError::RemovedNode));
+/// assert!(!tree.is_node_idx_valid(&id4));
+/// assert!(tree.get_node(&id4).is_none());
+/// assert_eq!(tree.try_node(&id4), Err(NodeIdxError::RemovedNode));
 /// // let node4 = id4.node(&tree); // panics!
 ///
 /// // # 3 - SHRINK HEAVILY, STILL NO MEMORY RECLAIM
 ///
 /// // let's close more nodes (7, 10, 11)
 /// // this would've triggered memory reclaim in Auto policy, but not in Lazy policy
-/// id7.node_mut(&mut tree).remove();
+/// tree.node_mut(&id7).remove();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // all indices are still valid
-/// assert!(id2.is_valid_for(&tree));
-/// assert!(id2.try_get_node(&tree).is_ok());
-/// let n2 = id2.node(&tree);
+/// assert!(tree.is_node_idx_valid(&id2));
+/// assert!(tree.try_node(&id2).is_ok());
+/// let n2 = tree.node(&id2);
 /// assert_eq!(n2.data(), &2);
 ///
 /// // # 4 - END OF HEAVY MUTATIONS, RECLAIM THE MEMORY
@@ -218,10 +218,10 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // memory is reclaimed immediately once switch to Auto.
 /// // now, all prior indices are invalid
 /// let tree: DynTree<i32, Auto> = tree.into_auto_reclaim();
-/// assert!(!id2.is_valid_for(&tree));
-/// assert!(id3.get_node(&tree).is_none());
+/// assert!(!tree.is_node_idx_valid(&id2));
+/// assert!(tree.get_node(&id3).is_none());
 /// assert_eq!(
-///     id4.try_get_node(&tree),
+///     tree.try_node(&id4),
 ///     Err(NodeIdxError::ReorganizedCollection)
 /// );
 /// ```
