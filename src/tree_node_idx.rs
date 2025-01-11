@@ -252,22 +252,6 @@ impl<V: TreeVariant> NodeIdx<V> {
         Self(node_idx)
     }
 
-    /// Returns true if this node index is valid for the given `tree`.
-    ///
-    /// Returns false if either of the following holds:
-    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
-    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
-    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
-    ///   => [`NodeIdxError::ReorganizedCollection`]
-    #[inline(always)]
-    pub fn is_valid_for<M, P>(&self, tree: &Tree<V, M, P>) -> bool
-    where
-        M: MemoryPolicy,
-        P: PinnedStorage,
-    {
-        self.0.is_valid_for(&tree.0)
-    }
-
     /// Returns the node that this index is pointing to in constant time if the index is valid.
     ///
     /// Note that `tree.get_node(&idx)` is identical to `idx.get_node(&tree)`.
