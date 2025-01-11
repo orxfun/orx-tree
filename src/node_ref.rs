@@ -348,6 +348,64 @@ where
             .unwrap_or(0)
     }
 
+    /// Returns the depth of this node with respect to the root of the tree which has a
+    /// depth of 0.
+    ///
+    /// **O(D)** requires linear time in maximum depth of the tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |
+    /// // 8
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, id5] = n2.grow([4, 5]);
+    ///
+    /// let [id8] = tree.node_mut(&id4).grow([8]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// // access the leaves in different orders that is determined by traversal
+    ///
+    /// assert_eq!(tree.root().depth(), 0);
+    ///
+    /// assert_eq!(tree.node(&id2).depth(), 1);
+    /// assert_eq!(tree.node(&id3).depth(), 1);
+    ///
+    /// assert_eq!(tree.node(&id4).depth(), 2);
+    /// assert_eq!(tree.node(&id5).depth(), 2);
+    /// assert_eq!(tree.node(&id6).depth(), 2);
+    /// assert_eq!(tree.node(&id7).depth(), 2);
+    ///
+    /// assert_eq!(tree.node(&id8).depth(), 3);
+    /// ```
+    fn depth(&self) -> usize {
+        let mut depth = 0;
+
+        let mut current = unsafe { &*self.node_ptr().ptr() };
+        while let Some(parent_ptr) = current.prev().get() {
+            depth += 1;
+            current = unsafe { &*parent_ptr.ptr() };
+        }
+
+        depth
+    }
+
     // traversal
 
     /// Creates an iterator that yields references to data of all nodes belonging to the subtree rooted at this node.
