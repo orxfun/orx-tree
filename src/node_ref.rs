@@ -719,12 +719,112 @@ where
     where
         T: Traverser<OverData>,
         Self: Sized,
-        V::Item: Clone,
     {
         T::iter_ptr_with_owned_storage(self.node_ptr().clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(|x: NodePtr<V>| {
                 <OverData as Over>::Enumeration::from_element_ptr::<'a, V, M, P, &'a V::Item>(
+                    self.col(),
+                    x,
+                )
+            })
+    }
+
+    /// Returns an iterator of leaves of the subtree rooted at this node.
+    ///
+    /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// Note that `leaves` is a shorthand of a chain of iterator methods over the more general [`walk_with`] method.
+    /// This is demonstrated in the example below.
+    ///
+    /// [`walk_with`]: crate::NodeRef::walk_with
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
+    ///
+    /// // access leaves with re-usable traverser
+    ///
+    /// let mut bfs = Traversal.bfs();
+    /// assert_eq!(
+    ///     tree.root().leaves_with(&mut bfs).collect::<Vec<_>>(),
+    ///     [&5, &8, &9, &10, &11]
+    /// );
+    /// assert_eq!(
+    ///     tree.node(&id3).leaves_with(&mut bfs).collect::<Vec<_>>(),
+    ///     [&9, &10, &11]
+    /// );
+    ///
+    /// // access leaf nodes instead of data
+    ///
+    /// let mut dfs = Traversal.dfs().over_nodes();
+    ///
+    /// let root = tree.root();
+    /// let mut leaves = root.leaves_with(&mut dfs);
+    ///
+    /// let leaf: Node<_> = leaves.next().unwrap();
+    /// assert!(leaf.is_leaf());
+    /// assert_eq!(leaf.data(), &8);
+    /// assert_eq!(leaf.parent(), Some(tree.node(&id4)));
+    ///
+    /// // add depth and/or sibling-idx to the iteration items
+    ///
+    /// let mut dfs = Traversal.dfs().over_nodes().with_depth().with_sibling_idx();
+    /// let mut leaves = root.leaves_with(&mut dfs);
+    /// let (depth, sibling_idx, leaf) = leaves.next().unwrap();
+    /// assert_eq!(depth, 3);
+    /// assert_eq!(sibling_idx, 0);
+    /// assert_eq!(leaf.data(), &8);
+    /// ```
+    fn leaves_with<T, O>(
+        &'a self,
+        traverser: &'a mut T,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    where
+        O: Over,
+        T: Traverser<O>,
+        Self: Sized,
+    {
+        T::iter_ptr_with_storage(self.node_ptr().clone(), traverser.storage_mut())
+            .filter(|x| {
+                let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
+                unsafe { &*ptr.ptr() }.next().is_empty()
+            })
+            .map(|x| {
+                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
                     self.col(),
                     x,
                 )

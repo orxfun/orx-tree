@@ -6,6 +6,11 @@ impl Enumeration for Val {
     type Item<D> = D;
 
     #[inline(always)]
+    fn node_data<D>(element: &Self::Item<D>) -> &D {
+        element
+    }
+
+    #[inline(always)]
     fn map_node_data<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
     where
         M: FnOnce(D) -> E,
@@ -18,6 +23,11 @@ impl Enumeration for Val {
 pub struct DepthVal;
 impl Enumeration for DepthVal {
     type Item<D> = (usize, D);
+
+    #[inline(always)]
+    fn node_data<D>(element: &Self::Item<D>) -> &D {
+        &element.1
+    }
 
     #[inline(always)]
     fn map_node_data<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
@@ -34,6 +44,11 @@ impl Enumeration for SiblingIdxVal {
     type Item<D> = (usize, D);
 
     #[inline(always)]
+    fn node_data<D>(element: &Self::Item<D>) -> &D {
+        &element.1
+    }
+
+    #[inline(always)]
     fn map_node_data<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>
     where
         M: FnOnce(D) -> E,
@@ -46,6 +61,11 @@ impl Enumeration for SiblingIdxVal {
 pub struct DepthSiblingIdxVal;
 impl Enumeration for DepthSiblingIdxVal {
     type Item<D> = (usize, usize, D);
+
+    #[inline(always)]
+    fn node_data<D>(element: &Self::Item<D>) -> &D {
+        &element.2
+    }
 
     #[inline(always)]
     fn map_node_data<D, M, E>(element: Self::Item<D>, map: M) -> Self::Item<E>

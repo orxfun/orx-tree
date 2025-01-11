@@ -24,6 +24,10 @@ impl<O: Over> TraverserCore<O> for Bfs<O> {
     where
         V: TreeVariant;
 
+    fn storage_mut<V: TreeVariant>(&mut self) -> &mut Self::Storage<V> {
+        self.queue.for_variant::<V>()
+    }
+
     fn iter_ptr_with_storage<'a, V>(
         node_ptr: NodePtr<V>,
         storage: impl SoM<Self::Storage<V>>,

@@ -9,17 +9,19 @@ pub trait Enumeration: Clone {
     where
         M: FnOnce(D) -> E;
 
-    fn from_element_ptr<'a, V, M, P, E>(
+    fn node_data<D>(element: &Self::Item<D>) -> &D;
+
+    fn from_element_ptr<'a, V, M, P, D>(
         col: &'a Col<V, M, P>,
         element_ptr: Self::Item<NodePtr<V>>,
-    ) -> Self::Item<E>
+    ) -> Self::Item<D>
     where
         V: TreeVariant,
         M: MemoryPolicy,
         P: PinnedStorage,
-        E: NodeItem<'a, V, M, P>,
+        D: NodeItem<'a, V, M, P>,
     {
-        let map = |ptr| E::from_ptr(col, ptr);
+        let map = |ptr| D::from_ptr(col, ptr);
         Self::map_node_data(element_ptr, map)
     }
 
