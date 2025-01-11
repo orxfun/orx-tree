@@ -320,7 +320,31 @@ where
     ///
     /// # Examples
     ///
+    /// You may find a simple example below.
+    /// For more detailed examples and important notes about node index validity, please see [`NodeIdx`].
     ///
+    /// ```
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //        ╱ ╲
+    /// //       4   5
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let n2 = tree.node(&id2);
+    /// assert_eq!(n2.data(), &2);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// n3.extend([4, 5]);
+    ///
+    /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
+    /// ```
     #[inline(always)]
     pub fn node(&self, node_idx: &NodeIdx<V>) -> Node<V, M, P> {
         node_idx.node(self)
@@ -337,10 +361,10 @@ where
     /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
     ///   => [`NodeIdxError::ReorganizedCollection`]
     ///
-    /// When not certain, you may use [`is_valid_for`] or [`get_node`] methods to have a safe access.
+    /// When not certain, you may use [`is_valid_for`] or [`get_node_mut`] methods to have a safe access.
     ///
     /// [`is_valid_for`]: crate::NodeIdx::is_valid_for
-    /// [`get_node`]: Self::get_node
+    /// [`get_node_mut`]: Self::get_node_mut
     ///
     /// [`NodeIdxError::OutOfBounds`]: crate::NodeIdxError::OutOfBounds
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
@@ -348,7 +372,31 @@ where
     ///
     /// # Examples
     ///
-    /// TODO: examples mentioning the memory state
+    /// You may find a simple example below.
+    /// For more detailed examples and important notes about node index validity, please see [`NodeIdx`].
+    ///
+    /// ```
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //        ╱ ╲
+    /// //       4   5
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let n2 = tree.node(&id2);
+    /// assert_eq!(n2.data(), &2);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// n3.extend([4, 5]);
+    ///
+    /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
+    /// ```
     #[inline(always)]
     pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<V, M, P> {
         node_idx.node_mut(self)
@@ -392,26 +440,4 @@ where
     fn root_ptr(&self) -> Option<&NodePtr<V>> {
         self.0.ends().get()
     }
-}
-
-#[test]
-fn abc() {
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //      1
-    //     ╱ ╲
-    //    ╱   ╲
-    //   2     3
-    //  ╱ ╲   ╱ ╲
-    // 4   5 6   7
-    // |     |  ╱ ╲
-    // 8     9 10  11
-
-    let mut tree = DynTree::<i32>::new(1);
-
-    let mut root = tree.root_mut();
-    let [id2, id3] = root.grow([2, 3]);
-
-    let n2 = tree.node(&id2);
 }
