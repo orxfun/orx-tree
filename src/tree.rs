@@ -514,6 +514,34 @@ where
             .map(|ptr| NodeMut::new(&mut self.0, ptr))
     }
 
+    /// Returns the node with the given `node_idx`.
+    ///
+    /// # Safety
+    ///
+    /// It omits the index validity assertions that [`node`] method performs; hence it is only safe to use
+    /// this method when we are certain that '`is_node_idx_valid`' would have returned true.
+    ///
+    /// [`node`]: Self::node
+    /// [`is_node_idx_valid`]: Self::is_node_idx_valid
+    #[inline(always)]
+    pub unsafe fn node_unchecked(&self, node_idx: &NodeIdx<V>) -> Node<V, M, P> {
+        Node::new(&self.0, node_idx.0.node_ptr())
+    }
+
+    /// Returns the mutable node with the given `node_idx`.
+    ///
+    /// # Safety
+    ///
+    /// It omits the index validity assertions that [`node_mut`] method performs; hence it is only safe to use
+    /// this method when we are certain that '`is_node_idx_valid`' would have returned true.
+    ///
+    /// [`node_mut`]: Self::node_mut
+    /// [`is_node_idx_valid`]: Self::is_node_idx_valid
+    #[inline(always)]
+    pub unsafe fn node_mut_unchecked(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<V, M, P> {
+        NodeMut::new(&mut self.0, node_idx.0.node_ptr())
+    }
+
     // helpers
 
     /// Returns the pointer to the root; None if empty.
