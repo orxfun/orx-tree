@@ -331,17 +331,17 @@ where
     /// // check sibling positions
     ///
     /// let root = tree.root();
-    /// assert_eq!(root.sibling_position(), 0);
+    /// assert_eq!(root.sibling_idx(), 0);
     ///
     /// for (i, node) in root.children().enumerate() {
-    ///     assert_eq!(node.sibling_position(), i);
+    ///     assert_eq!(node.sibling_idx(), i);
     /// }
     ///
-    /// assert_eq!(tree.node(&id_h).sibling_position(), 0);
-    /// assert_eq!(tree.node(&id_i).sibling_position(), 1);
-    /// assert_eq!(tree.node(&id_j).sibling_position(), 2);
+    /// assert_eq!(tree.node(&id_h).sibling_idx(), 0);
+    /// assert_eq!(tree.node(&id_i).sibling_idx(), 1);
+    /// assert_eq!(tree.node(&id_j).sibling_idx(), 2);
     /// ```
-    fn sibling_position(&self) -> usize {
+    fn sibling_idx(&self) -> usize {
         let parent = self.node().prev().get().map(|ptr| unsafe { ptr.node() });
         parent
             .map(|parent| {
