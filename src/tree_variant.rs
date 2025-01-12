@@ -33,6 +33,12 @@ pub trait RefsChildren<V: Variant> {
     // mut
 
     fn push(&mut self, node_ptr: NodePtr<V>);
+
+    fn replace_with(
+        &mut self,
+        old_node_ptr: &NodePtr<V>,
+        new_node_ptr: NodePtr<V>,
+    ) -> Option<usize>;
 }
 
 impl<V: Variant> RefsChildren<V> for RefsVec<V> {
@@ -42,20 +48,33 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
         V: 'a,
         Self: 'a;
 
+    #[inline(always)]
     fn num_children(&self) -> usize {
         self.len()
     }
 
+    #[inline(always)]
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
         self.iter()
     }
 
+    #[inline(always)]
     fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>> {
         self.get(i)
     }
 
+    #[inline(always)]
     fn push(&mut self, node_ptr: NodePtr<V>) {
         self.push(node_ptr);
+    }
+
+    #[inline(always)]
+    fn replace_with(
+        &mut self,
+        old_node_ptr: &NodePtr<V>,
+        new_node_ptr: NodePtr<V>,
+    ) -> Option<usize> {
+        RefsVec::replace_with(self, old_node_ptr, new_node_ptr)
     }
 }
 
@@ -66,19 +85,32 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
         V: 'a,
         Self: 'a;
 
+    #[inline(always)]
     fn num_children(&self) -> usize {
         self.len()
     }
 
+    #[inline(always)]
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
         self.iter()
     }
 
+    #[inline(always)]
     fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>> {
         self.get(i)
     }
 
+    #[inline(always)]
     fn push(&mut self, node_ptr: NodePtr<V>) {
         self.push(node_ptr);
+    }
+
+    #[inline(always)]
+    fn replace_with(
+        &mut self,
+        old_node_ptr: &NodePtr<V>,
+        new_node_ptr: NodePtr<V>,
+    ) -> Option<usize> {
+        RefsArrayLeftMost::replace_with(self, old_node_ptr, new_node_ptr)
     }
 }

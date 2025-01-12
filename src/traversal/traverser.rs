@@ -1,7 +1,7 @@
 use super::{over::Over, traverser_core::TraverserCore, OverData};
 
 /// A tree traverser that creates iterators which walk over a given node and all of its descendants;
-/// i.e., over all nodes of the sub-tree rooted at the given node.
+/// i.e., over all nodes of the subtree rooted at the given node.
 ///
 /// The order the nodes are traversed depend on the specific traverser implementation; some well known
 /// traversals are depth-first, breadth-first or post-order.
