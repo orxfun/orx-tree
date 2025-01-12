@@ -1,9 +1,11 @@
 use crate::{
     helpers::Col,
+    iter::AncestorsIterPtr,
     memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
     tree_node_idx::INVALID_IDX_ERROR,
-    Node, NodeIdx, NodeMut, TreeVariant,
+    tree_variant::RefsChildren,
+    Node, NodeIdx, NodeMut, NodeSwapError, TreeVariant,
 };
 use orx_selfref_col::{NodeIdxError, NodePtr, RefsSingle};
 
@@ -540,6 +542,260 @@ where
     #[inline(always)]
     pub unsafe fn node_mut_unchecked(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<V, M, P> {
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
+    }
+
+    // move nodes
+
+    /// ***O(1)*** Swaps the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`
+    /// in constant time (*).
+    /// Returns the error if the swap operation is invalid.
+    ///
+    /// In order to have a valid swap operation, the two subtrees must be **independent** of each other without
+    /// any shared node. Necessary and sufficient condition is then as follows:
+    ///
+    /// * node with the `first_idx` is not an ancestor of the node with the `second_idx`,
+    /// * and vice versa.
+    ///
+    /// Swap operation will succeed and return Ok if both indices are valid and the above condition holds.
+    /// It will the corresponding [`NodeSwapError`] otherwise.
+    ///
+    /// (*) Validation of the independence of the subtrees is performed in ***O(D)*** time where D is the maximum
+    /// depth of the tree. When we are certain that the subtrees do not intersect, we can use the unsafe variant
+    /// [`swap_nodes_unchecked`] to bypass the validation and avoid the O(D) time.
+    ///
+    /// [`swap_nodes_unchecked`]: Tree::swap_nodes_unchecked
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let id1 = root.idx();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// let [id10, _] = tree.node_mut(&id7).grow([10, 11]);
+    ///
+    /// // cannot swap n3 & n10
+    ///
+    /// assert_eq!(
+    ///     tree.swap_nodes(&id3, &id10),
+    ///     Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
+    /// );
+    ///
+    /// // cannot swap n4 & n1 (root)
+    ///
+    /// assert_eq!(
+    ///     tree.swap_nodes(&id4, &id1),
+    ///     Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
+    /// );
+    ///
+    /// // we can swap n2 & n5
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   7     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 10 11 6   2
+    /// //       |  ╱ ╲
+    /// //       9 4   5
+    /// //         |
+    /// //         8
+    ///
+    /// let result = tree.swap_nodes(&id2, &id7);
+    /// assert_eq!(result, Ok(()));
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
+    /// ```
+    pub fn swap_nodes(
+        &mut self,
+        first_idx: &NodeIdx<V>,
+        second_idx: &NodeIdx<V>,
+    ) -> Result<(), NodeSwapError> {
+        let ptr_root = match self.root_ptr() {
+            Some(x) => x,
+            None => return Err(NodeSwapError::NodeIdxError(NodeIdxError::RemovedNode)),
+        };
+        let ptr_p = self.0.try_get_ptr(&first_idx.0)?;
+        let ptr_q = self.0.try_get_ptr(&second_idx.0)?;
+
+        if ptr_p == ptr_q {
+            Ok(())
+        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).any(|x| x == ptr_q) {
+            Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
+        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).any(|x| x == ptr_p) {
+            Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
+        } else {
+            let p = unsafe { &mut *ptr_p.ptr_mut() };
+            let q = unsafe { &mut *ptr_q.ptr_mut() };
+
+            let parent_p = p.prev().get().cloned();
+            let parent_q = q.prev().get().cloned();
+
+            match parent_p {
+                Some(parent_ptr_p) => {
+                    let parent_p = unsafe { &mut *parent_ptr_p.ptr_mut() };
+                    parent_p.next_mut().replace_with(&ptr_p, ptr_q.clone());
+
+                    q.prev_mut().set_some(parent_ptr_p);
+                }
+                None => {
+                    q.prev_mut().set_none();
+                }
+            }
+
+            match parent_q {
+                Some(parent_ptr_q) => {
+                    let parent_q = unsafe { &mut *parent_ptr_q.ptr_mut() };
+                    parent_q.next_mut().replace_with(&ptr_q, ptr_p);
+
+                    p.prev_mut().set_some(parent_ptr_q);
+                }
+                None => {
+                    p.prev_mut().set_none();
+                }
+            }
+
+            Ok(())
+        }
+    }
+
+    /// ***O(1)*** Swaps the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`
+    /// in constant time.
+    ///
+    /// In order to have a valid swap operation, the two subtrees must be **independent** of each other without
+    /// any shared node. Necessary and sufficient condition is then as follows:
+    ///
+    /// * node with the `first_idx` is not an ancestor of the node with the `second_idx`,
+    /// * and vice versa.
+    ///
+    /// # Panics
+    ///
+    /// Panics if either of the node indices is invalid.
+    ///
+    /// # Safety
+    ///
+    /// It is safe to use this method only when the swap operation is valid; i.e., abovementioned independence condition
+    /// of the subtrees holds.
+    ///
+    /// See also the [`swap_nodes`] method for a safe variant.
+    ///
+    /// [`swap_nodes`]: Tree::swap_nodes
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// let [_, _] = tree.node_mut(&id7).grow([10, 11]);
+    ///
+    /// // we can swap n2 & n5
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   7     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 10 11 6   2
+    /// //       |  ╱ ╲
+    /// //       9 4   5
+    /// //         |
+    /// //         8
+    ///
+    /// unsafe { tree.swap_nodes_unchecked(&id2, &id7) };
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
+    /// ```
+    pub unsafe fn swap_nodes_unchecked(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
+        assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
+        assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
+
+        let ptr_p = first_idx.0.node_ptr();
+        let ptr_q = second_idx.0.node_ptr();
+
+        if ptr_p == ptr_q {
+            return;
+        }
+
+        let p = unsafe { &mut *ptr_p.ptr_mut() };
+        let q = unsafe { &mut *ptr_q.ptr_mut() };
+
+        let parent_p = p.prev().get().cloned();
+        let parent_q = q.prev().get().cloned();
+
+        match parent_p {
+            Some(parent_ptr_p) => {
+                let parent_p = unsafe { &mut *parent_ptr_p.ptr_mut() };
+                parent_p.next_mut().replace_with(&ptr_p, ptr_q.clone());
+
+                q.prev_mut().set_some(parent_ptr_p);
+            }
+            None => {
+                q.prev_mut().set_none();
+            }
+        }
+
+        match parent_q {
+            Some(parent_ptr_q) => {
+                let parent_q = unsafe { &mut *parent_ptr_q.ptr_mut() };
+                parent_q.next_mut().replace_with(&ptr_q, ptr_p);
+
+                p.prev_mut().set_some(parent_ptr_q);
+            }
+            None => {
+                p.prev_mut().set_none();
+            }
+        }
+
+        if p.prev().get().is_none() {
+            self.0.ends_mut().set_some(first_idx.0.node_ptr());
+        } else if q.prev().get().is_none() {
+            self.0.ends_mut().set_some(second_idx.0.node_ptr());
+        }
     }
 
     // helpers

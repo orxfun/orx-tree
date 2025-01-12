@@ -204,7 +204,7 @@ impl Over for OverDepthPtr {
 /// indices of the nodes in the tree.
 ///
 /// However, sibling index of the root, or the node that the traversal is initiated from, will be 0.
-/// This is because the root is the only sibling in the sub-tree that the traversal considers.
+/// This is because the root is the only sibling in the subtree that the traversal considers.
 ///
 /// [`data`]: crate::NodeRef::data
 /// [`data_mut`]: crate::NodeMut::data_mut
@@ -233,7 +233,7 @@ impl Over for OverSiblingIdxData {
 /// indices of the nodes in the tree.
 ///
 /// However, sibling index of the root, or the node that the traversal is initiated from, will be 0.
-/// This is because the root is the only sibling in the sub-tree that the traversal considers.
+/// This is because the root is the only sibling in the subtree that the traversal considers.
 ///
 /// [`Node`]: crate::Node
 pub struct OverSiblingIdxNode;
@@ -286,7 +286,7 @@ impl Over for OverSiblingIdxPtr {
 /// indices of the nodes in the tree.
 ///
 /// However, sibling index of the root will be 0.
-/// This is because the root is the only sibling in the sub-tree that the traversal considers.
+/// This is because the root is the only sibling in the subtree that the traversal considers.
 ///
 /// [`data`]: crate::NodeRef::data
 /// [`data_mut`]: crate::NodeMut::data_mut
@@ -319,7 +319,7 @@ impl Over for OverDepthSiblingIdxData {
 /// indices of the nodes in the tree.
 ///
 /// However, sibling index of the root will be 0.
-/// This is because the root is the only sibling in the sub-tree that the traversal considers.
+/// This is because the root is the only sibling in the subtree that the traversal considers.
 ///
 /// [`Node`]: crate::Node
 pub struct OverDepthSiblingIdxNode;

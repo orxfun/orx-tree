@@ -32,6 +32,7 @@ pub mod pinned_storage;
 mod common_traits;
 mod dary;
 mod r#dyn;
+mod errors;
 mod helpers;
 mod node;
 mod node_mut;
@@ -51,5 +52,6 @@ pub use tree::Tree;
 pub use tree_node_idx::NodeIdx;
 pub use tree_variant::TreeVariant;
 
-// re-import from self-ref-col
+// ERRORS
+pub use errors::NodeSwapError;
 pub use orx_selfref_col::NodeIdxError;
