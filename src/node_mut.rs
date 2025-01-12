@@ -12,11 +12,12 @@ use crate::{
     },
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
-    NodeIdx, Traverser, TreeVariant,
+    NodeIdx, NodeRef, Traverser, TreeVariant,
 };
 use alloc::vec::Vec;
-use core::marker::PhantomData;
+use core::{fmt::Debug, marker::PhantomData};
 use orx_selfref_col::{NodePtr, Refs};
+use std::dbg;
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation: 'static {}
@@ -219,7 +220,9 @@ where
         parent.next_mut().push(child_ptr);
     }
 
-    /// Pushes nodes with given `values` as children of this node.
+    /// Pushes nodes with given `children` as children of this node.
+    ///
+    /// # See also
     ///
     /// If the corresponding node indices of the children are required;
     /// you may use [`grow`]:
@@ -242,11 +245,11 @@ where
     ///
     /// assert_eq!(node.num_children(), 4);
     /// ```
-    pub fn extend<I>(&mut self, values: I)
+    pub fn extend<I>(&mut self, children: I)
     where
         I: IntoIterator<Item = V::Item>,
     {
-        for x in values.into_iter() {
+        for x in children.into_iter() {
             self.push(x);
         }
     }
@@ -484,9 +487,9 @@ where
         self.grow_iter(children).collect()
     }
 
-    // growth - right
+    // growth - horizontally
 
-    /// Pushes the node with the given data `sibling` as the right-sibling of this node.
+    /// Pushes the node with the given data `sibling` as the immediate right-sibling of this node.
     ///
     /// # Panics
     ///
@@ -545,11 +548,8 @@ where
     /// ```
     pub fn push_right(&mut self, sibling: V::Item) {
         let parent_ptr = self
-            .node()
-            .prev()
-            .get()
-            .expect("Cannot push sibling to the root node")
-            .clone();
+            .parent_ptr()
+            .expect("Cannot push sibling to the root node");
 
         let sibling_ptr = self.col.push(sibling);
 
@@ -563,7 +563,7 @@ where
             .expect("Failed to push child due to children capacity");
     }
 
-    /// Pushes the node with the given data `sibling` as the left-sibling of this node.
+    /// Pushes the node with the given data `sibling` as the immediate left-sibling of this node.
     ///
     /// # Panics
     ///
@@ -622,11 +622,8 @@ where
     /// ```
     pub fn push_left(&mut self, sibling: V::Item) {
         let parent_ptr = self
-            .node()
-            .prev()
-            .get()
-            .expect("Cannot push sibling to the root node")
-            .clone();
+            .parent_ptr()
+            .expect("Cannot push sibling to the root node");
 
         let sibling_ptr = self.col.push(sibling);
 
@@ -638,6 +635,82 @@ where
             .next_mut()
             .push_before(&self.node_ptr, sibling_ptr)
             .expect("Failed to push child due to children capacity");
+    }
+
+    /// Pushes the nodes with the given data `siblings` as the immediate right-siblings of this node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node is the root; root node cannot have a sibling.
+    ///
+    /// # See also
+    ///
+    /// If the corresponding node index of the child is required;
+    /// you may use [`grow_right`], [`grow_right_iter`] or [`grow_right_vec`].
+    ///
+    /// [`grow_right`]: crate::NodeMut::grow_right
+    /// [`grow_right_iter`]: crate::NodeMut::grow_right_iter
+    /// [`grow_right_vec`]: crate::NodeMut::grow_right_vec
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲     ╲
+    /// // 4   5     6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6] = n3.grow([6]);
+    ///
+    /// // grow horizontally to obtain
+    /// //        1
+    /// //       ╱ ╲
+    /// //      ╱   ╲
+    /// //     2     ╲
+    /// //    ╱|╲     ╲
+    /// //   ╱ | ╲     ╲
+    /// //  ╱ ╱ ╲ ╲    ╱|╲
+    /// // 4 44 55 5  6 7 8
+    ///
+    /// tree.node_mut(&id6).extend_right([7, 8]);
+    /// tree.node_mut(&id4).extend_right([44, 55]);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 6, 7, 8]);
+    /// ```
+    pub fn extend_right<I>(&mut self, siblings: I)
+    where
+        I: IntoIterator<Item = V::Item>,
+        V::Item: Debug,
+    {
+        let parent_ptr = self
+            .parent_ptr()
+            .expect("Cannot push sibling to the root node");
+
+        let mut position = self.sibling_idx() + 1;
+        for sibling in siblings.into_iter() {
+            let sibling_ptr = self.col.push(sibling);
+
+            let sibling = self.col.node_mut(&sibling_ptr);
+            sibling.prev_mut().set_some(parent_ptr.clone());
+
+            let parent = self.col.node_mut(&parent_ptr);
+            parent.next_mut().insert(position, sibling_ptr);
+            position += 1;
+        }
     }
 
     // shrink
@@ -1472,6 +1545,10 @@ where
     pub(crate) fn into_inner(self) -> (&'a mut Col<V, M, P>, NodePtr<V>) {
         (self.col, self.node_ptr)
     }
+
+    fn parent_ptr(&self) -> Option<NodePtr<V>> {
+        self.node().prev().get().cloned()
+    }
 }
 
 impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
@@ -1630,7 +1707,7 @@ fn abc() {
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = tree.node_mut(&id2);
-    let [id4, id5] = n2.grow([4, 5]);
+    let [id4, _] = n2.grow([4, 5]);
 
     let mut n3 = tree.node_mut(&id3);
     let [id6] = n3.grow([6]);
@@ -1643,14 +1720,11 @@ fn abc() {
     //    ╱|╲     ╲
     //   ╱ | ╲     ╲
     //  ╱ ╱ ╲ ╲    ╱|╲
-    // 44 4 55 5  8 7 6
+    // 4 44 55 5  6 7 8
 
-    tree.node_mut(&id6).push_left(8);
-    tree.node_mut(&id6).push_left(7);
-
-    tree.node_mut(&id4).push_left(44);
-    tree.node_mut(&id5).push_left(55);
+    tree.node_mut(&id6).extend_right([7, 8]);
+    tree.node_mut(&id4).extend_right([44, 55]);
 
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 2, 3, 44, 4, 55, 5, 8, 7, 6]);
+    assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 6, 7, 8]);
 }
