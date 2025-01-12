@@ -172,7 +172,9 @@ where
 
     // growth
 
-    /// Pushes the node with the given `child` as a child of this node.
+    /// Pushes the node with the given data `child` as a child of this node.
+    ///
+    /// # See also
     ///
     /// If the corresponding node index of the child is required;
     /// you may use [`grow`], [`grow_iter`] or [`grow_vec`].
@@ -214,7 +216,7 @@ where
         child.prev_mut().set_some(parent_ptr.clone());
 
         let parent = self.col.node_mut(&parent_ptr);
-        parent.next_mut().push(child_ptr.clone());
+        parent.next_mut().push(child_ptr);
     }
 
     /// Pushes nodes with given `values` as children of this node.
@@ -480,6 +482,162 @@ where
         I: IntoIterator<Item = V::Item>,
     {
         self.grow_iter(children).collect()
+    }
+
+    // growth - right
+
+    /// Pushes the node with the given data `sibling` as the right-sibling of this node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node is the root; root node cannot have a sibling.
+    ///
+    /// # See also
+    ///
+    /// If the corresponding node index of the child is required;
+    /// you may use [`grow_right`], [`grow_right_iter`] or [`grow_right_vec`].
+    ///
+    /// [`grow_right`]: crate::NodeMut::grow_right
+    /// [`grow_right_iter`]: crate::NodeMut::grow_right_iter
+    /// [`grow_right_vec`]: crate::NodeMut::grow_right_vec
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5     6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, id5] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6] = n3.grow([6]);
+    ///
+    /// // grow horizontally to obtain
+    /// //        1
+    /// //       ╱ ╲
+    /// //      ╱   ╲
+    /// //     2     ╲
+    /// //    ╱|╲     ╲
+    /// //   ╱ | ╲     ╲
+    /// //  ╱ ╱ ╲ ╲    ╱|╲
+    /// // 4 44  5 55 6 7 8
+    ///
+    /// tree.node_mut(&id6).push_right(8);
+    /// tree.node_mut(&id6).push_right(7);
+    ///
+    /// tree.node_mut(&id4).push_right(44);
+    /// tree.node_mut(&id5).push_right(55);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 44, 5, 55, 6, 7, 8]);
+    /// ```
+    pub fn push_right(&mut self, sibling: V::Item) {
+        let parent_ptr = self
+            .node()
+            .prev()
+            .get()
+            .expect("Cannot push sibling to the root node")
+            .clone();
+
+        let sibling_ptr = self.col.push(sibling);
+
+        let sibling = self.col.node_mut(&sibling_ptr);
+        sibling.prev_mut().set_some(parent_ptr.clone());
+
+        let parent = self.col.node_mut(&parent_ptr);
+        parent
+            .next_mut()
+            .push_after(&self.node_ptr, sibling_ptr)
+            .expect("Failed to push child due to children capacity");
+    }
+
+    /// Pushes the node with the given data `sibling` as the left-sibling of this node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node is the root; root node cannot have a sibling.
+    ///
+    /// # See also
+    ///
+    /// If the corresponding node index of the child is required;
+    /// you may use [`grow_left`], [`grow_left_iter`] or [`grow_left_vec`].
+    ///
+    /// [`grow_left`]: crate::NodeMut::grow_left
+    /// [`grow_left_iter`]: crate::NodeMut::grow_left_iter
+    /// [`grow_left_vec`]: crate::NodeMut::grow_left_vec
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲     ╲
+    /// // 4   5     6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, id5] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6] = n3.grow([6]);
+    ///
+    /// // grow horizontally to obtain
+    /// //        1
+    /// //       ╱ ╲
+    /// //      ╱   ╲
+    /// //     2     ╲
+    /// //    ╱|╲     ╲
+    /// //   ╱ | ╲     ╲
+    /// //  ╱ ╱ ╲ ╲    ╱|╲
+    /// // 44 4 55 5  8 7 6
+    ///
+    /// tree.node_mut(&id6).push_left(8);
+    /// tree.node_mut(&id6).push_left(7);
+    ///
+    /// tree.node_mut(&id4).push_left(44);
+    /// tree.node_mut(&id5).push_left(55);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 44, 4, 55, 5, 8, 7, 6]);
+    /// ```
+    pub fn push_left(&mut self, sibling: V::Item) {
+        let parent_ptr = self
+            .node()
+            .prev()
+            .get()
+            .expect("Cannot push sibling to the root node")
+            .clone();
+
+        let sibling_ptr = self.col.push(sibling);
+
+        let sibling = self.col.node_mut(&sibling_ptr);
+        sibling.prev_mut().set_some(parent_ptr.clone());
+
+        let parent = self.col.node_mut(&parent_ptr);
+        parent
+            .next_mut()
+            .push_before(&self.node_ptr, sibling_ptr)
+            .expect("Failed to push child due to children capacity");
     }
 
     // shrink
@@ -1452,4 +1610,47 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
+}
+
+#[test]
+fn abc() {
+    use crate::*;
+    use alloc::vec::Vec;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲     ╲
+    // 4   5     6
+
+    let mut tree = DynTree::<i32>::new(1);
+
+    let mut root = tree.root_mut();
+    let [id2, id3] = root.grow([2, 3]);
+
+    let mut n2 = tree.node_mut(&id2);
+    let [id4, id5] = n2.grow([4, 5]);
+
+    let mut n3 = tree.node_mut(&id3);
+    let [id6] = n3.grow([6]);
+
+    // grow horizontally to obtain
+    //        1
+    //       ╱ ╲
+    //      ╱   ╲
+    //     2     ╲
+    //    ╱|╲     ╲
+    //   ╱ | ╲     ╲
+    //  ╱ ╱ ╲ ╲    ╱|╲
+    // 44 4 55 5  8 7 6
+
+    tree.node_mut(&id6).push_left(8);
+    tree.node_mut(&id6).push_left(7);
+
+    tree.node_mut(&id4).push_left(44);
+    tree.node_mut(&id5).push_left(55);
+
+    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [1, 2, 3, 44, 4, 55, 5, 8, 7, 6]);
 }

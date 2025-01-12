@@ -34,6 +34,10 @@ pub trait RefsChildren<V: Variant> {
 
     fn push(&mut self, node_ptr: NodePtr<V>);
 
+    fn push_after(&mut self, pivot_ptr: &NodePtr<V>, node_ptr: NodePtr<V>) -> Option<usize>;
+
+    fn push_before(&mut self, pivot_ptr: &NodePtr<V>, node_ptr: NodePtr<V>) -> Option<usize>;
+
     fn replace_with(
         &mut self,
         old_node_ptr: &NodePtr<V>,
@@ -66,6 +70,16 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     #[inline(always)]
     fn push(&mut self, node_ptr: NodePtr<V>) {
         self.push(node_ptr);
+    }
+
+    #[inline(always)]
+    fn push_before(&mut self, pivot_ptr: &NodePtr<V>, node_ptr: NodePtr<V>) -> Option<usize> {
+        RefsVec::push_before(self, pivot_ptr, node_ptr)
+    }
+
+    #[inline(always)]
+    fn push_after(&mut self, pivot_ptr: &NodePtr<V>, node_ptr: NodePtr<V>) -> Option<usize> {
+        RefsVec::push_after(self, pivot_ptr, node_ptr)
     }
 
     #[inline(always)]
@@ -103,6 +117,16 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     #[inline(always)]
     fn push(&mut self, node_ptr: NodePtr<V>) {
         self.push(node_ptr);
+    }
+
+    #[inline(always)]
+    fn push_before(&mut self, pivot_ptr: &NodePtr<V>, node_ptr: NodePtr<V>) -> Option<usize> {
+        RefsArrayLeftMost::push_before(self, pivot_ptr, node_ptr)
+    }
+
+    #[inline(always)]
+    fn push_after(&mut self, pivot_ptr: &NodePtr<V>, node_ptr: NodePtr<V>) -> Option<usize> {
+        RefsArrayLeftMost::push_after(self, pivot_ptr, node_ptr)
     }
 
     #[inline(always)]
