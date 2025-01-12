@@ -713,6 +713,82 @@ where
         }
     }
 
+    /// Pushes the nodes with the given data `siblings` as the immediate left-siblings of this node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node is the root; root node cannot have a sibling.
+    ///
+    /// # See also
+    ///
+    /// If the corresponding node index of the child is required;
+    /// you may use [`grow_left`], [`grow_left_iter`] or [`grow_left_vec`].
+    ///
+    /// [`grow_left`]: crate::NodeMut::grow_left
+    /// [`grow_left_iter`]: crate::NodeMut::grow_left_iter
+    /// [`grow_left_vec`]: crate::NodeMut::grow_left_vec
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲     ╲
+    /// // 4   5     6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [_, id5] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6] = n3.grow([6]);
+    ///
+    /// // grow horizontally to obtain
+    /// //        1
+    /// //       ╱ ╲
+    /// //      ╱   ╲
+    /// //     2     ╲
+    /// //    ╱|╲     ╲
+    /// //   ╱ | ╲     ╲
+    /// //  ╱ ╱ ╲ ╲    ╱|╲
+    /// // 4 44 55 5  8 7 6
+    ///
+    /// tree.node_mut(&id6).extend_left([8, 7]);
+    /// tree.node_mut(&id5).extend_left([44, 55]);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 8, 7, 6]);
+    /// ```
+    pub fn extend_left<I>(&mut self, siblings: I)
+    where
+        I: IntoIterator<Item = V::Item>,
+        V::Item: Debug,
+    {
+        let parent_ptr = self
+            .parent_ptr()
+            .expect("Cannot push sibling to the root node");
+
+        let mut position = self.sibling_idx();
+        for sibling in siblings.into_iter() {
+            let sibling_ptr = self.col.push(sibling);
+
+            let sibling = self.col.node_mut(&sibling_ptr);
+            sibling.prev_mut().set_some(parent_ptr.clone());
+
+            let parent = self.col.node_mut(&parent_ptr);
+            parent.next_mut().insert(position, sibling_ptr);
+            position += 1;
+        }
+    }
+
     // shrink
 
     /// Removes this node and all of its descendants from the tree; and returns the
@@ -1707,7 +1783,7 @@ fn abc() {
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = tree.node_mut(&id2);
-    let [id4, _] = n2.grow([4, 5]);
+    let [_, id5] = n2.grow([4, 5]);
 
     let mut n3 = tree.node_mut(&id3);
     let [id6] = n3.grow([6]);
@@ -1720,11 +1796,11 @@ fn abc() {
     //    ╱|╲     ╲
     //   ╱ | ╲     ╲
     //  ╱ ╱ ╲ ╲    ╱|╲
-    // 4 44 55 5  6 7 8
+    // 4 44 55 5  8 7 6
 
-    tree.node_mut(&id6).extend_right([7, 8]);
-    tree.node_mut(&id4).extend_right([44, 55]);
+    tree.node_mut(&id6).extend_left([8, 7]);
+    tree.node_mut(&id5).extend_left([44, 55]);
 
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 6, 7, 8]);
+    assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 8, 7, 6]);
 }
