@@ -1,45 +1,38 @@
-use crate::{helpers::Col, pinned_storage::PinnedStorage, MemoryPolicy, Node, TreeVariant};
+use crate::TreeVariant;
 use orx_selfref_col::NodePtr;
 
 /// Ancestors iterators which starts from a node and yields nodes bottom-up until the root
 /// of the tree is reached.
-pub struct AncestorsIter<'a, V, M, P>
+pub struct AncestorsIterPtr<V>
 where
-    V: TreeVariant + 'a,
-    M: MemoryPolicy,
-    P: PinnedStorage,
+    V: TreeVariant,
 {
-    col: &'a Col<V, M, P>,
+    root_ptr: NodePtr<V>,
     current: Option<NodePtr<V>>,
 }
 
-impl<'a, V, M, P> AncestorsIter<'a, V, M, P>
-where
-    V: TreeVariant + 'a,
-    M: MemoryPolicy,
-    P: PinnedStorage,
-{
-    pub(crate) fn new(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
+impl<V: TreeVariant> AncestorsIterPtr<V> {
+    pub(crate) fn new(root_ptr: NodePtr<V>, descendant_ptr: NodePtr<V>) -> Self {
         Self {
-            col,
-            current: Some(node_ptr),
+            root_ptr,
+            current: Some(descendant_ptr),
         }
     }
 }
 
-impl<'a, V, M, P> Iterator for AncestorsIter<'a, V, M, P>
-where
-    V: TreeVariant + 'a,
-    M: MemoryPolicy,
-    P: PinnedStorage,
-{
-    type Item = Node<'a, V, M, P>;
+impl<V: TreeVariant> Iterator for AncestorsIterPtr<V> {
+    type Item = NodePtr<V>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.current.clone().map(|ptr| {
             let node = unsafe { &*ptr.ptr() };
-            self.current = node.prev().get().cloned();
-            Node::new(self.col, ptr)
+
+            self.current = match ptr == self.root_ptr {
+                false => node.prev().get().cloned(),
+                true => None,
+            };
+
+            ptr
         })
     }
 }

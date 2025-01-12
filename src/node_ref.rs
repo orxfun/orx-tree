@@ -1,9 +1,12 @@
 use crate::{
     helpers::{Col, N},
-    iter::AncestorsIter,
+    iter::AncestorsIterPtr,
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
-    traversal::{enumeration::Enumeration, over::OverItem, Over, OverData},
+    traversal::{
+        enumeration::Enumeration, enumerations::Val, over::OverItem, traverser_core::TraverserCore,
+        Over, OverData,
+    },
     tree_variant::RefsChildren,
     Node, NodeIdx, Traverser, TreeVariant,
 };
@@ -460,7 +463,9 @@ where
     /// assert_eq!(ancestors_data, [4, 2, 1]);
     /// ```
     fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
-        AncestorsIter::new(self.col(), self.node_ptr().clone())
+        let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
+        AncestorsIterPtr::new(root_ptr, self.node_ptr().clone())
+            .map(|ptr| Node::new(self.col(), ptr))
     }
 
     // traversal
@@ -775,7 +780,6 @@ where
     fn leaves<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
     where
         T: Traverser<OverData>,
-        Self: Sized,
     {
         T::iter_ptr_with_owned_storage(self.node_ptr().clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
@@ -873,7 +877,6 @@ where
     where
         O: Over,
         T: Traverser<O>,
-        Self: Sized,
     {
         T::iter_ptr_with_storage(self.node_ptr().clone(), traverser.storage_mut())
             .filter(|x| {
@@ -885,6 +888,219 @@ where
                     self.col(),
                     x,
                 )
+            })
+    }
+
+    /// Returns an iterator of paths from all leaves of the subtree rooted at
+    /// this node **upwards** to this node.
+    ///
+    /// The iterator yields one path per leaf node.
+    ///
+    /// The order of the leaves, and hence the corresponding paths, is determined
+    /// by the generic [`Traverser`] parameter `T`.
+    ///
+    /// # See also
+    ///
+    /// * [`paths_with`]: (i) to iterate using a cached traverser to minimize allocation
+    ///   for repeated traversals, or (ii) to iterate over nodes rather than only the data.
+    ///
+    /// [`paths_with`]: NodeRef::paths_with
+    ///
+    /// # Yields
+    ///
+    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item>`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
+    ///
+    /// // paths from all leaves to the root
+    ///
+    /// let root = tree.root();
+    ///
+    /// // sorted in the order of leaves by breadth-first:
+    /// // 5, 8, 9, 10, 11
+    /// let paths: Vec<_> = root
+    ///     .paths::<Bfs>()
+    ///     .map(|x| x.copied().collect::<Vec<_>>())
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     paths,
+    ///     [
+    ///         vec![5, 2, 1],
+    ///         vec![8, 4, 2, 1],
+    ///         vec![9, 6, 3, 1],
+    ///         vec![10, 7, 3, 1],
+    ///         vec![11, 7, 3, 1]
+    ///     ]
+    /// );
+    ///
+    /// // paths from all leaves of subtree rooted at n3
+    ///
+    /// let n3 = tree.node(&id3);
+    ///
+    /// let paths: Vec<_> = n3
+    ///     .paths::<Dfs>()
+    ///     .map(|x| x.copied().collect::<Vec<_>>())
+    ///     .collect();
+    ///
+    /// assert_eq!(paths, [vec![9, 6, 3], vec![10, 7, 3], vec![11, 7, 3]]);
+    /// ```
+    fn paths<T>(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item>>
+    where
+        T: Traverser<OverData>,
+    {
+        let node_ptr = self.node_ptr();
+        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+            .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+            .map(|x: NodePtr<V>| {
+                let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
+                iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
+            })
+    }
+
+    /// Returns an iterator of paths from all leaves of the subtree rooted at
+    /// this node **upwards** to this node.
+    ///
+    /// The iterator yields one path per leaf node.
+    ///
+    /// The order of the leaves, and hence the corresponding paths, is determined
+    /// by explicit type of the [`Traverser`] argument `traverser`.
+    ///
+    /// # Yields
+    ///
+    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item>`
+    ///   when `T: Traverser<OverData>`
+    /// * `Iterator::Item` => `impl Iterator<Item = Node<_>>`
+    ///   when `T: Traverser<OverNode>`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
+    ///
+    /// // create a depth first traverser and reuse it
+    ///
+    /// let mut dfs = Traversal.dfs(); // OverData by default
+    ///
+    /// // paths from leaves as data of the nodes
+    ///
+    /// let root = tree.root();
+    /// let paths: Vec<_> = root
+    ///     .paths_with(&mut dfs)
+    ///     .map(|path_data| path_data.copied().collect::<Vec<_>>())
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     paths,
+    ///     [
+    ///         vec![8, 4, 2, 1],
+    ///         vec![5, 2, 1],
+    ///         vec![9, 6, 3, 1],
+    ///         vec![10, 7, 3, 1],
+    ///         vec![11, 7, 3, 1]
+    ///     ]
+    /// );
+    ///
+    /// // paths of subtree rooted at n3; as nodes rather than data.
+    ///
+    /// let mut dfs = dfs.over_nodes(); // transform from OverData to OverNode
+    ///
+    /// let n3 = tree.node(&id3);
+    ///
+    /// let paths: Vec<_> = n3
+    ///     .paths_with(&mut dfs)
+    ///     .map(|path_nodes| {
+    ///         path_nodes
+    ///             .map(|node| (*node.data(), node.depth()))
+    ///             .collect::<Vec<_>>()
+    ///     })
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     paths,
+    ///     [
+    ///         [(9, 3), (6, 2), (3, 1)],
+    ///         [(10, 3), (7, 2), (3, 1)],
+    ///         [(11, 3), (7, 2), (3, 1)]
+    ///     ]
+    /// );
+    /// ```
+    fn paths_with<T, O>(
+        &'a self,
+        traverser: &'a mut T,
+    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>>>
+    where
+        O: Over<Enumeration = Val>,
+        T: Traverser<O>,
+    {
+        let node_ptr = self.node_ptr();
+        T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
+            .filter(|x| {
+                let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
+                unsafe { &*ptr.ptr() }.next().is_empty()
+            })
+            .map(|x| {
+                let ptr: &NodePtr<V> = O::Enumeration::node_data(&x);
+                let iter = AncestorsIterPtr::new(node_ptr.clone(), ptr.clone());
+                iter.map(|ptr: NodePtr<V>| {
+                    O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
+                        self.col(),
+                        ptr,
+                    )
+                })
             })
     }
 }
