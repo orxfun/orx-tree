@@ -559,11 +559,16 @@ where
     /// Swap operation will succeed and return Ok if both indices are valid and the above condition holds.
     /// It will the corresponding [`NodeSwapError`] otherwise.
     ///
+    /// # See also
+    ///
     /// (*) Validation of the independence of the subtrees is performed in ***O(D)*** time where D is the maximum
     /// depth of the tree. When we are certain that the subtrees do not intersect, we can use the unsafe variant
     /// [`swap_nodes_unchecked`] to bypass the validation and avoid the O(D) time.
     ///
-    /// [`swap_nodes_unchecked`]: Tree::swap_nodes_unchecked
+    /// In order to only swap data of two nodes, rather than the subtrees, please see [`swap_data_with`] method.
+    ///
+    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
+    /// [`swap_data_with`]: crate::NodeMut::swap_data_with
     ///
     /// # Examples
     ///

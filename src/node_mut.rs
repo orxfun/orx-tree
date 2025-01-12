@@ -10,6 +10,7 @@ use crate::{
         post_order::iter_ptr::PostOrderIterPtr,
         OverData, OverMut,
     },
+    tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
     NodeIdx, Traverser, TreeVariant,
 };
@@ -100,6 +101,73 @@ where
         self.node_mut()
             .data_mut()
             .expect("node holding a tree reference must be active")
+    }
+
+    /// Swaps the data of this and the other node with the given `other_idx`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `other_idx` is invalid.
+    ///
+    /// # See also
+    ///
+    /// See [`swap_nodes`] to swap two independent subtrees rooted at given node indices.
+    ///
+    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱
+    /// // 4   5 6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let id1 = root.idx();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, id5] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// n3.push(6);
+    ///
+    /// // swap data of nodes to obtain
+    ///
+    /// //      2
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     5
+    /// //  ╱ ╲   ╱
+    /// // 4   3 6
+    ///
+    /// tree.node_mut(&id4).swap_data_with(&id4); // does nothing
+    /// tree.node_mut(&id2).swap_data_with(&id1);
+    /// tree.node_mut(&id5).swap_data_with(&id3);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [2, 1, 5, 4, 3, 6]);
+    /// ```
+    pub fn swap_data_with(&mut self, other_idx: &NodeIdx<V>) {
+        assert!(other_idx.0.is_valid_for(self.col), "{}", INVALID_IDX_ERROR);
+        let a = self.node_ptr.clone();
+        let b = other_idx.0.node_ptr();
+
+        if a != b {
+            let a = unsafe { &mut *a.ptr_mut() };
+            let b = unsafe { &mut *b.ptr_mut() };
+            core::mem::swap(
+                a.data_mut().expect("valid idx"),
+                b.data_mut().expect("valid idx"),
+            );
+        }
     }
 
     // growth
