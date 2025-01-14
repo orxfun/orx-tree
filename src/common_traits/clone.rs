@@ -15,12 +15,12 @@ where
     ///
     /// # See also
     ///
-    /// Note that cloning the tree is implemented using a depth-first traversal which uses an internal
-    /// stack that is allocated and dropped at the end of the clone operation.
-    /// In use cases where we repeatedly traverse over nodes, we can avoid allocation by creating the
-    /// traverser only once and reusing it with methods with a "_with" suffix, such as [`clone_with`].
+    /// * [`clone_as_tree`]: to clone a subtree rooted at a given node as a separate tree.
+    /// * [`clone_as_tree_with`]: to clone a subtree rooted at a given node as a separate tree
+    ///   by reusing a traverser.
     ///
-    /// [`clone_with`]: crate::NodeRef::clone_with
+    /// [`clone_as_tree`]: crate::NodeRef::clone_as_tree
+    /// [`clone_as_tree_with`]: crate::NodeRef::clone_as_tree_with
     ///
     /// # Examples
     ///
