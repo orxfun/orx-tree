@@ -4,8 +4,8 @@ use crate::{
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     traversal::{
-        enumeration::Enumeration, enumerations::Val, over::OverItem, traverser_core::TraverserCore,
-        Over, OverData,
+        enumeration::Enumeration, enumerations::Val, over::OverItem, post_order::iter_ptr::Item,
+        traverser_core::TraverserCore, Over, OverData,
     },
     tree_variant::RefsChildren,
     Node, NodeIdx, Traverser, TreeVariant,
@@ -702,6 +702,38 @@ where
         traverser.iter(self)
     }
 
+    fn indices<'b, T>(&'b self) -> impl Iterator<Item = NodeIdx<V>>
+    where
+        T: Traverser<OverData>,
+        V: 'b,
+        'a: 'b,
+    {
+        let node_ptr = self.node_ptr();
+        let state = self.col().memory_state();
+        T::iter_ptr_with_owned_storage(node_ptr.clone())
+            .map(move |x: NodePtr<V>| NodeIdx(orx_selfref_col::NodeIdx::new(state, &x)))
+    }
+
+    fn indices_with<'b, T, O>(
+        &'b self,
+        traverser: &'b mut T,
+    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>>
+    where
+        O: Over,
+        T: Traverser<O>,
+        V: 'b,
+        Self: Sized,
+        'a: 'b,
+    {
+        let node_ptr = self.node_ptr();
+        let state = self.col().memory_state();
+        T::iter_ptr_with_storage(node_ptr.clone(), traverser.storage_mut()).map(move |x| {
+            <O::Enumeration as Enumeration>::map_node_data(x, |ptr: NodePtr<V>| {
+                NodeIdx(orx_selfref_col::NodeIdx::new(state, &ptr))
+            })
+        })
+    }
+
     // traversal shorthands
 
     /// Returns an iterator of references to data of leaves of the subtree rooted at this node.
@@ -978,7 +1010,7 @@ where
         T: Traverser<OverData>,
     {
         let node_ptr = self.node_ptr();
-        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+        T::iter_ptr_with_owned_storage(node_ptr.clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(|x: NodePtr<V>| {
                 let iter = AncestorsIterPtr::new(node_ptr.clone(), x);

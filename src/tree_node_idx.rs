@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use crate::TreeVariant;
 
 pub(crate) const INVALID_IDX_ERROR: &str = "\n
@@ -237,5 +239,11 @@ impl<V: TreeVariant> Clone for NodeIdx<V> {
 impl<V: TreeVariant> PartialEq for NodeIdx<V> {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
+    }
+}
+
+impl<V: TreeVariant> Debug for NodeIdx<V> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self.0)
     }
 }
