@@ -265,6 +265,8 @@ where
     ///
     /// Returns the array node indices corresponding to each child node.
     ///
+    /// # See also
+    ///
     /// See [`grow_iter`] and [`grow_vec`] to push **non-const** number of children and obtain corresponding
     /// node indices.
     ///
@@ -321,7 +323,7 @@ where
     /// ```
     pub fn grow<const N: usize>(&mut self, children: [V::Item; N]) -> [NodeIdx<V>; N] {
         children.map(|child| {
-            let child_ptr = self.push_get_ptr(child);
+            let child_ptr = self.push_child_get_ptr(child);
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
                 &child_ptr,
@@ -415,7 +417,7 @@ where
         I::IntoIter: 'b,
     {
         children.into_iter().map(|value| {
-            let child_ptr = self.push_get_ptr(value);
+            let child_ptr = self.push_child_get_ptr(value);
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
                 &child_ptr,
@@ -570,18 +572,12 @@ where
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
 
-        let sibling_ptr = self.col.push(sibling);
-
-        let sibling = self.col.node_mut(&sibling_ptr);
-        sibling.prev_mut().set_some(parent_ptr.clone());
-
-        let parent = self.col.node_mut(&parent_ptr);
-        let children = parent.next_mut();
-        let result = match side {
-            SiblingSide::Left => children.push_before(&self.node_ptr, sibling_ptr),
-            SiblingSide::Right => children.push_after(&self.node_ptr, sibling_ptr),
+        let position = match side {
+            SiblingSide::Left => self.sibling_idx(),
+            SiblingSide::Right => self.sibling_idx() + 1,
         };
-        result.expect("Failed to push child due to children capacity");
+
+        self.insert_sibling_get_ptr(sibling, &parent_ptr, position);
     }
 
     /// Pushes the nodes with the given data `siblings`:
@@ -667,15 +663,116 @@ where
         };
 
         for sibling in siblings.into_iter() {
-            let sibling_ptr = self.col.push(sibling);
-
-            let sibling = self.col.node_mut(&sibling_ptr);
-            sibling.prev_mut().set_some(parent_ptr.clone());
-
-            let parent = self.col.node_mut(&parent_ptr);
-            parent.next_mut().insert(position, sibling_ptr);
+            self.insert_sibling_get_ptr(sibling, &parent_ptr, position);
             position += 1;
         }
+    }
+
+    /// Pushes the nodes with the given data `siblings`:
+    ///
+    /// * as the immediate left,-siblings of this node when `side` is [`SiblingSide::Left`],
+    /// * as the immediate right-siblings of this node when `side` is [`SiblingSide::Right`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node is the root; root node cannot have a sibling.
+    ///
+    /// Further, the method might panic if the tree variant allows for a fixed number
+    /// of children, as [`BinaryTree`] or any [`DaryTree`], and this capacity is exceeded.
+    ///
+    /// [`BinaryTree`]: crate::BinaryTree
+    /// [`DaryTree`]: crate::DaryTree
+    ///
+    /// # See also
+    ///
+    /// See [`grow_sibling_iter`] and [`grow_sibling_vec`] to push **non-const** number of children
+    /// and obtain corresponding node indices.
+    ///
+    /// If the corresponding node indices of the siblings are not required;
+    /// you may use [`push_sibling`] or [`extend_siblings`].
+    ///
+    /// [`push_sibling`]: crate::NodeMut::push_sibling
+    /// [`extend_siblings`]: crate::NodeMut::extend_siblings
+    /// [`grow_sibling_iter`]: crate::NodeMut::grow_sibling_iter
+    /// [`grow_sibling_vec`]: crate::NodeMut::grow_sibling_vec
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲     ╲
+    /// // 4   5     6
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6] = n3.grow([6]);
+    ///
+    /// // grow horizontally to obtain
+    /// //         1
+    /// //        ╱ ╲
+    /// //       ╱   ╲
+    /// //      2     3
+    /// //     ╱|╲    └────────
+    /// //    ╱ | ╲          ╱ | ╲
+    /// //   ╱ ╱ ╲ ╲        ╱  |  ╲
+    /// //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
+    /// // 7 4    8  5    9 10 6 11 12
+    ///
+    /// let mut n4 = tree.node_mut(&id4);
+    /// let [id7] = n4.grow_siblings([7], SiblingSide::Left);
+    /// let [id8] = n4.grow_siblings([8], SiblingSide::Right);
+    ///
+    /// let mut n6 = tree.node_mut(&id6);
+    /// let [id9, id10] = n6.grow_siblings([9, 10], SiblingSide::Left);
+    /// let [id11, id12] = n6.grow_siblings([11, 12], SiblingSide::Right);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
+    ///
+    /// // as grow methods, grow_siblings method allows us to cache indices
+    /// // of new nodes immediately
+    ///
+    /// assert_eq!(tree.node(&id7).data(), &7);
+    /// assert_eq!(tree.node(&id8).data(), &8);
+    /// assert_eq!(tree.node(&id9).data(), &9);
+    /// assert_eq!(tree.node(&id10).data(), &10);
+    /// assert_eq!(tree.node(&id11).data(), &11);
+    /// assert_eq!(tree.node(&id12).data(), &12);
+    /// ```
+    pub fn grow_siblings<const N: usize>(
+        &mut self,
+        siblings: [V::Item; N],
+        side: SiblingSide,
+    ) -> [NodeIdx<V>; N] {
+        let parent_ptr = self
+            .parent_ptr()
+            .expect("Cannot push sibling to the root node");
+
+        let mut position = match side {
+            SiblingSide::Left => self.sibling_idx(),
+            SiblingSide::Right => self.sibling_idx() + 1,
+        };
+
+        siblings.map(|sibling| {
+            let sibling_ptr = self.insert_sibling_get_ptr(sibling, &parent_ptr, position);
+            position += 1;
+            NodeIdx(orx_selfref_col::NodeIdx::new(
+                self.col.memory_state(),
+                &sibling_ptr,
+            ))
+        })
     }
 
     // shrink
@@ -1493,7 +1590,7 @@ where
         unsafe { &mut *self.node_ptr().ptr_mut() }
     }
 
-    pub(crate) fn push_get_ptr(&mut self, value: V::Item) -> NodePtr<V> {
+    pub(crate) fn push_child_get_ptr(&mut self, value: V::Item) -> NodePtr<V> {
         let parent_ptr = self.node_ptr.clone();
 
         let child_ptr = self.col.push(value);
@@ -1505,6 +1602,23 @@ where
         parent.next_mut().push(child_ptr.clone());
 
         child_ptr
+    }
+
+    fn insert_sibling_get_ptr(
+        &mut self,
+        value: V::Item,
+        parent_ptr: &NodePtr<V>,
+        position: usize,
+    ) -> NodePtr<V> {
+        let sibling_ptr = self.col.push(value);
+
+        let child = self.col.node_mut(&sibling_ptr);
+        child.prev_mut().set_some(parent_ptr.clone());
+
+        let parent = self.col.node_mut(parent_ptr);
+        parent.next_mut().insert(position, sibling_ptr.clone());
+
+        sibling_ptr
     }
 
     pub(crate) fn into_inner(self) -> (&'a mut Col<V, M, P>, NodePtr<V>) {
@@ -1689,13 +1803,23 @@ fn abc() {
     // 7 4    8  5    9 10 6 11 12
 
     let mut n4 = tree.node_mut(&id4);
-    n4.push_sibling(7, SiblingSide::Left);
-    n4.push_sibling(8, SiblingSide::Right);
+    let [id7] = n4.grow_siblings([7], SiblingSide::Left);
+    let [id8] = n4.grow_siblings([8], SiblingSide::Right);
 
     let mut n6 = tree.node_mut(&id6);
-    n6.extend_siblings([9, 10], SiblingSide::Left);
-    n6.extend_siblings([11, 12], SiblingSide::Right);
+    let [id9, id10] = n6.grow_siblings([9, 10], SiblingSide::Left);
+    let [id11, id12] = n6.grow_siblings([11, 12], SiblingSide::Right);
 
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
+
+    // as grow methods, grow_siblings method allows us to cache indices
+    // of new nodes immediately
+
+    assert_eq!(tree.node(&id7).data(), &7);
+    assert_eq!(tree.node(&id8).data(), &8);
+    assert_eq!(tree.node(&id9).data(), &9);
+    assert_eq!(tree.node(&id10).data(), &10);
+    assert_eq!(tree.node(&id11).data(), &11);
+    assert_eq!(tree.node(&id12).data(), &12);
 }
