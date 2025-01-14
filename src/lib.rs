@@ -44,7 +44,7 @@ mod tree_variant;
 pub use dary::{Binary, BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
 pub use memory::{Auto, AutoWithThreshold, Lazy, MemoryPolicy};
 pub use node::Node;
-pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown};
+pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown, SiblingSide};
 pub use node_ref::NodeRef;
 pub use r#dyn::{Dyn, DynNode, DynTree};
 pub use traversal::{Bfs, Dfs, PostOrder, Traversal, Traverser};

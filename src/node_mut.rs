@@ -15,9 +15,8 @@ use crate::{
     NodeIdx, NodeRef, Traverser, TreeVariant,
 };
 use alloc::vec::Vec;
-use core::{fmt::Debug, marker::PhantomData};
+use core::marker::PhantomData;
 use orx_selfref_col::{NodePtr, Refs};
-use std::dbg;
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation: 'static {}
@@ -37,6 +36,14 @@ impl NodeMutOrientation for NodeMutDown {}
 /// i.e., does limit.
 pub struct NodeMutUpAndDown {}
 impl NodeMutOrientation for NodeMutUpAndDown {}
+
+/// Side of a sibling node relative to a particular node within the children collection.
+pub enum SiblingSide {
+    /// To the left of this node.
+    Left,
+    /// To the right of this node.
+    Right,
+}
 
 /// A node of the tree, which in turn is a tree.
 pub struct NodeMut<'a, V, M = Auto, P = SplitRecursive, O = NodeMutUpAndDown>
@@ -489,168 +496,29 @@ where
 
     // growth - horizontally
 
-    /// Pushes the node with the given data `sibling` as the immediate right-sibling of this node.
+    /// Pushes the node with the given data `sibling`:
+    ///
+    /// * as the immediate left,-sibling of this node when `side` is [`SiblingSide::Left`],
+    /// * as the immediate right-sibling of this node when `side` is [`SiblingSide::Right`].
     ///
     /// # Panics
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
     ///
-    /// # See also
+    /// Further, the method might panic if the tree variant allows for a fixed number
+    /// of children, as [`BinaryTree`] or any [`DaryTree`], and this capacity is exceeded.
     ///
-    /// If the corresponding node index of the child is required;
-    /// you may use [`grow_right`], [`grow_right_iter`] or [`grow_right_vec`].
-    ///
-    /// [`grow_right`]: crate::NodeMut::grow_right
-    /// [`grow_right_iter`]: crate::NodeMut::grow_right_iter
-    /// [`grow_right_vec`]: crate::NodeMut::grow_right_vec
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5     6
-    ///
-    /// let mut tree = DynTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.grow([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, id5] = n2.grow([4, 5]);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6] = n3.grow([6]);
-    ///
-    /// // grow horizontally to obtain
-    /// //        1
-    /// //       ╱ ╲
-    /// //      ╱   ╲
-    /// //     2     ╲
-    /// //    ╱|╲     ╲
-    /// //   ╱ | ╲     ╲
-    /// //  ╱ ╱ ╲ ╲    ╱|╲
-    /// // 4 44  5 55 6 7 8
-    ///
-    /// tree.node_mut(&id6).push_right(8);
-    /// tree.node_mut(&id6).push_right(7);
-    ///
-    /// tree.node_mut(&id4).push_right(44);
-    /// tree.node_mut(&id5).push_right(55);
-    ///
-    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 3, 4, 44, 5, 55, 6, 7, 8]);
-    /// ```
-    pub fn push_right(&mut self, sibling: V::Item) {
-        let parent_ptr = self
-            .parent_ptr()
-            .expect("Cannot push sibling to the root node");
-
-        let sibling_ptr = self.col.push(sibling);
-
-        let sibling = self.col.node_mut(&sibling_ptr);
-        sibling.prev_mut().set_some(parent_ptr.clone());
-
-        let parent = self.col.node_mut(&parent_ptr);
-        parent
-            .next_mut()
-            .push_after(&self.node_ptr, sibling_ptr)
-            .expect("Failed to push child due to children capacity");
-    }
-
-    /// Pushes the node with the given data `sibling` as the immediate left-sibling of this node.
-    ///
-    /// # Panics
-    ///
-    /// Panics if this node is the root; root node cannot have a sibling.
+    /// [`BinaryTree`]: crate::BinaryTree
+    /// [`DaryTree`]: crate::DaryTree
     ///
     /// # See also
     ///
-    /// If the corresponding node index of the child is required;
-    /// you may use [`grow_left`], [`grow_left_iter`] or [`grow_left_vec`].
+    /// If the corresponding node index of the sibling is required;
+    /// you may use [`grow_siblings`], [`grow_siblings_iter`] or [`grow_siblings_vec`].
     ///
-    /// [`grow_left`]: crate::NodeMut::grow_left
-    /// [`grow_left_iter`]: crate::NodeMut::grow_left_iter
-    /// [`grow_left_vec`]: crate::NodeMut::grow_left_vec
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲     ╲
-    /// // 4   5     6
-    ///
-    /// let mut tree = DynTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.grow([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, id5] = n2.grow([4, 5]);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6] = n3.grow([6]);
-    ///
-    /// // grow horizontally to obtain
-    /// //        1
-    /// //       ╱ ╲
-    /// //      ╱   ╲
-    /// //     2     ╲
-    /// //    ╱|╲     ╲
-    /// //   ╱ | ╲     ╲
-    /// //  ╱ ╱ ╲ ╲    ╱|╲
-    /// // 44 4 55 5  8 7 6
-    ///
-    /// tree.node_mut(&id6).push_left(8);
-    /// tree.node_mut(&id6).push_left(7);
-    ///
-    /// tree.node_mut(&id4).push_left(44);
-    /// tree.node_mut(&id5).push_left(55);
-    ///
-    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 3, 44, 4, 55, 5, 8, 7, 6]);
-    /// ```
-    pub fn push_left(&mut self, sibling: V::Item) {
-        let parent_ptr = self
-            .parent_ptr()
-            .expect("Cannot push sibling to the root node");
-
-        let sibling_ptr = self.col.push(sibling);
-
-        let sibling = self.col.node_mut(&sibling_ptr);
-        sibling.prev_mut().set_some(parent_ptr.clone());
-
-        let parent = self.col.node_mut(&parent_ptr);
-        parent
-            .next_mut()
-            .push_before(&self.node_ptr, sibling_ptr)
-            .expect("Failed to push child due to children capacity");
-    }
-
-    /// Pushes the nodes with the given data `siblings` as the immediate right-siblings of this node.
-    ///
-    /// # Panics
-    ///
-    /// Panics if this node is the root; root node cannot have a sibling.
-    ///
-    /// # See also
-    ///
-    /// If the corresponding node index of the child is required;
-    /// you may use [`grow_right`], [`grow_right_iter`] or [`grow_right_vec`].
-    ///
-    /// [`grow_right`]: crate::NodeMut::grow_right
-    /// [`grow_right_iter`]: crate::NodeMut::grow_right_iter
-    /// [`grow_right_vec`]: crate::NodeMut::grow_right_vec
+    /// [`grow_siblings`]: crate::NodeMut::grow_siblings
+    /// [`grow_siblings_iter`]: crate::NodeMut::grow_siblings_iter
+    /// [`grow_siblings_vec`]: crate::NodeMut::grow_siblings_vec
     ///
     /// # Examples
     ///
@@ -676,57 +544,69 @@ where
     /// let [id6] = n3.grow([6]);
     ///
     /// // grow horizontally to obtain
-    /// //        1
-    /// //       ╱ ╲
-    /// //      ╱   ╲
-    /// //     2     ╲
-    /// //    ╱|╲     ╲
-    /// //   ╱ | ╲     ╲
-    /// //  ╱ ╱ ╲ ╲    ╱|╲
-    /// // 4 44 55 5  6 7 8
+    /// //         1
+    /// //        ╱ ╲
+    /// //       ╱   ╲
+    /// //      2     3
+    /// //     ╱|╲    └────────
+    /// //    ╱ | ╲          ╱ | ╲
+    /// //   ╱ ╱ ╲ ╲        ╱  |  ╲
+    /// //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
+    /// // 7 4    8  5    9 10 6 11 12
     ///
-    /// tree.node_mut(&id6).extend_right([7, 8]);
-    /// tree.node_mut(&id4).extend_right([44, 55]);
+    /// let mut n4 = tree.node_mut(&id4);
+    /// n4.push_sibling(7, SiblingSide::Left);
+    /// n4.push_sibling(8, SiblingSide::Right);
+    ///
+    /// let mut n6 = tree.node_mut(&id6);
+    /// n6.extend_siblings([9, 10], SiblingSide::Left);
+    /// n6.extend_siblings([11, 12], SiblingSide::Right);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 6, 7, 8]);
+    /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     /// ```
-    pub fn extend_right<I>(&mut self, siblings: I)
-    where
-        I: IntoIterator<Item = V::Item>,
-        V::Item: Debug,
-    {
+    pub fn push_sibling(&mut self, sibling: V::Item, side: SiblingSide) {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
 
-        let mut position = self.sibling_idx() + 1;
-        for sibling in siblings.into_iter() {
-            let sibling_ptr = self.col.push(sibling);
+        let sibling_ptr = self.col.push(sibling);
 
-            let sibling = self.col.node_mut(&sibling_ptr);
-            sibling.prev_mut().set_some(parent_ptr.clone());
+        let sibling = self.col.node_mut(&sibling_ptr);
+        sibling.prev_mut().set_some(parent_ptr.clone());
 
-            let parent = self.col.node_mut(&parent_ptr);
-            parent.next_mut().insert(position, sibling_ptr);
-            position += 1;
-        }
+        let parent = self.col.node_mut(&parent_ptr);
+        let children = parent.next_mut();
+        let result = match side {
+            SiblingSide::Left => children.push_before(&self.node_ptr, sibling_ptr),
+            SiblingSide::Right => children.push_after(&self.node_ptr, sibling_ptr),
+        };
+        result.expect("Failed to push child due to children capacity");
     }
 
-    /// Pushes the nodes with the given data `siblings` as the immediate left-siblings of this node.
+    /// Pushes the nodes with the given data `siblings`:
+    ///
+    /// * as the immediate left,-siblings of this node when `side` is [`SiblingSide::Left`],
+    /// * as the immediate right-siblings of this node when `side` is [`SiblingSide::Right`].
     ///
     /// # Panics
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
     ///
+    /// Further, the method might panic if the tree variant allows for a fixed number
+    /// of children, as [`BinaryTree`] or any [`DaryTree`], and this capacity is exceeded.
+    ///
+    /// [`BinaryTree`]: crate::BinaryTree
+    /// [`DaryTree`]: crate::DaryTree
+    ///
     /// # See also
     ///
-    /// If the corresponding node index of the child is required;
-    /// you may use [`grow_left`], [`grow_left_iter`] or [`grow_left_vec`].
+    /// If the corresponding node indices of the siblings are required;
+    /// you may use [`grow_siblings`], [`grow_siblings_iter`] or [`grow_siblings_vec`].
     ///
-    /// [`grow_left`]: crate::NodeMut::grow_left
-    /// [`grow_left_iter`]: crate::NodeMut::grow_left_iter
-    /// [`grow_left_vec`]: crate::NodeMut::grow_left_vec
+    /// [`grow_siblings`]: crate::NodeMut::grow_siblings
+    /// [`grow_siblings_iter`]: crate::NodeMut::grow_siblings_iter
+    /// [`grow_siblings_vec`]: crate::NodeMut::grow_siblings_vec
     ///
     /// # Examples
     ///
@@ -746,37 +626,46 @@ where
     /// let [id2, id3] = root.grow([2, 3]);
     ///
     /// let mut n2 = tree.node_mut(&id2);
-    /// let [_, id5] = n2.grow([4, 5]);
+    /// let [id4, _] = n2.grow([4, 5]);
     ///
     /// let mut n3 = tree.node_mut(&id3);
     /// let [id6] = n3.grow([6]);
     ///
     /// // grow horizontally to obtain
-    /// //        1
-    /// //       ╱ ╲
-    /// //      ╱   ╲
-    /// //     2     ╲
-    /// //    ╱|╲     ╲
-    /// //   ╱ | ╲     ╲
-    /// //  ╱ ╱ ╲ ╲    ╱|╲
-    /// // 4 44 55 5  8 7 6
+    /// //         1
+    /// //        ╱ ╲
+    /// //       ╱   ╲
+    /// //      2     3
+    /// //     ╱|╲    └────────
+    /// //    ╱ | ╲          ╱ | ╲
+    /// //   ╱ ╱ ╲ ╲        ╱  |  ╲
+    /// //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
+    /// // 7 4    8  5    9 10 6 11 12
     ///
-    /// tree.node_mut(&id6).extend_left([8, 7]);
-    /// tree.node_mut(&id5).extend_left([44, 55]);
+    /// let mut n4 = tree.node_mut(&id4);
+    /// n4.push_sibling(7, SiblingSide::Left);
+    /// n4.push_sibling(8, SiblingSide::Right);
+    ///
+    /// let mut n6 = tree.node_mut(&id6);
+    /// n6.extend_siblings([9, 10], SiblingSide::Left);
+    /// n6.extend_siblings([11, 12], SiblingSide::Right);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 8, 7, 6]);
+    /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     /// ```
-    pub fn extend_left<I>(&mut self, siblings: I)
+    pub fn extend_siblings<I>(&mut self, siblings: I, side: SiblingSide)
     where
         I: IntoIterator<Item = V::Item>,
-        V::Item: Debug,
     {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
 
-        let mut position = self.sibling_idx();
+        let mut position = match side {
+            SiblingSide::Left => self.sibling_idx(),
+            SiblingSide::Right => self.sibling_idx() + 1,
+        };
+
         for sibling in siblings.into_iter() {
             let sibling_ptr = self.col.push(sibling);
 
@@ -1783,24 +1672,30 @@ fn abc() {
     let [id2, id3] = root.grow([2, 3]);
 
     let mut n2 = tree.node_mut(&id2);
-    let [_, id5] = n2.grow([4, 5]);
+    let [id4, _] = n2.grow([4, 5]);
 
     let mut n3 = tree.node_mut(&id3);
     let [id6] = n3.grow([6]);
 
     // grow horizontally to obtain
-    //        1
-    //       ╱ ╲
-    //      ╱   ╲
-    //     2     ╲
-    //    ╱|╲     ╲
-    //   ╱ | ╲     ╲
-    //  ╱ ╱ ╲ ╲    ╱|╲
-    // 4 44 55 5  8 7 6
+    //         1
+    //        ╱ ╲
+    //       ╱   ╲
+    //      2     3
+    //     ╱|╲    └────────
+    //    ╱ | ╲          ╱ | ╲
+    //   ╱ ╱ ╲ ╲        ╱  |  ╲
+    //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
+    // 7 4    8  5    9 10 6 11 12
 
-    tree.node_mut(&id6).extend_left([8, 7]);
-    tree.node_mut(&id5).extend_left([44, 55]);
+    let mut n4 = tree.node_mut(&id4);
+    n4.push_sibling(7, SiblingSide::Left);
+    n4.push_sibling(8, SiblingSide::Right);
+
+    let mut n6 = tree.node_mut(&id6);
+    n6.extend_siblings([9, 10], SiblingSide::Left);
+    n6.extend_siblings([11, 12], SiblingSide::Right);
 
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 2, 3, 4, 44, 55, 5, 8, 7, 6]);
+    assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
 }
