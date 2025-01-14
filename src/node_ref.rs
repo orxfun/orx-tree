@@ -4,11 +4,14 @@ use crate::{
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     traversal::{
-        enumeration::Enumeration, enumerations::Val, over::OverItem, traverser_core::TraverserCore,
+        enumeration::Enumeration,
+        enumerations::{DepthVal, Val},
+        over::{OverDepthPtr, OverItem},
+        traverser_core::TraverserCore,
         Over, OverData,
     },
     tree_variant::RefsChildren,
-    Node, NodeIdx, Traverser, TreeVariant,
+    Dfs, Node, NodeIdx, Traverser, Tree, TreeVariant,
 };
 use orx_selfref_col::{NodePtr, Refs};
 
@@ -478,6 +481,8 @@ where
     /// * [`Bfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
+    /// # See also
+    ///
     /// See also [`walk_mut`] and [`into_walk`] for iterators over mutable references and owned (removed) values,
     /// respectively.
     ///
@@ -702,6 +707,340 @@ where
         traverser.iter(self)
     }
 
+    /// Returns an iterator of paths from all leaves of the subtree rooted at
+    /// this node **upwards** to this node.
+    ///
+    /// The iterator yields one path per leaf node.
+    ///
+    /// The order of the leaves, and hence the corresponding paths, is determined
+    /// by the generic [`Traverser`] parameter `T`.
+    ///
+    /// # See also
+    ///
+    /// * [`paths_with`]: (i) to iterate using a cached traverser to minimize allocation
+    ///   for repeated traversals, or (ii) to iterate over nodes rather than only the data.
+    ///
+    /// [`paths_with`]: NodeRef::paths_with
+    ///
+    /// # Yields
+    ///
+    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item>`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
+    ///
+    /// // paths from all leaves to the root
+    ///
+    /// let root = tree.root();
+    ///
+    /// // sorted in the order of leaves by breadth-first:
+    /// // 5, 8, 9, 10, 11
+    /// let paths: Vec<_> = root
+    ///     .paths::<Bfs>()
+    ///     .map(|x| x.copied().collect::<Vec<_>>())
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     paths,
+    ///     [
+    ///         vec![5, 2, 1],
+    ///         vec![8, 4, 2, 1],
+    ///         vec![9, 6, 3, 1],
+    ///         vec![10, 7, 3, 1],
+    ///         vec![11, 7, 3, 1]
+    ///     ]
+    /// );
+    ///
+    /// // paths from all leaves of subtree rooted at n3
+    ///
+    /// let n3 = tree.node(&id3);
+    ///
+    /// let paths: Vec<_> = n3
+    ///     .paths::<Dfs>()
+    ///     .map(|x| x.copied().collect::<Vec<_>>())
+    ///     .collect();
+    ///
+    /// assert_eq!(paths, [vec![9, 6, 3], vec![10, 7, 3], vec![11, 7, 3]]);
+    /// ```
+    fn paths<T>(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item>>
+    where
+        T: Traverser<OverData>,
+    {
+        let node_ptr = self.node_ptr();
+        T::iter_ptr_with_owned_storage(node_ptr.clone())
+            .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+            .map(|x: NodePtr<V>| {
+                let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
+                iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
+            })
+    }
+
+    /// Returns an iterator of paths from all leaves of the subtree rooted at
+    /// this node **upwards** to this node.
+    ///
+    /// The iterator yields one path per leaf node.
+    ///
+    /// The order of the leaves, and hence the corresponding paths, is determined
+    /// by explicit type of the [`Traverser`] argument `traverser`.
+    ///
+    /// # Yields
+    ///
+    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item>`
+    ///   when `T: Traverser<OverData>`
+    /// * `Iterator::Item` => `impl Iterator<Item = Node<_>>`
+    ///   when `T: Traverser<OverNode>`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.grow([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.grow([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.grow([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id7).extend([10, 11]);
+    ///
+    /// // create a depth first traverser and reuse it
+    ///
+    /// let mut dfs = Traversal.dfs(); // OverData by default
+    ///
+    /// // paths from leaves as data of the nodes
+    ///
+    /// let root = tree.root();
+    /// let paths: Vec<_> = root
+    ///     .paths_with(&mut dfs)
+    ///     .map(|path_data| path_data.copied().collect::<Vec<_>>())
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     paths,
+    ///     [
+    ///         vec![8, 4, 2, 1],
+    ///         vec![5, 2, 1],
+    ///         vec![9, 6, 3, 1],
+    ///         vec![10, 7, 3, 1],
+    ///         vec![11, 7, 3, 1]
+    ///     ]
+    /// );
+    ///
+    /// // paths of subtree rooted at n3; as nodes rather than data.
+    ///
+    /// let mut dfs = dfs.over_nodes(); // transform from OverData to OverNode
+    ///
+    /// let n3 = tree.node(&id3);
+    ///
+    /// let paths: Vec<_> = n3
+    ///     .paths_with(&mut dfs)
+    ///     .map(|path_nodes| {
+    ///         path_nodes
+    ///             .map(|node| (*node.data(), node.depth()))
+    ///             .collect::<Vec<_>>()
+    ///     })
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     paths,
+    ///     [
+    ///         [(9, 3), (6, 2), (3, 1)],
+    ///         [(10, 3), (7, 2), (3, 1)],
+    ///         [(11, 3), (7, 2), (3, 1)]
+    ///     ]
+    /// );
+    /// ```
+    fn paths_with<T, O>(
+        &'a self,
+        traverser: &'a mut T,
+    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>>>
+    where
+        O: Over<Enumeration = Val>,
+        T: Traverser<O>,
+    {
+        let node_ptr = self.node_ptr();
+        T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
+            .filter(|x| {
+                let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
+                unsafe { &*ptr.ptr() }.next().is_empty()
+            })
+            .map(|x| {
+                let ptr: &NodePtr<V> = O::Enumeration::node_data(&x);
+                let iter = AncestorsIterPtr::new(node_ptr.clone(), ptr.clone());
+                iter.map(|ptr: NodePtr<V>| {
+                    O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
+                        self.col(),
+                        ptr,
+                    )
+                })
+            })
+    }
+
+    /// Clone the subtree rooted at this node as a separate tree.
+    ///
+    /// # See also
+    ///
+    /// * [`clone_as_tree_with`]: to reuse a depth-first traverser for repeated traversals
+    ///   to avoid additional allocation.
+    ///
+    /// [`clone_as_tree_with`]: NodeRef::clone_as_tree_with
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 3   4 5   6
+    /// // |     |  ╱ ╲
+    /// // 7     8 9  10
+    ///
+    /// let mut tree = DynTree::<i32>::new(0);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id1, id2] = root.grow([1, 2]);
+    ///
+    /// let mut n1 = tree.node_mut(&id1);
+    /// let [id3, _] = n1.grow([3, 4]);
+    ///
+    /// tree.node_mut(&id3).push(7);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id5, id6] = n2.grow([5, 6]);
+    ///
+    /// tree.node_mut(&id5).push(8);
+    /// tree.node_mut(&id6).extend([9, 10]);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    ///
+    /// // clone the subtree rooted at node 2 into another tree
+    /// // which might be a different tree type
+    ///
+    /// let clone: BinaryTree::<i32> = tree.node(&id2).clone_as_tree();
+    ///
+    /// let bfs: Vec<_> = clone.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [2, 5, 6, 8, 9, 10]);
+    /// ```
+    fn clone_as_tree<V2>(&'a self) -> Tree<V2, M, P>
+    where
+        V2: TreeVariant<Item = V::Item> + 'a,
+        P::PinnedVec<V2>: Default,
+        V::Item: Clone,
+    {
+        let mut traverser = Dfs::<OverDepthPtr>::new();
+        self.clone_as_tree_with(&mut traverser)
+    }
+
+    /// Clone the subtree rooted at this node as a separate tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 3   4 5   6
+    /// // |     |  ╱ ╲
+    /// // 7     8 9  10
+    ///
+    /// let mut tree = DynTree::<i32>::new(0);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id1, id2] = root.grow([1, 2]);
+    ///
+    /// let mut n1 = tree.node_mut(&id1);
+    /// let [id3, _] = n1.grow([3, 4]);
+    ///
+    /// tree.node_mut(&id3).push(7);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id5, id6] = n2.grow([5, 6]);
+    ///
+    /// tree.node_mut(&id5).push(8);
+    /// tree.node_mut(&id6).extend([9, 10]);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    ///
+    /// // clone the subtree rooted at node 2 into another tree
+    /// // which might be a different tree type
+    ///
+    /// let mut dfs = Traversal.dfs().with_depth();
+    ///
+    /// let clone: BinaryTree::<i32> = tree.node(&id2).clone_as_tree_with(&mut dfs);
+    ///
+    /// let bfs: Vec<_> = clone.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [2, 5, 6, 8, 9, 10]);
+    /// ```
+    fn clone_as_tree_with<V2, O>(&'a self, traverser: &mut Dfs<O>) -> Tree<V2, M, P>
+    where
+        V2: TreeVariant<Item = V::Item> + 'a,
+        P::PinnedVec<V2>: Default,
+        V::Item: Clone,
+        O: Over<Enumeration = DepthVal>,
+    {
+        let mut tree = Tree::new(self.data().clone());
+
+        for child in self.children() {
+            tree.root_mut().push_tree_with(&child, traverser);
+        }
+
+        tree
+    }
+
     // traversal shorthands
 
     /// Returns an iterator of references to data of leaves of the subtree rooted at this node.
@@ -891,216 +1230,112 @@ where
             })
     }
 
-    /// Returns an iterator of paths from all leaves of the subtree rooted at
-    /// this node **upwards** to this node.
+    /// Returns an iterator of node indices.
     ///
-    /// The iterator yields one path per leaf node.
-    ///
-    /// The order of the leaves, and hence the corresponding paths, is determined
-    /// by the generic [`Traverser`] parameter `T`.
+    /// The order of the indices is determined by the generic [`Traverser`] parameter `T`.
     ///
     /// # See also
     ///
-    /// * [`paths_with`]: (i) to iterate using a cached traverser to minimize allocation
-    ///   for repeated traversals, or (ii) to iterate over nodes rather than only the data.
+    /// Note that tree traversing methods typically allocate a temporary data structure that is dropped once the
+    /// iterator is dropped.
+    /// In use cases where we repeatedly iterate using any of the **walk** methods over different nodes or different
+    /// trees, we can avoid the allocation by creating the traverser only once and using [`indices_with`] methods instead.
+    /// This method additionally allow for yielding node depths and sibling indices in addition to node indices.
     ///
-    /// [`paths_with`]: NodeRef::paths_with
-    ///
-    /// # Yields
-    ///
-    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item>`
+    /// [`indices_with`]: crate::NodeRef::indices_with
     ///
     /// # Examples
     ///
     /// ```
     /// use orx_tree::*;
     ///
-    /// //      1
+    /// //      0
     /// //     ╱ ╲
     /// //    ╱   ╲
-    /// //   2     3
+    /// //   1     2
     /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
+    /// // 3   4 5   6
     /// // |     |  ╱ ╲
-    /// // 8     9 10  11
+    /// // 7     8 9  10
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut a = DynTree::<i32>::new(0);
+    /// let [a1, a2] = a.root_mut().grow([1, 2]);
+    /// let [a3, _] = a.node_mut(&a1).grow([3, 4]);
+    /// a.node_mut(&a3).push(7);
+    /// let [a5, a6] = a.node_mut(&a2).grow([5, 6]);
+    /// a.node_mut(&a5).push(8);
+    /// a.node_mut(&a6).extend([9, 10]);
     ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.grow([2, 3]);
+    /// // collect indices in breadth-first order
     ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.grow([4, 5]);
+    /// let a0 = a.root();
+    /// let bfs_indices: Vec<_> = a0.indices::<Bfs>().collect();
     ///
-    /// tree.node_mut(&id4).push(8);
+    /// assert_eq!(a.node(&bfs_indices[0]).data(), &0);
+    /// assert_eq!(a.node(&bfs_indices[1]).data(), &1);
+    /// assert_eq!(a.node(&bfs_indices[2]).data(), &2);
+    /// assert_eq!(a.node(&bfs_indices[3]).data(), &3);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.grow([6, 7]);
+    /// // collect indices in depth-first order
+    /// // we may also re-use a traverser
     ///
-    /// tree.node_mut(&id6).push(9);
-    /// tree.node_mut(&id7).extend([10, 11]);
+    /// let mut t = Traversal.dfs();
     ///
-    /// // paths from all leaves to the root
+    /// let a0 = a.root();
+    /// let dfs_indices: Vec<_> = a0.indices_with(&mut t).collect();
     ///
-    /// let root = tree.root();
-    ///
-    /// // sorted in the order of leaves by breadth-first:
-    /// // 5, 8, 9, 10, 11
-    /// let paths: Vec<_> = root
-    ///     .paths::<Bfs>()
-    ///     .map(|x| x.copied().collect::<Vec<_>>())
-    ///     .collect();
-    ///
-    /// assert_eq!(
-    ///     paths,
-    ///     [
-    ///         vec![5, 2, 1],
-    ///         vec![8, 4, 2, 1],
-    ///         vec![9, 6, 3, 1],
-    ///         vec![10, 7, 3, 1],
-    ///         vec![11, 7, 3, 1]
-    ///     ]
-    /// );
-    ///
-    /// // paths from all leaves of subtree rooted at n3
-    ///
-    /// let n3 = tree.node(&id3);
-    ///
-    /// let paths: Vec<_> = n3
-    ///     .paths::<Dfs>()
-    ///     .map(|x| x.copied().collect::<Vec<_>>())
-    ///     .collect();
-    ///
-    /// assert_eq!(paths, [vec![9, 6, 3], vec![10, 7, 3], vec![11, 7, 3]]);
+    /// assert_eq!(a.node(&dfs_indices[0]).data(), &0);
+    /// assert_eq!(a.node(&dfs_indices[1]).data(), &1);
+    /// assert_eq!(a.node(&dfs_indices[2]).data(), &3);
+    /// assert_eq!(a.node(&dfs_indices[3]).data(), &7);
     /// ```
-    fn paths<T>(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item>>
+    fn indices<T>(&self) -> impl Iterator<Item = NodeIdx<V>>
     where
         T: Traverser<OverData>,
+        V: 'static,
     {
         let node_ptr = self.node_ptr();
-        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
-            .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
-            .map(|x: NodePtr<V>| {
-                let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
-                iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
-            })
+        let state = self.col().memory_state();
+        T::iter_ptr_with_owned_storage(node_ptr.clone())
+            .map(move |x: NodePtr<V>| NodeIdx(orx_selfref_col::NodeIdx::new(state, &x)))
     }
 
-    /// Returns an iterator of paths from all leaves of the subtree rooted at
-    /// this node **upwards** to this node.
+    /// Returns an iterator of node indices.
     ///
-    /// The iterator yields one path per leaf node.
+    /// The order of the indices is determined by the generic [`Traverser`] parameter `T` of the given `traverser`.
     ///
-    /// The order of the leaves, and hence the corresponding paths, is determined
-    /// by explicit type of the [`Traverser`] argument `traverser`.
+    /// Depending on the traverser type, the iterator might yield:
     ///
-    /// # Yields
+    /// * NodeIdx
+    /// * (depth, NodeIdx)
+    /// * (sibling_idx, NodeIdx)
+    /// * (depth, sibling_idx, NodeIdx)
     ///
-    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item>`
-    ///   when `T: Traverser<OverData>`
-    /// * `Iterator::Item` => `impl Iterator<Item = Node<_>>`
-    ///   when `T: Traverser<OverNode>`
+    /// # See also
     ///
-    /// # Examples
+    /// Note that tree traversing methods typically allocate a temporary data structure that is dropped once the
+    /// iterator is dropped.
+    /// In use cases where we repeatedly iterate using any of the **walk** methods over different nodes or different
+    /// trees, we can avoid the allocation by creating the traverser only once and using [`indices_with`] methods instead.
+    /// This method additionally allow for yielding node depths and sibling indices in addition to node indices.
     ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    ///
-    /// let mut tree = DynTree::<i32>::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.grow([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.grow([4, 5]);
-    ///
-    /// tree.node_mut(&id4).push(8);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.grow([6, 7]);
-    ///
-    /// tree.node_mut(&id6).push(9);
-    /// tree.node_mut(&id7).extend([10, 11]);
-    ///
-    /// // create a depth first traverser and reuse it
-    ///
-    /// let mut dfs = Traversal.dfs(); // OverData by default
-    ///
-    /// // paths from leaves as data of the nodes
-    ///
-    /// let root = tree.root();
-    /// let paths: Vec<_> = root
-    ///     .paths_with(&mut dfs)
-    ///     .map(|path_data| path_data.copied().collect::<Vec<_>>())
-    ///     .collect();
-    ///
-    /// assert_eq!(
-    ///     paths,
-    ///     [
-    ///         vec![8, 4, 2, 1],
-    ///         vec![5, 2, 1],
-    ///         vec![9, 6, 3, 1],
-    ///         vec![10, 7, 3, 1],
-    ///         vec![11, 7, 3, 1]
-    ///     ]
-    /// );
-    ///
-    /// // paths of subtree rooted at n3; as nodes rather than data.
-    ///
-    /// let mut dfs = dfs.over_nodes(); // transform from OverData to OverNode
-    ///
-    /// let n3 = tree.node(&id3);
-    ///
-    /// let paths: Vec<_> = n3
-    ///     .paths_with(&mut dfs)
-    ///     .map(|path_nodes| {
-    ///         path_nodes
-    ///             .map(|node| (*node.data(), node.depth()))
-    ///             .collect::<Vec<_>>()
-    ///     })
-    ///     .collect();
-    ///
-    /// assert_eq!(
-    ///     paths,
-    ///     [
-    ///         [(9, 3), (6, 2), (3, 1)],
-    ///         [(10, 3), (7, 2), (3, 1)],
-    ///         [(11, 3), (7, 2), (3, 1)]
-    ///     ]
-    /// );
-    /// ```
-    fn paths_with<T, O>(
-        &'a self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>>>
+    /// [`indices_with`]: crate::NodeRef::indices_with
+    fn indices_with<'b, T, O>(
+        &self,
+        traverser: &'b mut T,
+    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>>
     where
-        O: Over<Enumeration = Val>,
+        O: Over,
         T: Traverser<O>,
+        V: 'static,
+        Self: Sized,
     {
         let node_ptr = self.node_ptr();
-        T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
-            .filter(|x| {
-                let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
-                unsafe { &*ptr.ptr() }.next().is_empty()
+        let state = self.col().memory_state();
+        T::iter_ptr_with_storage(node_ptr.clone(), traverser.storage_mut()).map(move |x| {
+            <O::Enumeration as Enumeration>::map_node_data(x, |ptr: NodePtr<V>| {
+                NodeIdx(orx_selfref_col::NodeIdx::new(state, &ptr))
             })
-            .map(|x| {
-                let ptr: &NodePtr<V> = O::Enumeration::node_data(&x);
-                let iter = AncestorsIterPtr::new(node_ptr.clone(), ptr.clone());
-                iter.map(|ptr: NodePtr<V>| {
-                    O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
-                        self.col(),
-                        ptr,
-                    )
-                })
-            })
+        })
     }
 }

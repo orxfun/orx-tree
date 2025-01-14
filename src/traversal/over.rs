@@ -180,7 +180,7 @@ impl Over for OverDepthNode {
 pub(crate) struct OverDepthPtr;
 
 impl Over for OverDepthPtr {
-    type Enumeration = Val;
+    type Enumeration = DepthVal;
 
     type NodeItem<'a, V, M, P>
         = NodePtr<V>
