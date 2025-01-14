@@ -21,41 +21,14 @@ where
     V::Item: Clone,
 {
     fn clone(&self) -> Self {
-        #[inline(always)]
-        fn data_of<V>(node_ptr: NodePtr<V>) -> V::Item
-        where
-            V: TreeVariant,
-            V::Item: Clone,
-        {
-            (unsafe { &*node_ptr.ptr() })
-                .data()
-                .expect("node is active")
-                .clone()
-        }
-
         match self.get_root() {
             None => Self::empty(),
             Some(root) => {
-                let mut dfs = Dfs::<OverDepthPtr>::new();
-                let mut iter = root.walk_with(&mut dfs);
-                let (mut current_depth, src_ptr) = iter.next().expect("tree is not empty");
+                let mut traverser = Dfs::<OverDepthPtr>::new();
+                let mut tree = Self::new(root.data().clone());
 
-                let mut tree = Self::new(data_of(src_ptr));
-                let mut dst = tree.root_mut();
-
-                for (depth, ptr) in iter {
-                    match depth > current_depth {
-                        true => debug_assert_eq!(depth, current_depth + 1, "dfs error in clone"),
-                        false => {
-                            let num_parent_moves = current_depth - depth + 1;
-                            for _ in 0..num_parent_moves {
-                                dst = dst.into_parent_mut().expect("in bounds");
-                            }
-                        }
-                    }
-                    let [idx] = dst.grow([data_of(ptr)]);
-                    dst = tree.node_mut(&idx);
-                    current_depth = depth;
+                for child in root.children() {
+                    tree.root_mut().push_tree_with(&child, &mut traverser);
                 }
 
                 tree

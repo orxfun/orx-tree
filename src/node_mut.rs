@@ -578,6 +578,20 @@ where
         P2: PinnedStorage,
         V::Item: Clone,
     {
+        let mut traverser = Dfs::<OverDepthPtr>::new();
+        self.push_tree_with(subtree, &mut traverser);
+    }
+
+    pub fn push_tree_with<V2, M2, P2>(
+        &mut self,
+        subtree: &impl NodeRef<'a, V2, M2, P2>,
+        traverser: &mut Dfs<OverDepthPtr>,
+    ) where
+        V2: TreeVariant<Item = V::Item> + 'a,
+        M2: MemoryPolicy,
+        P2: PinnedStorage,
+        V::Item: Clone,
+    {
         #[inline(always)]
         fn data_of<V>(node_ptr: NodePtr<V>) -> V::Item
         where
@@ -590,7 +604,9 @@ where
                 .clone()
         }
 
-        let mut iter = Dfs::<OverDepthPtr>::iter_ptr_with_owned_storage(subtree.node_ptr().clone());
+        let storage = traverser.storage_mut();
+        let mut iter =
+            Dfs::<OverDepthPtr>::iter_ptr_with_storage(subtree.node_ptr().clone(), storage);
         let (mut current_depth, src_ptr) = iter.next().expect("tree is not empty");
         debug_assert_eq!(current_depth, 0);
 
@@ -613,7 +629,6 @@ where
             dst = dst.into_child_mut(position).expect("child exists");
             current_depth = depth;
         }
-        //
     }
 
     // growth - horizontally
