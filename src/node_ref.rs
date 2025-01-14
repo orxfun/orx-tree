@@ -478,6 +478,8 @@ where
     /// * [`Bfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
+    /// # See also
+    ///
     /// See also [`walk_mut`] and [`into_walk`] for iterators over mutable references and owned (removed) values,
     /// respectively.
     ///
@@ -1104,11 +1106,69 @@ where
             })
     }
 
-    fn indices<'b, T>(&'b self) -> impl Iterator<Item = NodeIdx<V>>
+    /// Returns an iterator of node indices.
+    ///
+    /// The order of the indices is determined by the generic [`Traverser`] parameter `T`.
+    ///
+    /// # See also
+    ///
+    /// Note that tree traversing methods typically allocate a temporary data structure that is dropped once the
+    /// iterator is dropped.
+    /// In use cases where we repeatedly iterate using any of the **walk** methods over different nodes or different
+    /// trees, we can avoid the allocation by creating the traverser only once and using [`indices_with`] methods instead.
+    /// This method additionally allow for yielding node depths and sibling indices in addition to node indices.
+    ///
+    /// [`indices_with`]: crate::NodeRef::indices_with
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 3   4 5   6
+    /// // |     |  ╱ ╲
+    /// // 7     8 9  10
+    ///
+    /// let mut a = DynTree::<i32>::new(0);
+    /// let [a1, a2] = a.root_mut().grow([1, 2]);
+    /// let [a3, _] = a.node_mut(&a1).grow([3, 4]);
+    /// a.node_mut(&a3).push(7);
+    /// let [a5, a6] = a.node_mut(&a2).grow([5, 6]);
+    /// a.node_mut(&a5).push(8);
+    /// a.node_mut(&a6).extend([9, 10]);
+    ///
+    /// // collect indices in breadth-first order
+    ///
+    /// let a0 = a.root();
+    /// let bfs_indices: Vec<_> = a0.indices::<Bfs>().collect();
+    ///
+    /// assert_eq!(a.node(&bfs_indices[0]).data(), &0);
+    /// assert_eq!(a.node(&bfs_indices[1]).data(), &1);
+    /// assert_eq!(a.node(&bfs_indices[2]).data(), &2);
+    /// assert_eq!(a.node(&bfs_indices[3]).data(), &3);
+    ///
+    /// // collect indices in depth-first order
+    /// // we may also re-use a traverser
+    ///
+    /// let mut t = Traversal.dfs();
+    ///
+    /// let a0 = a.root();
+    /// let dfs_indices: Vec<_> = a0.indices_with(&mut t).collect();
+    ///
+    /// assert_eq!(a.node(&dfs_indices[0]).data(), &0);
+    /// assert_eq!(a.node(&dfs_indices[1]).data(), &1);
+    /// assert_eq!(a.node(&dfs_indices[2]).data(), &3);
+    /// assert_eq!(a.node(&dfs_indices[3]).data(), &7);
+    /// ```
+    fn indices<T>(&self) -> impl Iterator<Item = NodeIdx<V>>
     where
         T: Traverser<OverData>,
-        V: 'b,
-        'a: 'b,
+        V: 'static,
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();
@@ -1116,6 +1176,26 @@ where
             .map(move |x: NodePtr<V>| NodeIdx(orx_selfref_col::NodeIdx::new(state, &x)))
     }
 
+    /// Returns an iterator of node indices.
+    ///
+    /// The order of the indices is determined by the generic [`Traverser`] parameter `T` of the given `traverser`.
+    ///
+    /// Depending on the traverser type, the iterator might yield:
+    ///
+    /// * NodeIdx
+    /// * (depth, NodeIdx)
+    /// * (sibling_idx, NodeIdx)
+    /// * (depth, sibling_idx, NodeIdx)
+    ///
+    /// # See also
+    ///
+    /// Note that tree traversing methods typically allocate a temporary data structure that is dropped once the
+    /// iterator is dropped.
+    /// In use cases where we repeatedly iterate using any of the **walk** methods over different nodes or different
+    /// trees, we can avoid the allocation by creating the traverser only once and using [`indices_with`] methods instead.
+    /// This method additionally allow for yielding node depths and sibling indices in addition to node indices.
+    ///
+    /// [`indices_with`]: crate::NodeRef::indices_with
     fn indices_with<'b, T, O>(
         &'b self,
         traverser: &'b mut T,

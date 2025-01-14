@@ -503,6 +503,14 @@ where
     ///
     /// The source `subtree` remains unchanged, the values are cloned into this tree.
     ///
+    /// # See also
+    ///
+    /// See also [`push_tree_with`] which is identical to this method except that it re-uses
+    /// a depth-first-search traverser, which otherwise is created temporarily within this
+    /// method.
+    ///
+    /// [`push_tree_with`]: crate::NodeMut::push_tree_with
+    ///
     /// # Examples
     ///
     /// ```
@@ -582,6 +590,17 @@ where
         self.push_tree_with(subtree, &mut traverser);
     }
 
+    /// Pushes the subtree rooted at the given `subtree` node as a child of this node.
+    ///
+    /// The source `subtree` remains unchanged, the values are cloned into this tree.
+    ///
+    /// # See also
+    ///
+    /// This method does not allocate and uses the provided depth-first-search `traverser`.
+    /// See also [`push_tree`] which is identical to this method it creates the traverser
+    /// temporarily within the method.
+    ///
+    /// [`push_tree`]: crate::NodeMut::push_tree
     pub fn push_tree_with<V2, M2, P2>(
         &mut self,
         subtree: &impl NodeRef<'a, V2, M2, P2>,
@@ -2122,6 +2141,52 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
+}
+
+#[test]
+fn def() {
+    use crate::*;
+    use alloc::vec::Vec;
+
+    //      0
+    //     ╱ ╲
+    //    ╱   ╲
+    //   1     2
+    //  ╱ ╲   ╱ ╲
+    // 3   4 5   6
+    // |     |  ╱ ╲
+    // 7     8 9  10
+
+    let mut a = DynTree::<i32>::new(0);
+    let [a1, a2] = a.root_mut().grow([1, 2]);
+    let [a3, _] = a.node_mut(&a1).grow([3, 4]);
+    a.node_mut(&a3).push(7);
+    let [a5, a6] = a.node_mut(&a2).grow([5, 6]);
+    a.node_mut(&a5).push(8);
+    a.node_mut(&a6).extend([9, 10]);
+
+    // collect indices in breadth-first order
+
+    let a0 = a.root();
+    let bfs_indices: Vec<_> = a0.indices::<Bfs>().collect();
+
+    assert_eq!(a.node(&bfs_indices[0]).data(), &0);
+    assert_eq!(a.node(&bfs_indices[1]).data(), &1);
+    assert_eq!(a.node(&bfs_indices[2]).data(), &2);
+    assert_eq!(a.node(&bfs_indices[3]).data(), &3);
+
+    // collect indices in depth-first order
+    // we may also re-use a traverser
+
+    let mut t = Traversal.dfs();
+
+    let a0 = a.root();
+    let dfs_indices: Vec<_> = a0.indices_with(&mut t).collect();
+
+    assert_eq!(a.node(&dfs_indices[0]).data(), &0);
+    assert_eq!(a.node(&dfs_indices[1]).data(), &1);
+    assert_eq!(a.node(&dfs_indices[2]).data(), &3);
+    assert_eq!(a.node(&dfs_indices[3]).data(), &7);
 }
 
 #[test]
