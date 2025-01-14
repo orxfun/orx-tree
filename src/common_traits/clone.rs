@@ -36,7 +36,7 @@ where
         match self.get_root() {
             None => Self::empty(),
             Some(root) => {
-                let mut dfs = Dfs::<OverDepthPtr>::new(); // Traversal.dfs().with_depth();
+                let mut dfs = Dfs::<OverDepthPtr>::new();
                 let mut iter = root.walk_with(&mut dfs);
                 let (mut current_depth, src_ptr) = iter.next().expect("tree is not empty");
 
@@ -65,7 +65,7 @@ where
 }
 
 #[test]
-fn abc() {
+fn xyz() {
     use crate::*;
     use alloc::vec::Vec;
 
