@@ -4,8 +4,8 @@ use crate::{
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     traversal::{
-        enumeration::Enumeration, enumerations::Val, over::OverItem, post_order::iter_ptr::Item,
-        traverser_core::TraverserCore, Over, OverData,
+        enumeration::Enumeration, enumerations::Val, over::OverItem, traverser_core::TraverserCore,
+        Over, OverData,
     },
     tree_variant::RefsChildren,
     Node, NodeIdx, Traverser, TreeVariant,
@@ -1197,15 +1197,14 @@ where
     ///
     /// [`indices_with`]: crate::NodeRef::indices_with
     fn indices_with<'b, T, O>(
-        &'b self,
+        &self,
         traverser: &'b mut T,
     ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>>
     where
         O: Over,
         T: Traverser<O>,
-        V: 'b,
+        V: 'static,
         Self: Sized,
-        'a: 'b,
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();

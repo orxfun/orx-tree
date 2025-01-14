@@ -5,12 +5,12 @@ use crate::{
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
     traversal::{
-        enumerations::Val,
+        enumerations::{DepthVal, Val},
         over::OverDepthPtr,
         over_mut::{OverItemInto, OverItemMut},
         post_order::iter_ptr::PostOrderIterPtr,
         traverser_core::TraverserCore,
-        OverData, OverMut,
+        Over, OverData, OverMut,
     },
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
@@ -601,14 +601,87 @@ where
     /// temporarily within the method.
     ///
     /// [`push_tree`]: crate::NodeMut::push_tree
-    pub fn push_tree_with<V2, M2, P2>(
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // TREE a
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 3   4 5   6
+    /// // |     |  ╱ ╲
+    /// // 7     8 9  10
+    ///
+    /// let mut a = DynTree::<i32>::new(0);
+    /// let [a1, a2] = a.root_mut().grow([1, 2]);
+    /// let [a3, a4] = a.node_mut(&a1).grow([3, 4]);
+    /// a.node_mut(&a3).push(7);
+    /// let [a5, a6] = a.node_mut(&a2).grow([5, 6]);
+    /// a.node_mut(&a5).push(8);
+    /// a.node_mut(&a6).extend([9, 10]);
+    ///
+    /// let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    ///
+    /// // TREE b
+    /// //     10
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //  11     12
+    /// //  ╱     ╱ | ╲
+    /// // 13   14 15 16
+    ///
+    /// let mut b = DaryTree::<4, i32>::new(10);
+    /// let [b11, b12] = b.root_mut().grow([11, 12]);
+    /// b.node_mut(&b11).push(13);
+    /// b.node_mut(&b12).extend([14, 15, 16]);
+    ///
+    /// let bfs: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [10, 11, 12, 13, 14, 15, 16]);
+    ///
+    /// // Subtrees from tree b => Tree a
+    /// // push subtree rooted at 12 as a child of node 4
+    /// // push subtree rooted at 11 as a child of node 6
+    /// //         0
+    /// //        ╱ ╲
+    /// //       ╱   ╲
+    /// //      ╱     ╲
+    /// //     ╱       ╲
+    /// //    1         2
+    /// //   ╱ ╲       ╱ ╲
+    /// //  ╱   ╲     ╱   ╲
+    /// // 3     4   5     6
+    /// // |     |   |   ╱ | ╲
+    /// // 7    12   8  9 10  11
+    /// //    ╱ | ╲            |
+    /// //   14 15 16         13
+    ///
+    /// let mut dfs = Traversal.dfs().with_depth(); // reusable traverser
+    ///
+    /// a.node_mut(&a4).push_tree_with(&b.node(&b12), &mut dfs);
+    /// a.node_mut(&a6).push_tree_with(&b.node(&b11), &mut dfs);
+    ///
+    /// let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(
+    ///     bfs,
+    ///     [0, 1, 2, 3, 4, 5, 6, 7, 12, 8, 9, 10, 11, 14, 15, 16, 13]
+    /// );
+    /// ```
+    #[allow(clippy::missing_panics_doc)]
+    pub fn push_tree_with<V2, M2, P2, O>(
         &mut self,
         subtree: &impl NodeRef<'a, V2, M2, P2>,
-        traverser: &mut Dfs<OverDepthPtr>,
+        traverser: &mut Dfs<O>,
     ) where
         V2: TreeVariant<Item = V::Item> + 'a,
         M2: MemoryPolicy,
         P2: PinnedStorage,
+        O: Over<Enumeration = DepthVal>,
         V::Item: Clone,
     {
         #[inline(always)]
@@ -2141,116 +2214,4 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
-}
-
-#[test]
-fn def() {
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //      0
-    //     ╱ ╲
-    //    ╱   ╲
-    //   1     2
-    //  ╱ ╲   ╱ ╲
-    // 3   4 5   6
-    // |     |  ╱ ╲
-    // 7     8 9  10
-
-    let mut a = DynTree::<i32>::new(0);
-    let [a1, a2] = a.root_mut().grow([1, 2]);
-    let [a3, _] = a.node_mut(&a1).grow([3, 4]);
-    a.node_mut(&a3).push(7);
-    let [a5, a6] = a.node_mut(&a2).grow([5, 6]);
-    a.node_mut(&a5).push(8);
-    a.node_mut(&a6).extend([9, 10]);
-
-    // collect indices in breadth-first order
-
-    let a0 = a.root();
-    let bfs_indices: Vec<_> = a0.indices::<Bfs>().collect();
-
-    assert_eq!(a.node(&bfs_indices[0]).data(), &0);
-    assert_eq!(a.node(&bfs_indices[1]).data(), &1);
-    assert_eq!(a.node(&bfs_indices[2]).data(), &2);
-    assert_eq!(a.node(&bfs_indices[3]).data(), &3);
-
-    // collect indices in depth-first order
-    // we may also re-use a traverser
-
-    let mut t = Traversal.dfs();
-
-    let a0 = a.root();
-    let dfs_indices: Vec<_> = a0.indices_with(&mut t).collect();
-
-    assert_eq!(a.node(&dfs_indices[0]).data(), &0);
-    assert_eq!(a.node(&dfs_indices[1]).data(), &1);
-    assert_eq!(a.node(&dfs_indices[2]).data(), &3);
-    assert_eq!(a.node(&dfs_indices[3]).data(), &7);
-}
-
-#[test]
-fn abc() {
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //      0
-    //     ╱ ╲
-    //    ╱   ╲
-    //   1     2
-    //  ╱ ╲   ╱ ╲
-    // 3   4 5   6
-    // |     |  ╱ ╲
-    // 7     8 9  10
-
-    let mut a = DynTree::<i32>::new(0);
-    let [a1, a2] = a.root_mut().grow([1, 2]);
-    let [a3, a4] = a.node_mut(&a1).grow([3, 4]);
-    a.node_mut(&a3).push(7);
-    let [a5, a6] = a.node_mut(&a2).grow([5, 6]);
-    a.node_mut(&a5).push(8);
-    a.node_mut(&a6).extend([9, 10]);
-
-    let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-
-    //     10
-    //     ╱ ╲
-    //    ╱   ╲
-    //  11     12
-    //  ╱     ╱ | ╲
-    // 13   14 15 16
-
-    let mut b = DaryTree::<4, i32>::new(10);
-    let [b11, b12] = b.root_mut().grow([11, 12]);
-    b.node_mut(&b11).push(13);
-    b.node_mut(&b12).extend([14, 15, 16]);
-
-    let bfs: Vec<_> = b.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [10, 11, 12, 13, 14, 15, 16]);
-
-    // push subtree rooted at 12 as a child of node 4
-    // push subtree rooted at 11 as a child of node 6
-    //         0
-    //        ╱ ╲
-    //       ╱   ╲
-    //      ╱     ╲
-    //     ╱       ╲
-    //    1         2
-    //   ╱ ╲       ╱ ╲
-    //  ╱   ╲     ╱   ╲
-    // 3     4   5     6
-    // |     |   |   ╱ | ╲
-    // 7    12   8  9 10  11
-    //    ╱ | ╲            |
-    //   14 15 16         13
-
-    a.node_mut(&a4).push_tree(&b.node(&b12));
-    a.node_mut(&a6).push_tree(&b.node(&b11));
-
-    let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    assert_eq!(
-        bfs,
-        [0, 1, 2, 3, 4, 5, 6, 7, 12, 8, 9, 10, 11, 14, 15, 16, 13]
-    );
 }
