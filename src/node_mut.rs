@@ -8,7 +8,7 @@ use crate::{
         enumerations::{DepthVal, Val},
         over::OverDepthPtr,
         over_mut::{OverItemInto, OverItemMut},
-        post_order::iter_ptr::PostOrderIterPtr,
+        post_order::iter_ptr::{Item, PostOrderIterPtr},
         traverser_core::TraverserCore,
         Over, OverData, OverMut,
     },
@@ -18,6 +18,7 @@ use crate::{
 };
 use core::marker::PhantomData;
 use orx_selfref_col::{NodePtr, Refs};
+use std::dbg;
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation: 'static {}
@@ -644,8 +645,87 @@ where
         }
     }
 
-    pub fn connect_as_child(&mut self, subtree: impl SubTree<V::Item>) {
-        todo!()
+    /// # Examples
+    ///
+    /// ## Append Another Tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //  tree    b      c
+    /// // ----------------------
+    /// //     0    4      2
+    /// //    ╱     |     ╱ ╲
+    /// //   1      7    5   6
+    /// //  ╱            |  ╱ ╲
+    /// // 3             8 9   10
+    /// // ----------------------
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 3   4 5   6
+    /// //     | |  ╱ ╲
+    /// //     7 8 9   10
+    ///
+    /// let mut tree = DynTree::<_>::new(0);
+    /// let id0 = tree.root().idx();
+    /// let id1 = tree.node_mut(&id0).push_child(1);
+    /// tree.node_mut(&id1).push_child(3);
+    ///
+    /// let mut b = BinaryTree::<_>::new(4);
+    /// b.root_mut().push_child(7);
+    ///
+    /// let mut c = DaryTree::<4, _>::new(2);
+    /// let [id5, id6] = c.root_mut().push_children([5, 6]);
+    /// c.node_mut(&id5).push_child(8);
+    /// c.node_mut(&id6).push_children([9, 10]);
+    ///
+    /// // merge b & c into tree
+    ///
+    /// let id4 = tree.node_mut(&id1).append_as_child(b);
+    /// let id2 = tree.node_mut(&id0).append_as_child(c);
+    ///
+    /// assert_eq!(tree.node(&id2).data(), &2);
+    /// assert_eq!(tree.node(&id4).data(), &4);
+    ///
+    /// // validate the tree
+    ///
+    /// let root = tree.root();
+    ///
+    /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    ///
+    /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [0, 1, 3, 4, 7, 2, 5, 8, 6, 9, 10]);
+    /// ```
+    pub fn append_as_child(&mut self, mut subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
+        let mut iter = subtree.dfs_iter().into_iter();
+        let (mut current_depth, value) = iter.next().expect("tree is not empty");
+        debug_assert_eq!(current_depth, 0);
+
+        let position = self.num_children();
+        let idx = self.push_child(value);
+        let mut dst = self.child_mut(position).expect("child exists");
+
+        for (depth, value) in iter {
+            match depth > current_depth {
+                true => debug_assert_eq!(depth, current_depth + 1, "dfs error in clone"),
+                false => {
+                    let num_parent_moves = current_depth - depth + 1;
+                    for _ in 0..num_parent_moves {
+                        dst = dst.into_parent_mut().expect("in bounds");
+                    }
+                }
+            }
+            let position = dst.num_children();
+            dst.push_child(value);
+            dst = dst.into_child_mut(position).expect("child exists");
+            current_depth = depth;
+        }
+
+        idx
     }
 
     // growth - horizontally
@@ -1916,51 +1996,50 @@ where
 #[test]
 fn abc() {
     use crate::*;
-    use alloc::vec;
     use alloc::vec::Vec;
 
-    //      1
+    //  tree    b      c
+    // ----------------------
+    //     0    4      2
+    //    ╱     |     ╱ ╲
+    //   1      7    5   6
+    //  ╱            |  ╱ ╲
+    // 3             8 9   10
+    // ----------------------
+    //      0
     //     ╱ ╲
     //    ╱   ╲
-    //   2     3
-    //  ╱ ╲     ╲
-    // 4   5     6
+    //   1     2
+    //  ╱ ╲   ╱ ╲
+    // 3   4 5   6
+    //     | |  ╱ ╲
+    //     7 8 9   10
 
-    let mut tree = DynTree::<i32>::new(1);
+    let mut tree = DynTree::<_>::new(0);
+    let id0 = tree.root().idx();
+    let id1 = tree.node_mut(&id0).push_child(1);
+    tree.node_mut(&id1).push_child(3);
 
-    let mut root = tree.root_mut();
-    let [id2, id3] = root.push_children([2, 3]);
+    let mut b = BinaryTree::<_>::new(4);
+    b.root_mut().push_child(7);
 
-    let mut n2 = tree.node_mut(&id2);
-    let [id4, _] = n2.push_children([4, 5]);
+    let mut c = DaryTree::<4, _>::new(2);
+    let [id5, id6] = c.root_mut().push_children([5, 6]);
+    c.node_mut(&id5).push_child(8);
+    c.node_mut(&id6).push_children([9, 10]);
 
-    let mut n3 = tree.node_mut(&id3);
-    let [id6] = n3.push_children([6]);
+    // merge b & c into tree
 
-    // grow horizontally to obtain
-    //         1
-    //        ╱ ╲
-    //       ╱   ╲
-    //      2     3
-    //     ╱|╲    └────────
-    //    ╱ | ╲          ╱ | ╲
-    //   ╱ ╱ ╲ ╲        ╱  |  ╲
-    //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
-    // 7 4    8  5    9 10 6 11 12
+    tree.node_mut(&id1).append_as_child(b);
+    tree.node_mut(&id0).append_as_child(c);
 
-    let mut n4 = tree.node_mut(&id4);
-    n4.push_sibling(Side::Left, 7);
-    n4.push_sibling(Side::Right, 8);
+    // validate the tree
 
-    let mut n6 = tree.node_mut(&id6);
-    let [id9, id10] = n6.push_siblings(Side::Left, [9, 10]);
-    let [id11, id12] = n6.push_siblings(Side::Right, [11, 12]);
+    let root = tree.root();
 
-    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
+    let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
-    assert_eq!(tree.node(&id9).data(), &9);
-    assert_eq!(tree.node(&id10).data(), &10);
-    assert_eq!(tree.node(&id11).data(), &11);
-    assert_eq!(tree.node(&id12).data(), &12);
+    let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
+    assert_eq!(dfs, [0, 1, 3, 4, 7, 2, 5, 8, 6, 9, 10]);
 }
