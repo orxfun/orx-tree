@@ -24,15 +24,15 @@ fn tree() -> DynTree<i32> {
     let mut tree = DynTree::<i32>::new(1);
 
     let mut root = tree.root_mut();
-    let [id2, id3] = root.grow([2, 3]);
+    let [id2, id3] = root.push_children([2, 3]);
 
     let mut n2 = tree.node_mut(&id2);
-    let [id4, _] = n2.grow([4, 5]);
+    let [id4, _] = n2.push_children([4, 5]);
 
     tree.node_mut(&id4).push_child(8);
 
     let mut n3 = tree.node_mut(&id3);
-    let [id6, id7] = n3.grow([6, 7]);
+    let [id6, id7] = n3.push_children([6, 7]);
 
     tree.node_mut(&id6).push_child(9);
     tree.node_mut(&id7).push_children([10, 11]);
