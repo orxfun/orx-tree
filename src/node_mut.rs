@@ -788,8 +788,8 @@ where
     /// n4.push_sibling(8, SiblingSide::Right);
     ///
     /// let mut n6 = tree.node_mut(&id6);
-    /// n6.extend_siblings([9, 10], SiblingSide::Left);
-    /// n6.extend_siblings([11, 12], SiblingSide::Right);
+    /// n6.push_siblings([9, 10], SiblingSide::Left);
+    /// n6.push_siblings([11, 12], SiblingSide::Right);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
@@ -870,13 +870,13 @@ where
     /// n4.push_sibling(8, SiblingSide::Right);
     ///
     /// let mut n6 = tree.node_mut(&id6);
-    /// n6.extend_siblings([9, 10], SiblingSide::Left);
-    /// n6.extend_siblings([11, 12], SiblingSide::Right);
+    /// n6.push_siblings([9, 10], SiblingSide::Left);
+    /// n6.push_siblings([11, 12], SiblingSide::Right);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     /// ```
-    pub fn extend_siblings<I>(&mut self, siblings: I, side: SiblingSide)
+    pub fn push_siblings<I>(&mut self, siblings: I, side: SiblingSide)
     where
         I: IntoIterator<Item = V::Item>,
     {
@@ -918,10 +918,10 @@ where
     /// and obtain corresponding node indices.
     ///
     /// If the corresponding node indices of the siblings are not required;
-    /// you may use [`push_sibling`] or [`extend_siblings`].
+    /// you may use [`push_sibling`] or [`push_siblings`].
     ///
     /// [`push_sibling`]: crate::NodeMut::push_sibling
-    /// [`extend_siblings`]: crate::NodeMut::extend_siblings
+    /// [`push_siblings`]: crate::NodeMut::push_siblings
     /// [`grow_siblings_iter`]: crate::NodeMut::grow_siblings_iter
     /// [`grow_siblings_vec`]: crate::NodeMut::grow_siblings_vec
     ///
@@ -1027,10 +1027,10 @@ where
     /// and obtain corresponding node indices.
     ///
     /// If the corresponding node indices of the siblings are not required;
-    /// you may use [`push_sibling`] or [`extend_siblings`].
+    /// you may use [`push_sibling`] or [`push_siblings`].
     ///
     /// [`push_sibling`]: crate::NodeMut::push_sibling
-    /// [`extend_siblings`]: crate::NodeMut::extend_siblings
+    /// [`push_siblings`]: crate::NodeMut::push_siblings
     /// [`grow_siblings`]: crate::NodeMut::grow_siblings
     ///
     /// # Examples
@@ -1147,10 +1147,10 @@ where
     /// and obtain corresponding node indices.
     ///
     /// If the corresponding node indices of the siblings are not required;
-    /// you may use [`push_sibling`] or [`extend_siblings`].
+    /// you may use [`push_sibling`] or [`push_siblings`].
     ///
     /// [`push_sibling`]: crate::NodeMut::push_sibling
-    /// [`extend_siblings`]: crate::NodeMut::extend_siblings
+    /// [`push_siblings`]: crate::NodeMut::push_siblings
     /// [`grow_siblings`]: crate::NodeMut::grow_siblings
     ///
     /// # Examples
