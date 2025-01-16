@@ -70,7 +70,7 @@ impl<V: Variant> NodeMut<V> {
 
     fn push_children(&mut self, values: impl IntoIterator<Item = V::Item>) {}
 
-    fn push_siblings(&mut self, values: impl IntoIterator<Item = V::Item>) {}
+    fn extend_siblings(&mut self, values: impl IntoIterator<Item = V::Item>) {}
 
     fn push_parent(&mut self, value: V::Item) {}
 
