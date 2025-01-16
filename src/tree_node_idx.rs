@@ -38,7 +38,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// ## 1. During Growth
 ///
-/// We can add nodes to the tree by [`push`] and [`extend`] methods.
+/// We can add nodes to the tree by [`push_child`] and [`extend`] methods.
 /// These methods only create the nodes.
 /// If we want to receive the indices of the created nodes at the same time,
 /// we can use the [`grow`], [`grow_iter`] and [`grow_vec`] methods instead.
@@ -57,7 +57,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// root.push(2); // no idx is returned
+/// root.push_child(2); // no idx is returned
 ///
 /// let [id3] = root.grow([3]); // idx is received
 ///
@@ -110,7 +110,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// assert_eq!(n5.data(), &5);
 /// ```
 ///
-/// [`push`]: crate::NodeMut::push
+/// [`push_child`]: crate::NodeMut::push_child
 /// [`extend`]: crate::NodeMut::extend
 /// [`grow`]: crate::NodeMut::grow
 /// [`grow_iter`]: crate::NodeMut::grow_iter

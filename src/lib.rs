@@ -37,6 +37,7 @@ mod helpers;
 mod node;
 mod node_mut;
 mod node_ref;
+mod subtree;
 mod tree;
 mod tree_node_idx;
 mod tree_variant;
@@ -55,3 +56,5 @@ pub use tree_variant::TreeVariant;
 // ERRORS
 pub use errors::NodeSwapError;
 pub use orx_selfref_col::NodeIdxError;
+
+mod ideation;
