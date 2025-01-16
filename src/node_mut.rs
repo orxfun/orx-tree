@@ -684,8 +684,11 @@ where
     ///
     /// // merge b & c into tree
     ///
-    /// tree.node_mut(&id1).append_as_child(b);
-    /// tree.node_mut(&id0).append_as_child(c);
+    /// let id4 = tree.node_mut(&id1).append_as_child(b);
+    /// let id2 = tree.node_mut(&id0).append_as_child(c);
+    ///
+    /// assert_eq!(tree.node(&id2).data(), &2);
+    /// assert_eq!(tree.node(&id4).data(), &4);
     ///
     /// // validate the tree
     ///
