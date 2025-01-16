@@ -120,7 +120,7 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
-        O: OverMut,
+        O: Over,
     {
         let (col, root) = node_mut.into_inner();
         let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root.clone()));

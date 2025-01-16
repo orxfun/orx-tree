@@ -144,7 +144,7 @@ where
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
-        O: OverMut;
+        O: Over;
 
     /// Returns an iterator which:
     ///
@@ -241,7 +241,7 @@ where
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
-        O: OverMut,
+        O: Over,
     {
         Self::into_iter_with_storage(node_mut, Self::Storage::default())
     }
