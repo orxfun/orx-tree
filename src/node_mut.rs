@@ -18,7 +18,6 @@ use crate::{
 };
 use core::marker::PhantomData;
 use orx_selfref_col::{NodePtr, Refs};
-use std::println;
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation: 'static {}
@@ -41,7 +40,7 @@ impl NodeMutOrientation for NodeMutUpAndDown {}
 
 /// Side of a sibling node relative to a particular node within the children collection.
 #[derive(Clone, Copy, Debug)]
-pub enum SiblingSide {
+pub enum Side {
     /// To the left of this node.
     Left,
     /// To the right of this node.
@@ -653,8 +652,8 @@ where
 
     /// Pushes a sibling node with the given `value`:
     ///
-    /// * as the immediate left-sibling of this node when `side` is [`SiblingSide::Left`],
-    /// * as the immediate right-sibling of this node when `side` is [`SiblingSide::Right`],
+    /// * as the immediate left-sibling of this node when `side` is [`Side::Left`],
+    /// * as the immediate right-sibling of this node when `side` is [`Side::Right`],
     ///
     /// returns the [`NodeIdx`] of the created node.
     ///
@@ -704,14 +703,14 @@ where
     /// // 7 4    8  5    9 10 6 11 12
     ///
     /// let mut n4 = tree.node_mut(&id4);
-    /// n4.push_sibling(SiblingSide::Left, 7);
-    /// n4.push_sibling(SiblingSide::Right, 8);
+    /// n4.push_sibling(Side::Left, 7);
+    /// n4.push_sibling(Side::Right, 8);
     ///
     /// let mut n6 = tree.node_mut(&id6);
-    /// n6.push_sibling(SiblingSide::Left, 9);
-    /// n6.push_sibling(SiblingSide::Left, 10);
-    /// let id12 = n6.push_sibling(SiblingSide::Right, 12);
-    /// let id11 = n6.push_sibling(SiblingSide::Right, 11);
+    /// n6.push_sibling(Side::Left, 9);
+    /// n6.push_sibling(Side::Left, 10);
+    /// let id12 = n6.push_sibling(Side::Right, 12);
+    /// let id11 = n6.push_sibling(Side::Right, 11);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
@@ -719,14 +718,14 @@ where
     /// assert_eq!(tree.node(&id12).data(), &12);
     /// assert_eq!(tree.node(&id11).data(), &11);
     /// ```
-    pub fn push_sibling(&mut self, side: SiblingSide, value: V::Item) -> NodeIdx<V> {
+    pub fn push_sibling(&mut self, side: Side, value: V::Item) -> NodeIdx<V> {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
 
         let position = match side {
-            SiblingSide::Left => self.sibling_idx(),
-            SiblingSide::Right => self.sibling_idx() + 1,
+            Side::Left => self.sibling_idx(),
+            Side::Right => self.sibling_idx() + 1,
         };
 
         let ptr = self.insert_sibling_get_ptr(value, &parent_ptr, position);
@@ -735,8 +734,8 @@ where
 
     /// Pushes the given constant number of `values` as:
     ///
-    /// * as the immediate left-siblings of this node when `side` is [`SiblingSide::Left`],
-    /// * as the immediate right-siblings of this node when `side` is [`SiblingSide::Right`],
+    /// * as the immediate left-siblings of this node when `side` is [`Side::Left`],
+    /// * as the immediate right-siblings of this node when `side` is [`Side::Right`],
     ///
     /// returns the [`NodeIdx`] array of the created nodes.
     ///
@@ -785,12 +784,12 @@ where
     /// // 7 4    8  5    9 10 6 11 12
     ///
     /// let mut n4 = tree.node_mut(&id4);
-    /// n4.push_sibling(SiblingSide::Left, 7);
-    /// n4.push_sibling(SiblingSide::Right, 8);
+    /// n4.push_sibling(Side::Left, 7);
+    /// n4.push_sibling(Side::Right, 8);
     ///
     /// let mut n6 = tree.node_mut(&id6);
-    /// let [id9, id10] = n6.push_siblings(SiblingSide::Left, [9, 10]);
-    /// let [id11, id12] = n6.push_siblings(SiblingSide::Right, [11, 12]);
+    /// let [id9, id10] = n6.push_siblings(Side::Left, [9, 10]);
+    /// let [id11, id12] = n6.push_siblings(Side::Right, [11, 12]);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
@@ -802,7 +801,7 @@ where
     /// ```
     pub fn push_siblings<const N: usize>(
         &mut self,
-        side: SiblingSide,
+        side: Side,
         values: [V::Item; N],
     ) -> [NodeIdx<V>; N] {
         let parent_ptr = self
@@ -810,8 +809,8 @@ where
             .expect("Cannot push sibling to the root node");
 
         let mut position = match side {
-            SiblingSide::Left => self.sibling_idx(),
-            SiblingSide::Right => self.sibling_idx() + 1,
+            Side::Left => self.sibling_idx(),
+            Side::Right => self.sibling_idx() + 1,
         };
 
         values.map(|sibling| {
@@ -826,8 +825,8 @@ where
 
     /// Pushes the given variable number of `values` as:
     ///
-    /// * as the immediate left-siblings of this node when `side` is [`SiblingSide::Left`],
-    /// * as the immediate right-siblings of this node when `side` is [`SiblingSide::Right`],
+    /// * as the immediate left-siblings of this node when `side` is [`Side::Left`],
+    /// * as the immediate right-siblings of this node when `side` is [`Side::Right`],
     ///
     /// returns the [`NodeIdx`] iterator of the created nodes.
     ///
@@ -879,12 +878,12 @@ where
     /// // 7 4    8  5    9 10 6 11 12
     ///
     /// let mut n4 = tree.node_mut(&id4);
-    /// n4.push_sibling(SiblingSide::Left, 7);
-    /// n4.push_sibling(SiblingSide::Right, 8);
+    /// n4.push_sibling(Side::Left, 7);
+    /// n4.push_sibling(Side::Right, 8);
     ///
     /// let mut n6 = tree.node_mut(&id6);
-    /// n6.extend_siblings(SiblingSide::Left, 9..=10).count();
-    /// let idx: Vec<_> = n6.extend_siblings(SiblingSide::Right, 11..=12).collect();
+    /// n6.extend_siblings(Side::Left, 9..=10).count();
+    /// let idx: Vec<_> = n6.extend_siblings(Side::Right, 11..=12).collect();
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
@@ -894,7 +893,7 @@ where
     /// ```
     pub fn extend_siblings<'b, I>(
         &'b mut self,
-        side: SiblingSide,
+        side: Side,
         values: I,
     ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P, MO>
     where
@@ -906,8 +905,8 @@ where
             .expect("Cannot push sibling to the root node");
 
         let mut position = match side {
-            SiblingSide::Left => self.sibling_idx(),
-            SiblingSide::Right => self.sibling_idx() + 1,
+            Side::Left => self.sibling_idx(),
+            Side::Right => self.sibling_idx() + 1,
         };
 
         values.into_iter().map(move |sibling| {
@@ -1950,12 +1949,12 @@ fn abc() {
     // 7 4    8  5    9 10 6 11 12
 
     let mut n4 = tree.node_mut(&id4);
-    n4.push_sibling(SiblingSide::Left, 7);
-    n4.push_sibling(SiblingSide::Right, 8);
+    n4.push_sibling(Side::Left, 7);
+    n4.push_sibling(Side::Right, 8);
 
     let mut n6 = tree.node_mut(&id6);
-    let [id9, id10] = n6.push_siblings(SiblingSide::Left, [9, 10]);
-    let [id11, id12] = n6.push_siblings(SiblingSide::Right, [11, 12]);
+    let [id9, id10] = n6.push_siblings(Side::Left, [9, 10]);
+    let [id11, id12] = n6.push_siblings(Side::Right, [11, 12]);
 
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
