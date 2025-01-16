@@ -3,6 +3,7 @@ use crate::{
     iter::AncestorsIterPtr,
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
+    subtrees::{ClonedSubTree, CopiedSubTree},
     traversal::{
         enumeration::Enumeration,
         enumerations::{DepthVal, Val},
@@ -1337,5 +1338,23 @@ where
                 NodeIdx(orx_selfref_col::NodeIdx::new(state, &ptr))
             })
         })
+    }
+
+    // subtree
+
+    fn as_cloned_subtree(self) -> ClonedSubTree<'a, V, M, P, Self>
+    where
+        V::Item: Clone,
+        Self: Sized,
+    {
+        ClonedSubTree::new(self)
+    }
+
+    fn as_copied_subtree(self) -> CopiedSubTree<'a, V, M, P, Self>
+    where
+        V::Item: Copy,
+        Self: Sized,
+    {
+        CopiedSubTree::new(self)
     }
 }

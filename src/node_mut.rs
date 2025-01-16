@@ -4,6 +4,7 @@ use crate::{
     memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
+    subtrees::NodeMutAsSubTree,
     traversal::{
         enumerations::{DepthVal, Val},
         over::OverDepthPtr,
@@ -647,7 +648,61 @@ where
 
     /// # Examples
     ///
-    /// ## Append Subtree from Another Tree
+    /// ## Append Subtree cloned-copied from another Tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          5
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      6   7
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        8 9   10
+    ///
+    /// let mut a = DynTree::<_>::new(0);
+    /// let [id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [id3, _] = a.node_mut(&id1).push_children([3, 4]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(5);
+    /// let [id6, id7] = b.root_mut().push_children([6, 7]);
+    /// b.node_mut(&id6).push_child(8);
+    /// b.node_mut(&id7).push_children([9, 10]);
+    ///
+    /// // clone b.subtree(n6) under a.n3
+    /// // clone b.subtree(n7) under a.n0
+    /// //        a
+    /// // -----------------------
+    /// //        0
+    /// //       ╱|╲
+    /// //      ╱ | ╲
+    /// //     ╱  |  ╲
+    /// //    ╱   |   ╲
+    /// //   1    2    7
+    /// //  ╱ ╲       ╱ ╲
+    /// // 3   4     9   10
+    /// // |
+    /// // 6
+    /// // |
+    /// // 8
+    ///
+    /// let n6 = b.node(&id6).as_cloned_subtree();
+    /// a.node_mut(&id3).append_as_child(n6);
+    ///
+    /// let n7 = b.node(&id7).as_copied_subtree();
+    /// a.root_mut().append_as_child(n7);
+    ///
+    /// // validate the trees
+    ///
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 1, 2, 7, 3, 4, 9, 10, 6, 8]);
+    ///
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [5, 6, 7, 8, 9, 10]); // unchanged
+    /// ```
+    ///
+    /// ## Append Subtree taken out of another Tree
     ///
     /// ```
     /// use orx_tree::*;
@@ -682,8 +737,11 @@ where
     /// //      ╱ ╲
     /// //     9   10
     ///
-    /// a.node_mut(&id2).append_as_child(b.node_mut(&id7));
-    /// b.node_mut(&id5).append_as_child(a.node_mut(&id1));
+    /// let n7 = b.node_mut(&id7).into_subtree();
+    /// a.node_mut(&id2).append_as_child(n7);
+    ///
+    /// let n1 = a.node_mut(&id1).into_subtree();
+    /// b.node_mut(&id5).append_as_child(n1);
     ///
     /// // validate the trees
     ///
@@ -744,37 +802,6 @@ where
     /// ```
     pub fn append_as_child(&mut self, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
         subtree.append_to_node_as_child(self)
-    }
-
-    pub(crate) fn append_subtree_as_child(
-        &mut self,
-        subtree: impl IntoIterator<Item = (usize, V::Item)>,
-    ) -> NodeIdx<V> {
-        let mut iter = subtree.into_iter();
-        let (mut current_depth, value) = iter.next().expect("tree is not empty");
-        debug_assert_eq!(current_depth, 0);
-
-        let position = self.num_children();
-        let idx = self.push_child(value);
-        let mut dst = self.child_mut(position).expect("child exists");
-
-        for (depth, value) in iter {
-            match depth > current_depth {
-                true => debug_assert_eq!(depth, current_depth + 1, "dfs error in clone"),
-                false => {
-                    let num_parent_moves = current_depth - depth + 1;
-                    for _ in 0..num_parent_moves {
-                        dst = dst.into_parent_mut().expect("in bounds");
-                    }
-                }
-            }
-            let position = dst.num_children();
-            dst.push_child(value);
-            dst = dst.into_child_mut(position).expect("child exists");
-            current_depth = depth;
-        }
-
-        idx
     }
 
     // growth - horizontally
@@ -1848,6 +1875,12 @@ where
         traverser.into_iter(self)
     }
 
+    // subtree
+
+    pub fn into_subtree(self) -> NodeMutAsSubTree<'a, V, M, P, MO> {
+        NodeMutAsSubTree::new(self)
+    }
+
     // helpers
 
     pub(crate) fn new(col: &'a mut Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
@@ -1903,6 +1936,37 @@ where
 
     fn node_idx_for(&self, ptr: &NodePtr<V>) -> NodeIdx<V> {
         NodeIdx(orx_selfref_col::NodeIdx::new(self.col.memory_state(), ptr))
+    }
+
+    pub(crate) fn append_subtree_as_child(
+        &mut self,
+        subtree: impl IntoIterator<Item = (usize, V::Item)>,
+    ) -> NodeIdx<V> {
+        let mut iter = subtree.into_iter();
+        let (mut current_depth, value) = iter.next().expect("tree is not empty");
+        debug_assert_eq!(current_depth, 0);
+
+        let position = self.num_children();
+        let idx = self.push_child(value);
+        let mut dst = self.child_mut(position).expect("child exists");
+
+        for (depth, value) in iter {
+            match depth > current_depth {
+                true => debug_assert_eq!(depth, current_depth + 1, "dfs error in clone"),
+                false => {
+                    let num_parent_moves = current_depth - depth + 1;
+                    for _ in 0..num_parent_moves {
+                        dst = dst.into_parent_mut().expect("in bounds");
+                    }
+                }
+            }
+            let position = dst.num_children();
+            dst.push_child(value);
+            dst = dst.into_child_mut(position).expect("child exists");
+            current_depth = depth;
+        }
+
+        idx
     }
 }
 
@@ -2098,7 +2162,7 @@ fn def() {
     use crate::*;
     use alloc::vec::Vec;
 
-    //     a        b
+    //     a          b
     // -----------------------
     //     0          5
     //    ╱ ╲        ╱ ╲
@@ -2107,35 +2171,42 @@ fn def() {
     // 3   4        8 9   10
 
     let mut a = DynTree::<_>::new(0);
-    let [id1, id2] = a.root_mut().push_children([1, 2]);
-    a.node_mut(&id1).push_children([3, 4]);
+    let [id1, _] = a.root_mut().push_children([1, 2]);
+    let [id3, _] = a.node_mut(&id1).push_children([3, 4]);
 
     let mut b = DaryTree::<4, _>::new(5);
-    let id5 = b.root().idx();
     let [id6, id7] = b.root_mut().push_children([6, 7]);
     b.node_mut(&id6).push_child(8);
     b.node_mut(&id7).push_children([9, 10]);
 
-    // move b.subtree(n7) under a.n2
-    // move a.subtree(n1) under b.n5
-    //     a          b
+    // clone b.subtree(n6) under a.n3
+    // clone b.subtree(n7) under a.n0
+    //        a
     // -----------------------
-    //     0          5
-    //      ╲        ╱ ╲
-    //       2      6   1
-    //       |      |  ╱ ╲
-    //       7      8 3   4
-    //      ╱ ╲
-    //     9   10
+    //        0
+    //       ╱|╲
+    //      ╱ | ╲
+    //     ╱  |  ╲
+    //    ╱   |   ╲
+    //   1    2    7
+    //  ╱ ╲       ╱ ╲
+    // 3   4     9   10
+    // |
+    // 6
+    // |
+    // 8
 
-    a.node_mut(&id2).append_as_child(b.node_mut(&id7));
-    b.node_mut(&id5).append_as_child(a.node_mut(&id1));
+    let n6 = b.node(&id6).as_cloned_subtree();
+    a.node_mut(&id3).append_as_child(n6);
+
+    let n7 = b.node(&id7).as_copied_subtree();
+    a.root_mut().append_as_child(n7);
 
     // validate the trees
 
     let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs_a, [0, 2, 7, 9, 10]);
+    assert_eq!(bfs_a, [0, 1, 2, 7, 3, 4, 9, 10, 6, 8]);
 
     let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs_b, [5, 6, 1, 8, 3, 4]);
+    assert_eq!(bfs_b, [5, 6, 7, 8, 9, 10]); // unchanged
 }

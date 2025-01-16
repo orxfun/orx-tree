@@ -1,7 +1,7 @@
 use super::subtree::SubTree;
 use crate::{
     pinned_storage::PinnedStorage,
-    traversal::{over::OverDepthPtr, traverser_core::TraverserCore},
+    traversal::{over::OverDepthData, traverser_core::TraverserCore},
     Dfs, MemoryPolicy, NodeIdx, NodeMut, Tree, TreeVariant,
 };
 
@@ -11,6 +11,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
 {
+    // TODO: convert to O(1) by using SplitVec Recursive properties
     fn append_to_node_as_child<V2, M2, P2, MO>(
         mut self,
         parent: &mut NodeMut<V2, M2, P2, MO>,
@@ -22,7 +23,7 @@ where
         MO: crate::NodeMutOrientation,
     {
         let root = self.root_mut();
-        let subtree = Dfs::<OverDepthPtr>::into_iter_with_owned_storage(root);
+        let subtree = Dfs::<OverDepthData>::into_iter_with_owned_storage(root);
         parent.append_subtree_as_child(subtree)
     }
 }
