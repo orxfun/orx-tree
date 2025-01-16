@@ -38,10 +38,10 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// ## 1. During Growth
 ///
-/// We can add nodes to the tree by [`push_child`] and [`extend`] methods.
+/// We can add nodes to the tree by [`push_child`] and [`push_children`] methods.
 /// These methods only create the nodes.
 /// If we want to receive the indices of the created nodes at the same time,
-/// we can use the [`grow`], [`grow_iter`] and [`grow_vec`] methods instead.
+/// we can use the [`grow`] and [`grow_iter`] methods instead.
 ///
 /// **adding a single child: push vs grow**
 ///
@@ -66,7 +66,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// assert_eq!(n3.data(), &3);
 /// ```
 ///
-/// **adding a constant number of children: extend vs grow**
+/// **adding a constant number of children: push_children vs grow**
 ///
 /// ```
 /// use orx_tree::*;
@@ -86,7 +86,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let [id4, id5] = root.grow([4, 5]); // indices are received
 /// ```
 ///
-/// **adding a variable number of children: extend vs grow_iter or grow_vec**
+/// **adding a variable number of children: push_children vs grow_iter**
 ///
 /// ```
 /// use orx_tree::*;
@@ -103,7 +103,8 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// root.push_children(2..4); // no indices are returned
 ///
-/// let indices = root.grow_vec(4..6); // indices are collected into a vec
+/// // indices are collected into a vec
+/// let indices: Vec<_> = root.grow_iter(4..6).collect();
 ///
 /// let id5 = &indices[1];
 /// let n5 = tree.node(&id5);
@@ -111,10 +112,9 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// ```
 ///
 /// [`push_child`]: crate::NodeMut::push_child
-/// [`extend`]: crate::NodeMut::push_children
+/// [`push_children`]: crate::NodeMut::push_children
 /// [`grow`]: crate::NodeMut::grow
 /// [`grow_iter`]: crate::NodeMut::grow_iter
-/// [`grow_vec`]: crate::NodeMut::grow_vec
 ///
 /// ## 2. From the Node
 ///
