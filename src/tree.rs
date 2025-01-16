@@ -237,7 +237,7 @@ where
     ///
     /// let [b, c] = root.grow(['b', 'c']);
     /// tree.node_mut(&b).push_child('d');
-    /// tree.node_mut(&c).extend(['e', 'f']);
+    /// tree.node_mut(&c).push_children(['e', 'f']);
     /// ```
     pub fn root_mut(&mut self) -> NodeMut<V, M, P> {
         self.root_ptr()
@@ -358,7 +358,7 @@ where
     /// assert_eq!(n2.data(), &2);
     ///
     /// let mut n3 = tree.node_mut(&id3);
-    /// n3.extend([4, 5]);
+    /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
@@ -412,7 +412,7 @@ where
     /// assert_eq!(n2.data(), &2);
     ///
     /// let mut n3 = tree.node_mut(&id3);
-    /// n3.extend([4, 5]);
+    /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);

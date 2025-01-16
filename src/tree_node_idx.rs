@@ -81,7 +81,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// root.extend([2, 3]); // no indices are returned
+/// root.push_children([2, 3]); // no indices are returned
 ///
 /// let [id4, id5] = root.grow([4, 5]); // indices are received
 /// ```
@@ -101,7 +101,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// root.extend(2..4); // no indices are returned
+/// root.push_children(2..4); // no indices are returned
 ///
 /// let indices = root.grow_vec(4..6); // indices are collected into a vec
 ///
@@ -111,7 +111,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// ```
 ///
 /// [`push_child`]: crate::NodeMut::push_child
-/// [`extend`]: crate::NodeMut::extend
+/// [`extend`]: crate::NodeMut::push_children
 /// [`grow`]: crate::NodeMut::grow
 /// [`grow_iter`]: crate::NodeMut::grow_iter
 /// [`grow_vec`]: crate::NodeMut::grow_vec
@@ -143,7 +143,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let [id2, _] = root.grow([2, 3]);
 ///
 /// let mut n2 = tree.node_mut(&id2);
-/// n2.extend([4, 5]);
+/// n2.push_children([4, 5]);
 ///
 /// // task: access node 5 and get its index
 /// let root = tree.root();
@@ -178,7 +178,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let [id2, _] = root.grow([2, 3]);
 ///
 /// let mut n2 = tree.node_mut(&id2);
-/// n2.extend([4, 5]);
+/// n2.push_children([4, 5]);
 ///
 /// // task: collect all indices in breadth first order
 /// let mut bfs = Bfs::default().over_nodes();

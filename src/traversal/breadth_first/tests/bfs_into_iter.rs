@@ -38,7 +38,7 @@ fn tree() -> DynTree<String> {
     let [id6, id7] = n3.grow([6.to_string(), 7.to_string()]);
 
     tree.node_mut(&id6).push_child(9.to_string());
-    tree.node_mut(&id7).extend([10.to_string(), 11.to_string()]);
+    tree.node_mut(&id7).push_children([10.to_string(), 11.to_string()]);
 
     tree
 }

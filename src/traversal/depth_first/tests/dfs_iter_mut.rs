@@ -35,7 +35,7 @@ fn tree() -> DynTree<i32> {
     let [id6, id7] = n3.grow([6, 7]);
 
     tree.node_mut(&id6).push_child(9);
-    tree.node_mut(&id7).extend([10, 11]);
+    tree.node_mut(&id7).push_children([10, 11]);
 
     tree
 }
