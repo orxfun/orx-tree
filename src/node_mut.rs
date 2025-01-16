@@ -18,6 +18,7 @@ use crate::{
 };
 use core::marker::PhantomData;
 use orx_selfref_col::{NodePtr, Refs};
+use std::println;
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation: 'static {}
@@ -200,12 +201,12 @@ where
     /// # See also
     ///
     /// * [`push_children`]
-    /// * [`push_children_iter`]
+    /// * [`extend_children`]
     /// * [`push_sibling`]
     /// * [`push_siblings`]
     ///
     /// [`push_children`]: crate::NodeMut::push_children
-    /// [`push_children_iter`]: crate::NodeMut::push_children_iter
+    /// [`extend_children`]: crate::NodeMut::extend_children
     /// [`push_sibling`]: crate::NodeMut::push_sibling
     /// [`push_siblings`]: crate::NodeMut::push_siblings
     ///
@@ -292,7 +293,7 @@ where
     //     }
     // }
 
-    /// Pushes the given `values` as children of this node;
+    /// Pushes the given constant number of `values` as children of this node;
     /// returns the [`NodeIdx`] array of the created nodes.
     ///
     /// If this node already has children, the new children are added to the end as the
@@ -310,12 +311,12 @@ where
     /// # See also
     ///
     /// * [`push_child`]
-    /// * [`push_children_iter`]
+    /// * [`extend_children`]
     /// * [`push_sibling`]
     /// * [`push_siblings`]
     ///
     /// [`push_child`]: crate::NodeMut::push_child
-    /// [`push_children_iter`]: crate::NodeMut::push_children_iter
+    /// [`extend_children`]: crate::NodeMut::extend_children
     /// [`push_sibling`]: crate::NodeMut::push_sibling
     /// [`push_siblings`]: crate::NodeMut::push_siblings
     ///
@@ -366,6 +367,37 @@ where
         })
     }
 
+    /// Pushes the given variable number of `values` as children of this node;
+    /// returns the [`NodeIdx`] iterator of the created nodes.
+    ///
+    /// If this node already has children, the new children are added to the end as the
+    /// new right-most nodes of the children.
+    ///
+    /// Importantly note that this method returns a **lazy** iterator.
+    /// If the returned iterator is not consumed, the children will **not** be pushed.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the tree is of a variant with fixed children capacity,
+    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
+    /// and if this hard capacity is violated with the new child.
+    ///
+    /// [`BinaryTree`]: crate::BinaryTree
+    /// [`DaryTree`]: crate::DaryTree
+    ///
+    /// # See also
+    ///
+    /// * [`push_child`]
+    /// * [`extend_children`]
+    /// * [`push_sibling`]
+    /// * [`push_siblings`]
+    ///
+    /// [`push_child`]: crate::NodeMut::push_child
+    /// [`extend_children`]: crate::NodeMut::extend_children
+    /// [`push_sibling`]: crate::NodeMut::push_sibling
+    /// [`push_siblings`]: crate::NodeMut::push_siblings
+    ///
+    ///
     /// Pushes the given `children` values to children collection of this node.
     ///
     /// Returns the indices of the created child nodes.
@@ -375,7 +407,7 @@ where
     ///
     /// See [`grow`] when pushing a **const** number of children.
     ///
-    /// As the name suggests, `grow` and `push_children_iter` methods are convenient for building trees
+    /// As the name suggests, `grow` and `extend_children` methods are convenient for building trees
     /// from top to bottom since they immediately return the indices providing access to child nodes.
     ///
     /// On the other hand, when the node indices are not required, you may use [`push_child`] or [`push_children`] instead.
@@ -387,69 +419,58 @@ where
     /// # Examples
     ///
     /// Following example demonstrates one way to build an arbitrary depth tree with a special data structure systematically
-    /// using the `push_children_iter` method.
+    /// using the `extend_children` method.
     ///
     /// ```
     /// use orx_tree::*;
     ///
-    /// //       1          // depth: 0
-    /// //      ╱ ╲
-    /// //     ╱   ╲
-    /// //    ╱     ╲
-    /// //   3       4      // depth: 1
-    /// //  ╱ ╲     ╱ ╲
-    /// // 7   8   8   9    // depth: 2
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 3   4 5   6
+    /// // |     |  ╱ ╲
+    /// // 7     8 9   10
     ///
-    /// fn val(parent_value: i32, depth: usize, sibling_idx: usize) -> i32 {
-    ///     parent_value + (depth * 2 + sibling_idx) as i32
-    /// }
-    ///
-    /// let mut tree = DynTree::<_>::new(1);
     /// let mut idx = vec![];
-    /// let mut depth_idx_range = vec![];
     ///
-    /// idx.push(tree.get_root().unwrap().idx());
-    /// depth_idx_range.push(0..1);
+    /// let mut tree = DynTree::<_>::new(0);
     ///
-    /// for depth in 1..=2 {
-    ///     let begin_num_nodes = idx.len();
-    ///     let parent_indices: Vec<_> = depth_idx_range[depth - 1]
-    ///         .clone()
-    ///         .map(|x| idx[x].clone())
-    ///         .collect();
+    /// let mut root = tree.root_mut();
+    /// idx.push(root.idx());
+    /// idx.extend(root.extend_children(1..=2));
     ///
-    ///     for parent_idx in parent_indices {
-    ///         let mut parent = tree.node_mut(&parent_idx);
-    ///         let parent_value = *parent.data();
+    /// let mut n1 = tree.node_mut(&idx[1]);
+    /// idx.extend(n1.extend_children([3, 4]));
     ///
-    ///         let children = (0..2).map(|sibling_idx| val(parent_value, depth, sibling_idx));
-    ///         let children_indices = parent.push_children_iter(children);
-    ///         idx.extend(children_indices);
-    ///     }
+    /// let mut n2 = tree.node_mut(&idx[2]);
+    /// idx.extend(n2.extend_children(5..=6));
     ///
-    ///     let end_num_nodes = idx.len();
-    ///     depth_idx_range.push(begin_num_nodes..end_num_nodes);
-    /// }
+    /// idx.push(tree.node_mut(&idx[3]).push_child(7));
+    ///
+    /// idx.push(tree.node_mut(&idx[5]).push_child(8));
+    /// idx.extend(tree.node_mut(&idx[6]).extend_children([9, 10]));
     ///
     /// // validate the tree
     ///
     /// let root = tree.root();
     ///
     /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 3, 4, 7, 8, 8, 9]);
+    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     ///
     /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
-    /// assert_eq!(dfs, [1, 3, 7, 8, 4, 8, 9]);
+    /// assert_eq!(dfs, [0, 1, 3, 7, 4, 2, 5, 8, 6, 9, 10]);
     /// ```
-    pub fn push_children_iter<'b, I>(
+    pub fn extend_children<'b, I>(
         &'b mut self,
-        children: I,
+        values: I,
     ) -> impl Iterator<Item = NodeIdx<V>> + 'b + use<'b, 'a, I, V, M, P, MO>
     where
         I: IntoIterator<Item = V::Item>,
         I::IntoIter: 'b,
     {
-        children.into_iter().map(|value| {
+        values.into_iter().map(|value| {
             let child_ptr = self.push_child_get_ptr(value);
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
@@ -996,7 +1017,7 @@ where
     /// # Examples
     ///
     /// Following example demonstrates one way to build an arbitrary depth tree with a special data structure systematically
-    /// using the `push_children_iter` method.
+    /// using the `extend_children` method.
     ///
     /// ```
     /// use orx_tree::*;
@@ -1217,7 +1238,7 @@ where
     ///     let val = *node.data();
     ///     let children = (0..val).map(|x| x + 1 + val);
     ///
-    ///     let _ = node.push_children_iter(children).count();
+    ///     let _ = node.extend_children(children).count();
     ///
     ///     for c in 0..node.num_children() {
     ///         let mut node = node.child_mut(c).unwrap();
@@ -1256,11 +1277,11 @@ where
     /// In this approach, we start from the mutable root node.
     /// Then, we convert one mutable node to another, always having only one mutable node.
     ///
-    /// See [`grow`] and [`push_children_iter`] methods to see an alternative tree building approach which makes
+    /// See [`grow`] and [`extend_children`] methods to see an alternative tree building approach which makes
     /// use of node indices.
     ///
     /// [`grow`]: crate::NodeMut::grow
-    /// [`push_children_iter`]: crate::NodeMut::push_children_iter
+    /// [`extend_children`]: crate::NodeMut::extend_children
     ///
     /// ```
     /// use orx_tree::*;
@@ -1961,11 +1982,11 @@ where
     /// In this approach, we start from the mutable root node.
     /// Then, we convert one mutable node to another, always having only one mutable node.
     ///
-    /// See [`grow`] and [`push_children_iter`] methods to see an alternative tree building approach which makes
+    /// See [`grow`] and [`extend_children`] methods to see an alternative tree building approach which makes
     /// use of node indices.
     ///
     /// [`grow`]: crate::NodeMut::grow
-    /// [`push_children_iter`]: crate::NodeMut::push_children_iter
+    /// [`extend_children`]: crate::NodeMut::extend_children
     ///
     /// ```
     /// use orx_tree::*;
@@ -2026,11 +2047,11 @@ where
     /// In this approach, we start from the mutable root node.
     /// Then, we convert one mutable node to another, always having only one mutable node.
     ///
-    /// See [`grow`] and [`push_children_iter`] methods to see an alternative tree building approach which makes
+    /// See [`grow`] and [`extend_children`] methods to see an alternative tree building approach which makes
     /// use of node indices.
     ///
     /// [`grow`]: crate::NodeMut::grow
-    /// [`push_children_iter`]: crate::NodeMut::push_children_iter
+    /// [`extend_children`]: crate::NodeMut::extend_children
     ///
     /// ```
     /// use orx_tree::*;
@@ -2081,6 +2102,7 @@ where
 #[test]
 fn abc() {
     use crate::*;
+    use alloc::vec;
     use alloc::vec::Vec;
 
     //      0
@@ -2092,21 +2114,24 @@ fn abc() {
     // |     |  ╱ ╲
     // 7     8 9   10
 
-    let mut tree = DaryTree::<4, _>::new(0);
+    let mut idx = vec![];
+
+    let mut tree = DynTree::<_>::new(0);
 
     let mut root = tree.root_mut();
-    let [id1, id2] = root.push_children([1, 2]);
+    idx.push(root.idx());
+    idx.extend(root.extend_children(1..=2));
 
-    let mut n1 = tree.node_mut(&id1);
-    let [id3, _] = n1.push_children([3, 4]);
+    let mut n1 = tree.node_mut(&idx[1]);
+    idx.extend(n1.extend_children([3, 4]));
 
-    tree.node_mut(&id3).push_child(7);
+    let mut n2 = tree.node_mut(&idx[2]);
+    idx.extend(n2.extend_children(5..=6));
 
-    let mut n2 = tree.node_mut(&id2);
-    let [id5, id6] = n2.push_children([5, 6]);
+    idx.push(tree.node_mut(&idx[3]).push_child(7));
 
-    tree.node_mut(&id5).push_child(8);
-    tree.node_mut(&id6).push_children([9, 10]);
+    idx.push(tree.node_mut(&idx[5]).push_child(8));
+    idx.extend(tree.node_mut(&idx[6]).extend_children([9, 10]));
 
     // validate the tree
 
