@@ -198,18 +198,6 @@ where
     /// [`BinaryTree`]: crate::BinaryTree
     /// [`DaryTree`]: crate::DaryTree
     ///
-    /// # See also
-    ///
-    /// * [`push_children`]
-    /// * [`extend_children`]
-    /// * [`push_sibling`]
-    /// * [`push_siblings`]
-    ///
-    /// [`push_children`]: crate::NodeMut::push_children
-    /// [`extend_children`]: crate::NodeMut::extend_children
-    /// [`push_sibling`]: crate::NodeMut::push_sibling
-    /// [`push_siblings`]: crate::NodeMut::push_siblings
-    ///
     /// # Examples
     ///
     /// ```
@@ -308,18 +296,6 @@ where
     /// [`BinaryTree`]: crate::BinaryTree
     /// [`DaryTree`]: crate::DaryTree
     ///
-    /// # See also
-    ///
-    /// * [`push_child`]
-    /// * [`extend_children`]
-    /// * [`push_sibling`]
-    /// * [`push_siblings`]
-    ///
-    /// [`push_child`]: crate::NodeMut::push_child
-    /// [`extend_children`]: crate::NodeMut::extend_children
-    /// [`push_sibling`]: crate::NodeMut::push_sibling
-    /// [`push_siblings`]: crate::NodeMut::push_siblings
-    ///
     /// # Examples
     ///
     /// ```
@@ -385,41 +361,7 @@ where
     /// [`BinaryTree`]: crate::BinaryTree
     /// [`DaryTree`]: crate::DaryTree
     ///
-    /// # See also
-    ///
-    /// * [`push_child`]
-    /// * [`extend_children`]
-    /// * [`push_sibling`]
-    /// * [`push_siblings`]
-    ///
-    /// [`push_child`]: crate::NodeMut::push_child
-    /// [`extend_children`]: crate::NodeMut::extend_children
-    /// [`push_sibling`]: crate::NodeMut::push_sibling
-    /// [`push_siblings`]: crate::NodeMut::push_siblings
-    ///
-    ///
-    /// Pushes the given `children` values to children collection of this node.
-    ///
-    /// Returns the indices of the created child nodes.
-    ///
-    /// Note that this method returns a lazy iterator.
-    /// Unless the iterator is consumed, the nodes will not be pushed to the tree.
-    ///
-    /// See [`grow`] when pushing a **const** number of children.
-    ///
-    /// As the name suggests, `grow` and `extend_children` methods are convenient for building trees
-    /// from top to bottom since they immediately return the indices providing access to child nodes.
-    ///
-    /// On the other hand, when the node indices are not required, you may use [`push_child`] or [`push_children`] instead.
-    ///
-    /// [`push_child`]: crate::NodeMut::push_child
-    /// [`push_children`]: crate::NodeMut::push_children
-    /// [`grow`]: crate::NodeMut::grow
-    ///
     /// # Examples
-    ///
-    /// Following example demonstrates one way to build an arbitrary depth tree with a special data structure systematically
-    /// using the `extend_children` method.
     ///
     /// ```
     /// use orx_tree::*;
@@ -709,28 +651,23 @@ where
 
     // growth - horizontally
 
-    /// Pushes the node with the given data `sibling`:
+    /// Pushes a sibling with the given `value`:
     ///
-    /// * as the immediate left,-sibling of this node when `side` is [`SiblingSide::Left`],
-    /// * as the immediate right-sibling of this node when `side` is [`SiblingSide::Right`].
+    /// * as the immediate left-sibling of this node when `side` is [`SiblingSide::Left`],
+    /// * as the immediate right-sibling of this node when `side` is [`SiblingSide::Right`],
+    ///
+    /// returns the [`NodeIdx`] of the created node.
     ///
     /// # Panics
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
     ///
-    /// Further, the method might panic if the tree variant allows for a fixed number
-    /// of children, as [`BinaryTree`] or any [`DaryTree`], and this capacity is exceeded.
+    /// Further panics if the tree is of a variant with fixed children capacity,
+    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
+    /// and if this hard capacity is violated with the new sibling.
     ///
     /// [`BinaryTree`]: crate::BinaryTree
     /// [`DaryTree`]: crate::DaryTree
-    ///
-    /// # See also
-    ///
-    /// If the corresponding node index of the sibling is required;
-    /// you may use [`grow_siblings`] or [`grow_siblings_iter`].
-    ///
-    /// [`grow_siblings`]: crate::NodeMut::grow_siblings
-    /// [`grow_siblings_iter`]: crate::NodeMut::grow_siblings_iter
     ///
     /// # Examples
     ///
@@ -767,17 +704,19 @@ where
     /// // 7 4    8  5    9 10 6 11 12
     ///
     /// let mut n4 = tree.node_mut(&id4);
-    /// n4.push_sibling(7, SiblingSide::Left);
-    /// n4.push_sibling(8, SiblingSide::Right);
+    /// n4.push_sibling(SiblingSide::Left, 7);
+    /// n4.push_sibling(SiblingSide::Right, 8);
     ///
     /// let mut n6 = tree.node_mut(&id6);
-    /// n6.push_siblings([9, 10], SiblingSide::Left);
-    /// n6.push_siblings([11, 12], SiblingSide::Right);
+    /// n6.push_sibling(SiblingSide::Left, 9);
+    /// n6.push_sibling(SiblingSide::Left, 10);
+    /// n6.push_sibling(SiblingSide::Right, 12);
+    /// n6.push_sibling(SiblingSide::Right, 11);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     /// ```
-    pub fn push_sibling(&mut self, sibling: V::Item, side: SiblingSide) {
+    pub fn push_sibling(&mut self, side: SiblingSide, value: V::Item) {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
@@ -787,7 +726,7 @@ where
             SiblingSide::Right => self.sibling_idx() + 1,
         };
 
-        self.insert_sibling_get_ptr(sibling, &parent_ptr, position);
+        self.insert_sibling_get_ptr(value, &parent_ptr, position);
     }
 
     /// Pushes the nodes with the given data `siblings`:
@@ -847,16 +786,16 @@ where
     /// //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
     /// // 7 4    8  5    9 10 6 11 12
     ///
-    /// let mut n4 = tree.node_mut(&id4);
-    /// n4.push_sibling(7, SiblingSide::Left);
-    /// n4.push_sibling(8, SiblingSide::Right);
+    /// // let mut n4 = tree.node_mut(&id4);
+    /// // n4.push_sibling(7, SiblingSide::Left);
+    /// // n4.push_sibling(8, SiblingSide::Right);
     ///
-    /// let mut n6 = tree.node_mut(&id6);
-    /// n6.push_siblings([9, 10], SiblingSide::Left);
-    /// n6.push_siblings([11, 12], SiblingSide::Right);
+    //     /// // let mut n6 = tree.node_mut(&id6);
+    /// // n6.push_siblings([9, 10], SiblingSide::Left);
+    /// // n6.push_siblings([11, 12], SiblingSide::Right);
     ///
-    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
+    //     /// // let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// // assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     /// ```
     pub fn push_siblings<I>(&mut self, siblings: I, side: SiblingSide)
     where
