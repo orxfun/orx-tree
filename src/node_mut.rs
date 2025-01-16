@@ -1091,11 +1091,11 @@ where
     /// In this approach, we start from the mutable root node.
     /// Then, we convert one mutable node to another, always having only one mutable node.
     ///
-    /// See [`grow`] and [`extend_children`] methods to see an alternative tree building approach which makes
-    /// use of node indices.
+    /// See also index returning growth methods for an alternative tree building approach, such as
+    /// [`push_child`] and [`push_children`].
     ///
-    /// [`grow`]: crate::NodeMut::grow
-    /// [`extend_children`]: crate::NodeMut::extend_children
+    /// [`push_child`]: crate::NodeMut::push_child
+    /// [`push_children`]: crate::NodeMut::push_children
     ///
     /// ```
     /// use orx_tree::*;
@@ -1796,11 +1796,11 @@ where
     /// In this approach, we start from the mutable root node.
     /// Then, we convert one mutable node to another, always having only one mutable node.
     ///
-    /// See [`grow`] and [`extend_children`] methods to see an alternative tree building approach which makes
-    /// use of node indices.
+    /// See also index returning growth methods for an alternative tree building approach, such as
+    /// [`push_child`] and [`push_children`].
     ///
-    /// [`grow`]: crate::NodeMut::grow
-    /// [`extend_children`]: crate::NodeMut::extend_children
+    /// [`push_child`]: crate::NodeMut::push_child
+    /// [`push_children`]: crate::NodeMut::push_children
     ///
     /// ```
     /// use orx_tree::*;
@@ -1861,11 +1861,11 @@ where
     /// In this approach, we start from the mutable root node.
     /// Then, we convert one mutable node to another, always having only one mutable node.
     ///
-    /// See [`grow`] and [`extend_children`] methods to see an alternative tree building approach which makes
-    /// use of node indices.
+    /// See also index returning growth methods for an alternative tree building approach, such as
+    /// [`push_child`] and [`push_children`].
     ///
-    /// [`grow`]: crate::NodeMut::grow
-    /// [`extend_children`]: crate::NodeMut::extend_children
+    /// [`push_child`]: crate::NodeMut::push_child
+    /// [`push_children`]: crate::NodeMut::push_children
     ///
     /// ```
     /// use orx_tree::*;

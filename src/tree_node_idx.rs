@@ -38,12 +38,20 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// ## 1. During Growth
 ///
-/// We can add nodes to the tree by [`push_child`] and [`push_children`] methods.
-/// These methods only create the nodes.
-/// If we want to receive the indices of the created nodes at the same time,
-/// we can use the [`grow`] and [`extend_children`] methods instead.
+/// We can add child nodes by [`push_child`], [`push_children`] and [`extend_children`] methods.
+/// These methods return the indices of the created nodes.
 ///
-/// **adding a single child: push vs grow**
+/// Similarly, horizontal growth methods [`push_sibling`], [`push_siblings`] and [`extend_siblings`]
+/// also return the indices of new nodes.
+///
+/// [`push_child`]: crate::NodeMut::push_child
+/// [`push_children`]: crate::NodeMut::push_children
+/// [`extend_children`]: crate::NodeMut::extend_children
+/// [`push_sibling`]: crate::NodeMut::push_sibling
+/// [`push_siblings`]: crate::NodeMut::push_siblings
+/// [`extend_siblings`]: crate::NodeMut::extend_siblings
+///
+/// **adding a single child: push_child**
 ///
 /// ```
 /// use orx_tree::*;
@@ -57,16 +65,15 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// root.push_child(2); // no idx is returned
-///
-/// let [id3] = root.push_children([3]); // idx is received
+/// let id2 = root.push_child(2);
+/// let id3 = root.push_child(3);
 ///
 /// // use id3 to directly access node 3
 /// let n3 = tree.node(&id3);
 /// assert_eq!(n3.data(), &3);
 /// ```
 ///
-/// **adding a constant number of children: push_children vs grow**
+/// **adding a constant number of children: push_children**
 ///
 /// ```
 /// use orx_tree::*;
@@ -81,9 +88,9 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// root.push_children([2, 3]); // no indices are returned
+/// let [id2, id3] = root.push_children([2, 3]);
 ///
-/// let [id4, id5] = root.push_children([4, 5]); // indices are received
+/// let [id4, id5] = root.push_children([4, 5]);
 /// ```
 ///
 /// **adding a variable number of children: extend_children**
@@ -108,11 +115,6 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let n5 = tree.node(&id5);
 /// assert_eq!(n5.data(), &5);
 /// ```
-///
-/// [`push_child`]: crate::NodeMut::push_child
-/// [`push_children`]: crate::NodeMut::push_children
-/// [`grow`]: crate::NodeMut::grow
-/// [`extend_children`]: crate::NodeMut::extend_children
 ///
 /// ## 2. From the Node
 ///
@@ -182,6 +184,9 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// let mut bfs = Bfs::default().over_nodes();
 /// let root = tree.root();
 /// let indices: Vec<_> = root.walk_with(&mut bfs).map(|x| x.idx()).collect();
+///
+/// // or we can use the shorthand:
+/// let indices: Vec<_> = root.indices::<Bfs>().collect();
 ///
 /// // now we can use indices to directly access nodes
 /// let id5 = &indices[4];
