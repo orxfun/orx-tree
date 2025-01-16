@@ -2,17 +2,17 @@ use super::subtree::SubTree;
 use crate::{
     pinned_storage::PinnedStorage,
     traversal::{over::OverDepthPtr, traverser_core::TraverserCore},
-    Dfs, MemoryPolicy, NodeIdx, NodeMut, Tree, TreeVariant,
+    Dfs, MemoryPolicy, NodeIdx, NodeMut, TreeVariant,
 };
 
-impl<V, M, P> SubTree<V::Item> for Tree<V, M, P>
+impl<'a, V, M, P> SubTree<V::Item> for NodeMut<'a, V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy,
     P: PinnedStorage,
 {
     fn append_to_node_as_child<V2, M2, P2, MO>(
-        mut self,
+        self,
         parent: &mut NodeMut<V2, M2, P2, MO>,
     ) -> NodeIdx<V2>
     where
@@ -21,8 +21,7 @@ where
         P2: PinnedStorage,
         MO: crate::NodeMutOrientation,
     {
-        let root = self.root_mut();
-        let subtree = Dfs::<OverDepthPtr>::into_iter_with_owned_storage(root);
+        let subtree = Dfs::<OverDepthPtr>::into_iter_with_owned_storage(self);
         parent.append_subtree_as_child(subtree)
     }
 }

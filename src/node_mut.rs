@@ -647,6 +647,53 @@ where
 
     /// # Examples
     ///
+    /// ## Append Subtree from Another Tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          5
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      6   7
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        8 9   10
+    ///
+    /// let mut a = DynTree::<_>::new(0);
+    /// let [id1, id2] = a.root_mut().push_children([1, 2]);
+    /// a.node_mut(&id1).push_children([3, 4]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(5);
+    /// let id5 = b.root().idx();
+    /// let [id6, id7] = b.root_mut().push_children([6, 7]);
+    /// b.node_mut(&id6).push_child(8);
+    /// b.node_mut(&id7).push_children([9, 10]);
+    ///
+    /// // move b.subtree(n7) under a.n2
+    /// // move a.subtree(n1) under b.n5
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          5
+    /// //      ╲        ╱ ╲
+    /// //       2      6   1
+    /// //       |      |  ╱ ╲
+    /// //       7      8 3   4
+    /// //      ╱ ╲
+    /// //     9   10
+    ///
+    /// a.node_mut(&id2).append_as_child(b.node_mut(&id7));
+    /// b.node_mut(&id5).append_as_child(a.node_mut(&id1));
+    ///
+    /// // validate the trees
+    ///
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 2, 7, 9, 10]);
+    ///
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [5, 6, 1, 8, 3, 4]);
+    /// ```
+    ///
     /// ## Append Another Tree
     ///
     /// ```
@@ -692,16 +739,18 @@ where
     ///
     /// // validate the tree
     ///
-    /// let root = tree.root();
-    ///
-    /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    ///
-    /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
-    /// assert_eq!(dfs, [0, 1, 3, 4, 7, 2, 5, 8, 6, 9, 10]);
     /// ```
-    pub fn append_as_child(&mut self, mut subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
-        let mut iter = subtree.dfs_iter().into_iter();
+    pub fn append_as_child(&mut self, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
+        subtree.append_to_node_as_child(self)
+    }
+
+    pub(crate) fn append_subtree_as_child(
+        &mut self,
+        subtree: impl IntoIterator<Item = (usize, V::Item)>,
+    ) -> NodeIdx<V> {
+        let mut iter = subtree.into_iter();
         let (mut current_depth, value) = iter.next().expect("tree is not empty");
         debug_assert_eq!(current_depth, 0);
 
@@ -2042,4 +2091,51 @@ fn abc() {
 
     let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
     assert_eq!(dfs, [0, 1, 3, 4, 7, 2, 5, 8, 6, 9, 10]);
+}
+
+#[test]
+fn def() {
+    use crate::*;
+    use alloc::vec::Vec;
+
+    //     a        b
+    // -----------------------
+    //     0          5
+    //    ╱ ╲        ╱ ╲
+    //   1   2      6   7
+    //  ╱ ╲         |  ╱ ╲
+    // 3   4        8 9   10
+
+    let mut a = DynTree::<_>::new(0);
+    let [id1, id2] = a.root_mut().push_children([1, 2]);
+    a.node_mut(&id1).push_children([3, 4]);
+
+    let mut b = DaryTree::<4, _>::new(5);
+    let id5 = b.root().idx();
+    let [id6, id7] = b.root_mut().push_children([6, 7]);
+    b.node_mut(&id6).push_child(8);
+    b.node_mut(&id7).push_children([9, 10]);
+
+    // move b.subtree(n7) under a.n2
+    // move a.subtree(n1) under b.n5
+    //     a          b
+    // -----------------------
+    //     0          5
+    //      ╲        ╱ ╲
+    //       2      6   1
+    //       |      |  ╱ ╲
+    //       7      8 3   4
+    //      ╱ ╲
+    //     9   10
+
+    a.node_mut(&id2).append_as_child(b.node_mut(&id7));
+    b.node_mut(&id5).append_as_child(a.node_mut(&id1));
+
+    // validate the trees
+
+    let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs_a, [0, 2, 7, 9, 10]);
+
+    let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs_b, [5, 6, 1, 8, 3, 4]);
 }
