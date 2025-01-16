@@ -80,8 +80,8 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut n3 = tree.node_mut(&id3);
 /// let [id6, id7] = n3.grow([6, 7]);
 ///
-/// tree.node_mut(&id6).push(9);
-/// tree.node_mut(&id7).extend([10, 11]);
+/// tree.node_mut(&id6).push_child(9);
+/// tree.node_mut(&id7).push_children([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
@@ -172,8 +172,8 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut n3 = tree.node_mut(&id3);
 /// let [id6, id7] = n3.grow([6, 7]);
 ///
-/// tree.node_mut(&id6).push(9);
-/// tree.node_mut(&id7).extend([10, 11]);
+/// tree.node_mut(&id6).push_child(9);
+/// tree.node_mut(&id7).push_children([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///

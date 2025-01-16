@@ -85,7 +85,7 @@ where
     /// assert_eq!(tree.len(), 3);
     ///
     /// let mut node = tree.node_mut(&idx);
-    /// node.push(7);
+    /// node.push_child(7);
     ///
     /// assert_eq!(tree.len(), 4);
     /// ```
@@ -144,11 +144,11 @@ where
     /// let mut tree: BinaryTree<i32> = BinaryTree::new(42);
     ///
     /// let mut root = tree.root_mut();
-    /// root.push(4);
+    /// root.push_child(4);
     /// let [idx] = root.grow([2]);
     ///
     /// let mut node = tree.node_mut(&idx);
-    /// node.push(7);
+    /// node.push_child(7);
     ///
     /// assert_eq!(tree.len(), 4);
     /// assert_eq!(tree.get_root().unwrap().data(), &42);
@@ -236,8 +236,8 @@ where
     /// assert_eq!(root.data(), &'a');
     ///
     /// let [b, c] = root.grow(['b', 'c']);
-    /// tree.node_mut(&b).push('d');
-    /// tree.node_mut(&c).extend(['e', 'f']);
+    /// tree.node_mut(&b).push_child('d');
+    /// tree.node_mut(&c).push_children(['e', 'f']);
     /// ```
     pub fn root_mut(&mut self) -> NodeMut<V, M, P> {
         self.root_ptr()
@@ -286,8 +286,8 @@ where
     /// *root.data_mut() = 'x';
     /// assert_eq!(root.data(), &'x');
     ///
-    /// root.push('b');
-    /// let idx = root.push('c');
+    /// root.push_child('b');
+    /// let idx = root.push_child('c');
     ///
     /// tree.clear();
     /// assert_eq!(tree.get_root_mut(), None);
@@ -358,7 +358,7 @@ where
     /// assert_eq!(n2.data(), &2);
     ///
     /// let mut n3 = tree.node_mut(&id3);
-    /// n3.extend([4, 5]);
+    /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
@@ -412,7 +412,7 @@ where
     /// assert_eq!(n2.data(), &2);
     ///
     /// let mut n3 = tree.node_mut(&id3);
-    /// n3.extend([4, 5]);
+    /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
@@ -593,12 +593,12 @@ where
     /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// tree.node_mut(&id4).push(8);
+    /// tree.node_mut(&id4).push_child(8);
     ///
     /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id6).push_child(9);
     /// let [id10, _] = tree.node_mut(&id7).grow([10, 11]);
     ///
     /// // cannot swap n3 & n10
@@ -730,12 +730,12 @@ where
     /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.grow([4, 5]);
     ///
-    /// tree.node_mut(&id4).push(8);
+    /// tree.node_mut(&id4).push_child(8);
     ///
     /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.grow([6, 7]);
     ///
-    /// tree.node_mut(&id6).push(9);
+    /// tree.node_mut(&id6).push_child(9);
     /// let [_, _] = tree.node_mut(&id7).grow([10, 11]);
     ///
     /// // we can swap n2 & n5

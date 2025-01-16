@@ -32,13 +32,13 @@ fn tree() -> DynTree<String> {
     let mut n2 = tree.node_mut(&id2);
     let [id4, _] = n2.grow([4.to_string(), 5.to_string()]);
 
-    tree.node_mut(&id4).push(8.to_string());
+    tree.node_mut(&id4).push_child(8.to_string());
 
     let mut n3 = tree.node_mut(&id3);
     let [id6, id7] = n3.grow([6.to_string(), 7.to_string()]);
 
-    tree.node_mut(&id6).push(9.to_string());
-    tree.node_mut(&id7).extend([10.to_string(), 11.to_string()]);
+    tree.node_mut(&id6).push_child(9.to_string());
+    tree.node_mut(&id7).push_children([10.to_string(), 11.to_string()]);
 
     tree
 }
