@@ -41,7 +41,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// We can add nodes to the tree by [`push_child`] and [`push_children`] methods.
 /// These methods only create the nodes.
 /// If we want to receive the indices of the created nodes at the same time,
-/// we can use the [`grow`] and [`grow_iter`] methods instead.
+/// we can use the [`grow`] and [`push_children_iter`] methods instead.
 ///
 /// **adding a single child: push vs grow**
 ///
@@ -59,7 +59,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// root.push_child(2); // no idx is returned
 ///
-/// let [id3] = root.grow([3]); // idx is received
+/// let [id3] = root.push_children([3]); // idx is received
 ///
 /// // use id3 to directly access node 3
 /// let n3 = tree.node(&id3);
@@ -83,10 +83,10 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// root.push_children([2, 3]); // no indices are returned
 ///
-/// let [id4, id5] = root.grow([4, 5]); // indices are received
+/// let [id4, id5] = root.push_children([4, 5]); // indices are received
 /// ```
 ///
-/// **adding a variable number of children: push_children vs grow_iter**
+/// **adding a variable number of children: push_children_iter**
 ///
 /// ```
 /// use orx_tree::*;
@@ -101,12 +101,10 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// root.push_children(2..4); // no indices are returned
-///
 /// // indices are collected into a vec
-/// let indices: Vec<_> = root.grow_iter(4..6).collect();
+/// let indices: Vec<_> = root.push_children_iter(2..6).collect();
 ///
-/// let id5 = &indices[1];
+/// let id5 = &indices[3];
 /// let n5 = tree.node(&id5);
 /// assert_eq!(n5.data(), &5);
 /// ```
@@ -114,7 +112,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// [`push_child`]: crate::NodeMut::push_child
 /// [`push_children`]: crate::NodeMut::push_children
 /// [`grow`]: crate::NodeMut::grow
-/// [`grow_iter`]: crate::NodeMut::grow_iter
+/// [`push_children_iter`]: crate::NodeMut::push_children_iter
 ///
 /// ## 2. From the Node
 ///
@@ -140,7 +138,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// let [id2, _] = root.grow([2, 3]);
+/// let [id2, _] = root.push_children([2, 3]);
 ///
 /// let mut n2 = tree.node_mut(&id2);
 /// n2.push_children([4, 5]);
@@ -175,7 +173,7 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// let mut root = tree.root_mut();
 ///
-/// let [id2, _] = root.grow([2, 3]);
+/// let [id2, _] = root.push_children([2, 3]);
 ///
 /// let mut n2 = tree.node_mut(&id2);
 /// n2.push_children([4, 5]);

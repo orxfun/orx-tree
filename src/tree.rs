@@ -80,7 +80,7 @@ where
     /// assert_eq!(tree.len(), 1);
     ///
     /// let mut root = tree.root_mut();
-    /// let [_, idx] = root.grow([4, 2]);
+    /// let [_, idx] = root.push_children([4, 2]);
     ///
     /// assert_eq!(tree.len(), 3);
     ///
@@ -145,7 +145,7 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// root.push_child(4);
-    /// let [idx] = root.grow([2]);
+    /// let [idx] = root.push_children([2]);
     ///
     /// let mut node = tree.node_mut(&idx);
     /// node.push_child(7);
@@ -235,7 +235,7 @@ where
     /// let mut root = tree.root_mut();
     /// assert_eq!(root.data(), &'a');
     ///
-    /// let [b, c] = root.grow(['b', 'c']);
+    /// let [b, c] = root.push_children(['b', 'c']);
     /// tree.node_mut(&b).push_child('d');
     /// tree.node_mut(&c).push_children(['e', 'f']);
     /// ```
@@ -352,7 +352,7 @@ where
     /// let mut tree = DynTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.grow([2, 3]);
+    /// let [id2, id3] = root.push_children([2, 3]);
     ///
     /// let n2 = tree.node(&id2);
     /// assert_eq!(n2.data(), &2);
@@ -406,7 +406,7 @@ where
     /// let mut tree = DynTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.grow([2, 3]);
+    /// let [id2, id3] = root.push_children([2, 3]);
     ///
     /// let n2 = tree.node(&id2);
     /// assert_eq!(n2.data(), &2);
@@ -588,18 +588,18 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// let id1 = root.idx();
-    /// let [id2, id3] = root.grow([2, 3]);
+    /// let [id2, id3] = root.push_children([2, 3]);
     ///
     /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.grow([4, 5]);
+    /// let [id4, _] = n2.push_children([4, 5]);
     ///
     /// tree.node_mut(&id4).push_child(8);
     ///
     /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.grow([6, 7]);
+    /// let [id6, id7] = n3.push_children([6, 7]);
     ///
     /// tree.node_mut(&id6).push_child(9);
-    /// let [id10, _] = tree.node_mut(&id7).grow([10, 11]);
+    /// let [id10, _] = tree.node_mut(&id7).push_children([10, 11]);
     ///
     /// // cannot swap n3 & n10
     ///
@@ -725,18 +725,18 @@ where
     /// let mut tree = DynTree::<i32>::new(1);
     ///
     /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.grow([2, 3]);
+    /// let [id2, id3] = root.push_children([2, 3]);
     ///
     /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.grow([4, 5]);
+    /// let [id4, _] = n2.push_children([4, 5]);
     ///
     /// tree.node_mut(&id4).push_child(8);
     ///
     /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.grow([6, 7]);
+    /// let [id6, id7] = n3.push_children([6, 7]);
     ///
     /// tree.node_mut(&id6).push_child(9);
-    /// let [_, _] = tree.node_mut(&id7).grow([10, 11]);
+    /// let [_, _] = tree.node_mut(&id7).push_children([10, 11]);
     ///
     /// // we can swap n2 & n5
     /// //      1

@@ -39,15 +39,15 @@ where
     /// let mut tree = DynTree::<i32>::new(0);
     ///
     /// let mut root = tree.root_mut();
-    /// let [id1, id2] = root.grow([1, 2]);
+    /// let [id1, id2] = root.push_children([1, 2]);
     ///
     /// let mut n1 = tree.node_mut(&id1);
-    /// let [id3, _] = n1.grow([3, 4]);
+    /// let [id3, _] = n1.push_children([3, 4]);
     ///
     /// tree.node_mut(&id3).push_child(7);
     ///
     /// let mut n2 = tree.node_mut(&id2);
-    /// let [id5, id6] = n2.grow([5, 6]);
+    /// let [id5, id6] = n2.push_children([5, 6]);
     ///
     /// tree.node_mut(&id5).push_child(8);
     /// tree.node_mut(&id6).push_children([9, 10]);
