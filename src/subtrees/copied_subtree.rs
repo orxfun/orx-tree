@@ -1,4 +1,4 @@
-use super::SubTree;
+use super::subtree::sealed::SubTreeCore;
 use crate::{
     pinned_storage::PinnedStorage,
     traversal::{over::OverDepthPtr, traverser_core::TraverserCore},
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<'a, V, M, P, N> SubTree<V::Item> for CopiedSubTree<'a, V, M, P, N>
+impl<'a, V, M, P, N> SubTreeCore<V::Item> for CopiedSubTree<'a, V, M, P, N>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,
@@ -45,6 +45,7 @@ where
     fn append_to_node_as_child<V2, M2, P2, MO>(
         self,
         parent: &mut NodeMut<V2, M2, P2, MO>,
+        child_idx: usize,
     ) -> NodeIdx<V2>
     where
         V2: TreeVariant<Item = V::Item>,
@@ -61,6 +62,6 @@ where
             )
         });
 
-        parent.append_subtree_as_child(subtree)
+        parent.append_subtree_as_child(subtree, child_idx)
     }
 }

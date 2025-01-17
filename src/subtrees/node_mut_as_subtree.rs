@@ -1,4 +1,4 @@
-use super::subtree::SubTree;
+use super::subtree::sealed::SubTreeCore;
 use crate::{
     pinned_storage::PinnedStorage,
     traversal::{traverser_core::TraverserCore, OverDepthData},
@@ -27,7 +27,7 @@ where
     }
 }
 
-impl<'a, V, M, P, MO> SubTree<V::Item> for NodeMutAsSubTree<'a, V, M, P, MO>
+impl<'a, V, M, P, MO> SubTreeCore<V::Item> for NodeMutAsSubTree<'a, V, M, P, MO>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,
@@ -37,6 +37,7 @@ where
     fn append_to_node_as_child<V2, M2, P2, MO2>(
         self,
         parent: &mut NodeMut<V2, M2, P2, MO2>,
+        child_idx: usize,
     ) -> NodeIdx<V2>
     where
         V2: TreeVariant<Item = V::Item>,
@@ -45,6 +46,6 @@ where
         MO2: NodeMutOrientation,
     {
         let subtree = Dfs::<OverDepthData>::into_iter_with_owned_storage(self.node);
-        parent.append_subtree_as_child(subtree)
+        parent.append_subtree_as_child(subtree, child_idx)
     }
 }
