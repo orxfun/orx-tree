@@ -430,10 +430,10 @@ where
     /// // 8
     ///
     /// let n6 = b.node(&id6).as_cloned_subtree();
-    /// a.node_mut(&id3).append_child_tree(n6);
+    /// a.node_mut(&id3).push_child_tree(n6);
     ///
     /// let n7 = b.node(&id7).as_copied_subtree();
-    /// a.root_mut().append_child_tree(n7);
+    /// a.root_mut().push_child_tree(n7);
     ///
     /// // validate the trees
     ///
@@ -485,10 +485,10 @@ where
     /// //     9   10
     ///
     /// let n7 = b.node_mut(&id7).into_subtree();
-    /// a.node_mut(&id2).append_child_tree(n7);
+    /// a.node_mut(&id2).push_child_tree(n7);
     ///
     /// let n1 = a.node_mut(&id1).into_subtree();
-    /// b.node_mut(&id5).append_child_tree(n1);
+    /// b.node_mut(&id5).push_child_tree(n1);
     ///
     /// // validate the trees
     ///
@@ -540,8 +540,8 @@ where
     ///
     /// // merge b & c into tree
     ///
-    /// let id4 = tree.node_mut(&id1).append_child_tree(b);
-    /// let id2 = tree.node_mut(&id0).append_child_tree(c);
+    /// let id4 = tree.node_mut(&id1).push_child_tree(b);
+    /// let id2 = tree.node_mut(&id0).push_child_tree(c);
     ///
     /// assert_eq!(tree.node(&id2).data(), &2);
     /// assert_eq!(tree.node(&id4).data(), &4);
@@ -551,7 +551,7 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     /// ```
-    pub fn append_child_tree(&mut self, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
+    pub fn push_child_tree(&mut self, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
         subtree.append_to_node_as_child(self, self.num_children())
     }
 
@@ -824,9 +824,28 @@ where
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
     ///
+    /// # Subtree Variants
+    ///
+    /// * **I.** Cloned / copied subtree
+    ///   * A subtree cloned or copied from another tree.
+    ///   * The source tree remains unchanged.
+    ///   * Can be created by [`as_cloned_subtree`] and [`as_copied_subtree`] methods.
+    ///   * ***O(n)***
+    /// * **II.** Subtree moved out of another tree
+    ///   * The subtree will be moved from the source tree to this tree.
+    ///   * Can be created by [`into_subtree`] method.
+    ///   * ***O(n)***
+    /// * **III.** Another entire tree
+    ///   * The other tree will be consumed and moved into this tree.
+    ///   * ***O(1)***
+    ///
+    /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
+    /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
+    /// [`into_subtree`]: crate::NodeMut::into_subtree
+    ///
     /// # Examples
     ///
-    /// ## Append Subtree cloned-copied from another Tree
+    /// ## I. Append Subtree cloned-copied from another Tree
     ///
     /// Remains the source tree unchanged.
     ///
@@ -868,10 +887,10 @@ where
     /// //   8
     ///
     /// let n6 = b.node(&id6).as_cloned_subtree();
-    /// a.node_mut(&id4).append_sibling_tree(Side::Left, n6);
+    /// a.node_mut(&id4).push_sibling_tree(Side::Left, n6);
     ///
     /// let n7 = b.node(&id7).as_copied_subtree();
-    /// a.node_mut(&id2).append_sibling_tree(Side::Right, n7);
+    /// a.node_mut(&id2).push_sibling_tree(Side::Right, n7);
     ///
     /// // validate the trees
     ///
@@ -882,7 +901,7 @@ where
     /// assert_eq!(bfs_b, [5, 6, 7, 8, 9, 10]); // unchanged
     /// ``````
     ///
-    /// ## Append Subtree taken out of another Tree
+    /// ## II. Append Subtree taken out of another Tree
     ///
     /// The source subtree rooted at the given node will be removed from the source
     /// tree.
@@ -922,10 +941,10 @@ where
     /// //
     ///
     /// let n7 = b.node_mut(&id7).into_subtree();
-    /// a.node_mut(&id2).append_sibling_tree(Side::Left, n7);
+    /// a.node_mut(&id2).push_sibling_tree(Side::Left, n7);
     ///
     /// let n1 = a.node_mut(&id1).into_subtree();
-    /// b.node_mut(&id6).append_sibling_tree(Side::Right, n1);
+    /// b.node_mut(&id6).push_sibling_tree(Side::Right, n1);
     ///
     /// // validate the trees
     ///
@@ -936,7 +955,7 @@ where
     /// assert_eq!(bfs_b, [5, 6, 1, 8, 3, 4]);
     /// ```
     ///
-    /// ## Append Another Tree
+    /// ## III. Append Another Tree
     ///
     /// The source tree will be moved into the target tree.
     ///
@@ -977,8 +996,8 @@ where
     ///
     /// // merge b & c into tree
     ///
-    /// let id4 = tree.node_mut(&id3).append_sibling_tree(Side::Left, b);
-    /// let id2 = tree.node_mut(&id1).append_sibling_tree(Side::Right, c);
+    /// let id4 = tree.node_mut(&id3).push_sibling_tree(Side::Left, b);
+    /// let id2 = tree.node_mut(&id1).push_sibling_tree(Side::Right, c);
     ///
     /// assert_eq!(tree.node(&id2).data(), &2);
     /// assert_eq!(tree.node(&id4).data(), &4);
@@ -988,11 +1007,7 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10]);
     /// ```
-    pub fn append_sibling_tree(
-        &mut self,
-        side: Side,
-        subtree: impl SubTree<V::Item>,
-    ) -> NodeIdx<V> {
+    pub fn push_sibling_tree(&mut self, side: Side, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
@@ -1975,14 +1990,14 @@ where
     /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
     /// to this node.
     ///
-    /// Consuming the created subtree in methods such as [`append_child_tree`] or [`append_sibling_tree`] will remove the
+    /// Consuming the created subtree in methods such as [`push_child_tree`] or [`push_sibling_tree`] will remove the
     /// subtree from this tree and move it to the target tree.
     /// Please see **Append Subtree taken out of another Tree** section of the examples of these methods.
     ///
     /// Otherwise, it has no impact on the tree.
     ///
-    /// [`append_child_tree`]: crate::NodeMut::append_child_tree
-    /// [`append_sibling_tree`]: crate::NodeMut::append_sibling_tree
+    /// [`push_child_tree`]: crate::NodeMut::push_child_tree
+    /// [`push_sibling_tree`]: crate::NodeMut::push_sibling_tree
     pub fn into_subtree(self) -> MovedSubTree<'a, V, M, P, MO> {
         MovedSubTree::new(self)
     }
