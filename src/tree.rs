@@ -563,7 +563,7 @@ where
     ///
     /// (*) Validation of the independence of the subtrees is performed in ***O(D)*** time where D is the maximum
     /// depth of the tree. When we are certain that the subtrees do not intersect, we can use the unsafe variant
-    /// [`swap_nodes_unchecked`] to bypass the validation and avoid the O(D) time.
+    /// [`swap_nodes_unchecked`] to bypass the validation.
     ///
     /// In order to only swap data of two nodes, rather than the subtrees, please see [`swap_data_with`] method.
     ///
