@@ -1027,7 +1027,7 @@ where
 
     /// # Examples
     ///
-    /// ## Append Subtree moved from another Position of the Tree
+    /// ## I. Append Subtree moved from another position of this tree
     ///
     /// ```
     /// use orx_tree::*;
@@ -1065,6 +1065,50 @@ where
     ///
     /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
+    /// ```
+    ///
+    /// ## II. Append Subtree cloned-copied from another position of this tree
+    ///
+    /// Remains the source tree unchanged.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1                1
+    /// //     ╱ ╲              ╱ ╲
+    /// //    ╱   ╲            ╱   ╲
+    /// //   2     3          2     3
+    /// //  ╱ ╲   ╱ ╲   =>   ╱ ╲   ╱|╲
+    /// // 4   5 6   7      4   5 6 7 3
+    /// //     |            |   |    ╱ ╲
+    /// //     8            5   8   6   7
+    /// //                  |
+    /// //                  8
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
+    /// tree.node_mut(&id5).push_child(8);
+    /// tree.node_mut(&id3).push_children([6, 7]);
+    ///
+    /// // clone subtree rooted at n5 as a child of n4
+    /// let st5 = id5.as_cloned_subtree_within();
+    /// tree.node_mut(&id4).push_child_tree_within(st5);
+    ///
+    /// // copy subtree rooted at n3 (n3, n6 & n7) as a child of n3 (itself)
+    /// let st3 = id3.as_cloned_subtree_within();
+    /// tree.node_mut(&id3).push_child_tree_within(st3);
+    ///
+    /// // validate the tree
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 3, 5, 8, 6, 7, 8]);
+    ///
+    /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 4, 5, 8, 5, 8, 3, 6, 7, 3, 6, 7]);
     /// ```
     pub fn push_child_tree_within(&mut self, subtree: impl SubTreeWithin<V>) {
         subtree.append_to_node_within_as_child(self, self.num_children());
@@ -2244,37 +2288,37 @@ fn abc() {
     use crate::*;
     use alloc::vec::Vec;
 
-    //      1                1              1
-    //     ╱ ╲              ╱ ╲             |
-    //    ╱   ╲            ╱   ╲            |
-    //   2     3          2     3           2
-    //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
-    // 4   5 6   7      4 5 8 6   7       4 5 8
-    // |                                    |
-    // 8                                    3
-    //                                     ╱ ╲
-    //                                    6   7
+    //      1                1
+    //     ╱ ╲              ╱ ╲
+    //    ╱   ╲            ╱   ╲
+    //   2     3          2     3
+    //  ╱ ╲   ╱ ╲   =>   ╱ ╲   ╱|╲
+    // 4   5 6   7      4   5 6 7 3
+    //     |            |   |    ╱ ╲
+    //     8            5   8   6   7
+    //                  |
+    //                  8
 
     let mut tree = DynTree::<_>::new(1);
 
     let [id2, id3] = tree.root_mut().push_children([2, 3]);
     let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    let id8 = tree.node_mut(&id4).push_child(8);
+    tree.node_mut(&id5).push_child(8);
     tree.node_mut(&id3).push_children([6, 7]);
 
-    // move subtree rooted at n8 (single node) as a child of n2
-    let st8 = id8.into_subtree_within();
-    tree.node_mut(&id2).push_child_tree_within(st8);
+    // clone subtree rooted at n5 as a child of n4
+    let st5 = id5.as_cloned_subtree_within();
+    tree.node_mut(&id4).push_child_tree_within(st5);
 
-    // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
-    let st3 = id3.into_subtree_within();
-    tree.node_mut(&id5).push_child_tree_within(st3);
+    // copy subtree rooted at n3 (n3, n6 & n7) as a child of n3 (itself)
+    let st3 = id3.as_cloned_subtree_within();
+    tree.node_mut(&id3).push_child_tree_within(st3);
 
     // validate the tree
 
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
+    assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 3, 5, 8, 6, 7, 8]);
 
     let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
-    assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
+    assert_eq!(dfs, [1, 2, 4, 5, 8, 5, 8, 3, 6, 7, 3, 6, 7]);
 }
