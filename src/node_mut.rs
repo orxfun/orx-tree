@@ -1,6 +1,6 @@
 use crate::{
     helpers::{Col, N},
-    iter::ChildrenMutIter,
+    iter::{AncestorsIterPtr, ChildrenMutIter},
     memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
@@ -187,15 +187,6 @@ where
     /// If this node already has children, the new child is added to the end as the
     /// new right-most node among the children.
     ///
-    /// # Panics
-    ///
-    /// Panics if the tree is of a variant with fixed children capacity,
-    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
-    /// and if this hard capacity is violated with the new child.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
-    ///
     /// # Examples
     ///
     /// ```
@@ -250,15 +241,6 @@ where
     ///
     /// If this node already has children, the new children are added to the end as the
     /// new right-most nodes of the children.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the tree is of a variant with fixed children capacity,
-    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
-    /// and if this hard capacity is violated with the new child.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
     ///
     /// # Examples
     ///
@@ -315,15 +297,6 @@ where
     ///
     /// Importantly note that this method returns a **lazy** iterator.
     /// If the returned iterator is not consumed, the children will **not** be pushed.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the tree is of a variant with fixed children capacity,
-    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
-    /// and if this hard capacity is violated with the new child.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
     ///
     /// # Examples
     ///
@@ -391,15 +364,6 @@ where
     /// In other words, the root of the subtree will be immediate sibling of this node,
     /// and the other nodes of the subtree will also be added with the same orientation
     /// relative to the subtree root.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the tree is of a variant with fixed children capacity,
-    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
-    /// and if this hard capacity is violated with the new child.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
     ///
     /// # Examples
     ///
@@ -585,13 +549,6 @@ where
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
     ///
-    /// Further panics if the tree is of a variant with fixed children capacity,
-    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
-    /// and if this hard capacity is violated with the new sibling.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
-    ///
     /// # Examples
     ///
     /// ```
@@ -666,12 +623,6 @@ where
     /// # Panics
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
-    ///
-    /// Further, the method might panic if the tree variant allows for a fixed number
-    /// of children, as [`BinaryTree`] or any [`DaryTree`], and this capacity is exceeded.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
     ///
     /// # Examples
     ///
@@ -761,12 +712,6 @@ where
     /// # Panics
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
-    ///
-    /// Further, the method might panic if the tree variant allows for a fixed number
-    /// of children, as [`BinaryTree`] or any [`DaryTree`], and this capacity is exceeded.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
     ///
     /// # Examples
     ///
@@ -859,13 +804,6 @@ where
     /// # Panics
     ///
     /// Panics if this node is the root; root node cannot have a sibling.
-    ///
-    /// Further panics if the tree is of a variant with fixed children capacity,
-    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
-    /// and if this hard capacity is violated with the new sibling.
-    ///
-    /// [`BinaryTree`]: crate::BinaryTree
-    /// [`DaryTree`]: crate::DaryTree
     ///
     /// # Examples
     ///
@@ -1048,6 +986,121 @@ where
         let mut parent = NodeMut::<V, M, P, MO>::new(self.col, parent_ptr);
 
         subtree.append_to_node_as_child(&mut parent, position)
+    }
+
+    // growth - within - vertically
+
+    /// ***O(1)*** Moves the subtree of this tree rooted at the node with the given `child_idx`
+    /// as a child of this node.
+    ///
+    /// If this node already has children, the new child is added to the end as the
+    /// new right-most node of the children.
+    ///
+    /// `child_idx` remains as a valid [`NodeIdx`] pointing at the same node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `child_idx` is not valid for this tree.
+    ///
+    /// Also panics if the node with the `child_idx` is an ancestor of this node.
+    ///
+    /// # See also
+    ///
+    /// (*) Ancestor assertion is performed in ***O(D)*** time where D is the maximum depth of the tree.
+    /// When we are certain that to-be-child node is not an ancestor of this node, we may use the unsafe
+    /// [`push_child_from_within_unchecked`] method to bypass the validation.
+    ///
+    /// [`push_child_from_within_unchecked`]: crate::NodeMut::push_child_from_within_unchecked
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1                1              1
+    /// //     ╱ ╲              ╱ ╲             |
+    /// //    ╱   ╲            ╱   ╲            |
+    /// //   2     3          2     3           2
+    /// //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
+    /// // 4   5 6   7      4 5 8 6   7       4 5 8
+    /// // |                                    |
+    /// // 8                                    3
+    /// //                                     ╱ ╲
+    /// //                                    6   7
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
+    /// let id8 = tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(&id3).push_children([6, 7]);
+    ///
+    /// // move subtree rooted at n8 (single node) as a child of n2
+    /// tree.node_mut(&id2).push_child_from_within(&id8);
+    ///
+    /// // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
+    /// tree.node_mut(&id5).push_child_from_within(&id3);
+    ///
+    /// // node indices are unchanged
+    /// assert_eq!(tree.node(&id8).data(), &8);
+    /// assert_eq!(tree.node(&id3).data(), &3);
+    ///
+    /// // validate the tree
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
+    ///
+    /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
+    /// ```
+    pub fn push_child_from_within(&mut self, child_idx: &NodeIdx<V>) {
+        let root_ptr = self.root_ptr().expect("non-empty tree");
+        let ptr_parent = self.node_ptr.clone();
+        let ptr_child = self.col.try_get_ptr(&child_idx.0).expect(INVALID_IDX_ERROR);
+        assert!(AncestorsIterPtr::new(root_ptr.clone(), ptr_parent.clone()).all(|x| x != ptr_child),
+            "Node to be moved as a child of this node (with the given child_idx) is an ancestor of this tree. Cannot perform the move.");
+
+        // SAFETY: Safety check is performed: index is valid and it does not belong to an ancestor.
+        unsafe {
+            self.push_child_from_within_unchecked(child_idx);
+        }
+    }
+
+    /// ***O(1)*** Moves the subtree of this tree rooted at the node with the given `child_idx`
+    /// as a child of this node.
+    ///
+    /// If this node already has children, the new child is added to the end as the
+    /// new right-most node of the children.
+    ///
+    /// `child_idx` remains as a valid [`NodeIdx`] pointing at the same node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `child_idx` is not valid for this tree.
+    ///
+    /// # Safety
+    ///
+    /// If the node with the given `child_idx` is an ancestor of this node, the resulting tree will have an
+    /// invalid cyclic tree structure. Therefore, it is safe to use this method only when we are certain that
+    /// to-be-child node is not an ancestor of this node.
+    ///
+    /// See also [`push_child_from_within`] for the safe variant..
+    ///
+    /// [`push_child_from_within`]: crate::NodeMut::push_child_from_within
+    pub unsafe fn push_child_from_within_unchecked(&mut self, child_idx: &NodeIdx<V>) {
+        let ptr_parent = self.node_ptr.clone();
+        let ptr_child = self.col.try_get_ptr(&child_idx.0).expect(INVALID_IDX_ERROR);
+
+        let node_child = unsafe { &mut *ptr_child.ptr_mut() };
+
+        if let Some(ptr_old_parent) = node_child.prev().get().cloned() {
+            let old_parent = unsafe { &mut *ptr_old_parent.ptr_mut() };
+            old_parent.next_mut().remove(ptr_child.ptr() as usize);
+        }
+        node_child.prev_mut().set_some(ptr_parent.clone());
+
+        let node_parent = unsafe { &mut *ptr_parent.ptr_mut() };
+        node_parent.next_mut().push(ptr_child);
     }
 
     // shrink
@@ -1920,6 +1973,11 @@ where
         self.node().prev().get().cloned()
     }
 
+    /// Returns the pointer to the root; None if empty.
+    fn root_ptr(&self) -> Option<&NodePtr<V>> {
+        self.col.ends().get()
+    }
+
     fn node_idx_for(&self, ptr: &NodePtr<V>) -> NodeIdx<V> {
         NodeIdx(orx_selfref_col::NodeIdx::new(self.col.memory_state(), ptr))
     }
@@ -2098,4 +2156,42 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
+}
+
+#[test]
+fn abc() {
+    use crate::*;
+    use alloc::vec::Vec;
+
+    //      1                1              1
+    //     ╱ ╲              ╱ ╲             |
+    //    ╱   ╲            ╱   ╲            |
+    //   2     3          2     3           2
+    //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
+    // 4   5 6   7      4 5 8 6   7       4 5 8
+    // |                                    |
+    // 8                                    3
+    //                                     ╱ ╲
+    //                                    6   7
+
+    let mut tree = DynTree::<_>::new(1);
+
+    let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
+    let id8 = tree.node_mut(&id4).push_child(8);
+    tree.node_mut(&id3).push_children([6, 7]);
+
+    // move subtree rooted at n8 (single node) as a child of n2
+    tree.node_mut(&id2).push_child_from_within(&id8);
+
+    // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
+    tree.node_mut(&id5).push_child_from_within(&id3);
+
+    // validate the tree
+
+    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
+
+    let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+    assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
 }
