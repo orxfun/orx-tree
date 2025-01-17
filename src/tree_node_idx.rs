@@ -1,6 +1,5 @@
+use crate::{subtrees_within::MovedSubTreeWithin, TreeVariant};
 use core::fmt::Debug;
-
-use crate::TreeVariant;
 
 pub(crate) const INVALID_IDX_ERROR: &str = "\n
 NodeIdx is not valid for the given tree.
@@ -232,6 +231,12 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 /// * We can only experience implicit invalidation when we are using [`Auto`] (or auto with threshold)
 ///   memory policy and remove nodes from the tree.
 pub struct NodeIdx<V: TreeVariant>(pub(crate) orx_selfref_col::NodeIdx<V>);
+
+impl<V: TreeVariant> NodeIdx<V> {
+    pub fn into_subtree_within(self) -> MovedSubTreeWithin<V> {
+        MovedSubTreeWithin::new(self)
+    }
+}
 
 impl<V: TreeVariant> Clone for NodeIdx<V> {
     fn clone(&self) -> Self {

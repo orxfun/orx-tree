@@ -4,7 +4,8 @@ use crate::{
     memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
-    subtrees::NodeMutAsSubTree,
+    subtrees::MovedSubTree,
+    subtrees_within::SubTreeWithin,
     traversal::{
         enumerations::Val,
         over_mut::{OverItemInto, OverItemMut},
@@ -990,6 +991,51 @@ where
 
     // growth - within - vertically
 
+    /// # Examples
+    ///
+    /// ## Append Subtree moved from another Position of the Tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1                1              1
+    /// //     ╱ ╲              ╱ ╲             |
+    /// //    ╱   ╲            ╱   ╲            |
+    /// //   2     3          2     3           2
+    /// //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
+    /// // 4   5 6   7      4 5 8 6   7       4 5 8
+    /// // |                                    |
+    /// // 8                                    3
+    /// //                                     ╱ ╲
+    /// //                                    6   7
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
+    /// let id8 = tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(&id3).push_children([6, 7]);
+    ///
+    /// // move subtree rooted at n8 (single node) as a child of n2
+    /// let st8 = id8.into_subtree_within();
+    /// tree.node_mut(&id2).append_child_tree_from_within(st8);
+    ///
+    /// // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
+    /// let st3 = id3.into_subtree_within();
+    /// tree.node_mut(&id5).append_child_tree_from_within(st3);
+    ///
+    /// // validate the tree
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
+    ///
+    /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
+    /// ```
+    pub fn append_child_tree_from_within(&mut self, subtree: impl SubTreeWithin<V>) {
+        subtree.append_to_node_within_as_child(self, self.num_children());
+    }
+
     /// ***O(1)*** Moves the subtree of this tree rooted at the node with the given `child_idx`
     /// as a child of this node.
     ///
@@ -1916,8 +1962,8 @@ where
     ///
     /// [`append_child_tree`]: crate::NodeMut::append_child_tree
     /// [`append_sibling_tree`]: crate::NodeMut::append_sibling_tree
-    pub fn into_subtree(self) -> NodeMutAsSubTree<'a, V, M, P, MO> {
-        NodeMutAsSubTree::new(self)
+    pub fn into_subtree(self) -> MovedSubTree<'a, V, M, P, MO> {
+        MovedSubTree::new(self)
     }
 
     // helpers
@@ -1974,7 +2020,7 @@ where
     }
 
     /// Returns the pointer to the root; None if empty.
-    fn root_ptr(&self) -> Option<&NodePtr<V>> {
+    pub(crate) fn root_ptr(&self) -> Option<&NodePtr<V>> {
         self.col.ends().get()
     }
 
@@ -2182,10 +2228,12 @@ fn abc() {
     tree.node_mut(&id3).push_children([6, 7]);
 
     // move subtree rooted at n8 (single node) as a child of n2
-    tree.node_mut(&id2).push_child_from_within(&id8);
+    let st8 = id8.into_subtree_within();
+    tree.node_mut(&id2).append_child_tree_from_within(st8);
 
     // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
-    tree.node_mut(&id5).push_child_from_within(&id3);
+    let st3 = id3.into_subtree_within();
+    tree.node_mut(&id5).append_child_tree_from_within(st3);
 
     // validate the tree
 
