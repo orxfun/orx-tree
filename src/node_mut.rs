@@ -9,7 +9,7 @@ use crate::{
         enumerations::{DepthVal, Val},
         over::OverDepthPtr,
         over_mut::{OverItemInto, OverItemMut},
-        post_order::iter_ptr::{Item, PostOrderIterPtr},
+        post_order::iter_ptr::PostOrderIterPtr,
         traverser_core::TraverserCore,
         Over, OverData, OverMut,
     },

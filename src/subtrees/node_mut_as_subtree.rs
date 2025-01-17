@@ -1,4 +1,4 @@
-use super::subtree::SubTree;
+use super::subtree::sealed::SubTreeCore;
 use crate::{
     pinned_storage::PinnedStorage,
     traversal::{traverser_core::TraverserCore, OverDepthData},
@@ -27,7 +27,7 @@ where
     }
 }
 
-impl<'a, V, M, P, MO> SubTree<V::Item> for NodeMutAsSubTree<'a, V, M, P, MO>
+impl<'a, V, M, P, MO> SubTreeCore<V::Item> for NodeMutAsSubTree<'a, V, M, P, MO>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,

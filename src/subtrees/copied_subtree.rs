@@ -1,4 +1,4 @@
-use super::SubTree;
+use super::subtree::sealed::SubTreeCore;
 use crate::{
     pinned_storage::PinnedStorage,
     traversal::{over::OverDepthPtr, traverser_core::TraverserCore},
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<'a, V, M, P, N> SubTree<V::Item> for CopiedSubTree<'a, V, M, P, N>
+impl<'a, V, M, P, N> SubTreeCore<V::Item> for CopiedSubTree<'a, V, M, P, N>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,

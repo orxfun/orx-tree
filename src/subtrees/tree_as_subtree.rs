@@ -1,11 +1,11 @@
-use super::subtree::SubTree;
+use super::subtree::sealed::SubTreeCore;
 use crate::{
     pinned_storage::PinnedStorage,
     traversal::{over::OverDepthData, traverser_core::TraverserCore},
     Dfs, MemoryPolicy, NodeIdx, NodeMut, Tree, TreeVariant,
 };
 
-impl<V, M, P> SubTree<V::Item> for Tree<V, M, P>
+impl<V, M, P> SubTreeCore<V::Item> for Tree<V, M, P>
 where
     V: TreeVariant,
     M: MemoryPolicy,
