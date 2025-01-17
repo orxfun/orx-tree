@@ -57,5 +57,3 @@ pub use tree_variant::TreeVariant;
 // ERRORS
 pub use errors::NodeSwapError;
 pub use orx_selfref_col::NodeIdxError;
-
-mod ideation;
