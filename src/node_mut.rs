@@ -5,7 +5,6 @@ use crate::{
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
     subtrees::MovedSubTree,
-    subtrees_within::SubTreeWithin,
     traversal::{
         enumerations::Val,
         over_mut::{OverItemInto, OverItemMut},
@@ -359,16 +358,35 @@ where
         })
     }
 
-    /// Appends the entire `subtree` as a child of this node;
+    /// Appends the entire `subtree` of another tree as a child of this node;
     /// and returns the [`NodeIdx`] of the created child node.
     ///
     /// In other words, the root of the subtree will be immediate sibling of this node,
     /// and the other nodes of the subtree will also be added with the same orientation
     /// relative to the subtree root.
     ///
+    /// # Subtree Variants
+    ///
+    /// * **I.** Cloned / copied subtree
+    ///   * A subtree cloned or copied from another tree.
+    ///   * The source tree remains unchanged.
+    ///   * Can be created by [`as_cloned_subtree`] and [`as_copied_subtree`] methods.
+    ///   * ***O(n)***
+    /// * **II.** Subtree moved out of another tree
+    ///   * The subtree will be moved from the source tree to this tree.
+    ///   * Can be created by [`into_subtree`] method.
+    ///   * ***O(n)***
+    /// * **III.** Another entire tree
+    ///   * The other tree will be consumed and moved into this tree.
+    ///   * ***O(1)***
+    ///
+    /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
+    /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
+    /// [`into_subtree`]: crate::NodeMut::into_subtree
+    ///
     /// # Examples
     ///
-    /// ## Append Subtree cloned-copied from another Tree
+    /// ## I. Append Subtree cloned-copied from another Tree
     ///
     /// Remains the source tree unchanged.
     ///
@@ -426,7 +444,7 @@ where
     /// assert_eq!(bfs_b, [5, 6, 7, 8, 9, 10]); // unchanged
     /// ```
     ///
-    /// ## Append Subtree taken out of another Tree
+    /// ## II. Append Subtree moved out of another Tree
     ///
     /// The source subtree rooted at the given node will be removed from the source
     /// tree.
@@ -481,7 +499,7 @@ where
     /// assert_eq!(bfs_b, [5, 6, 1, 8, 3, 4]);
     /// ```
     ///
-    /// ## Append Another Tree
+    /// ## III. Append Another Tree
     ///
     /// The source tree will be moved into the target tree.
     ///
@@ -991,50 +1009,53 @@ where
 
     // growth - within - vertically
 
-    /// # Examples
-    ///
-    /// ## Append Subtree moved from another Position of the Tree
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1                1              1
-    /// //     ╱ ╲              ╱ ╲             |
-    /// //    ╱   ╲            ╱   ╲            |
-    /// //   2     3          2     3           2
-    /// //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
-    /// // 4   5 6   7      4 5 8 6   7       4 5 8
-    /// // |                                    |
-    /// // 8                                    3
-    /// //                                     ╱ ╲
-    /// //                                    6   7
-    ///
-    /// let mut tree = DynTree::<_>::new(1);
-    ///
-    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    /// let id8 = tree.node_mut(&id4).push_child(8);
-    /// tree.node_mut(&id3).push_children([6, 7]);
-    ///
-    /// // move subtree rooted at n8 (single node) as a child of n2
-    /// let st8 = id8.into_subtree_within();
-    /// tree.node_mut(&id2).append_child_tree_from_within(st8);
-    ///
-    /// // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
-    /// let st3 = id3.into_subtree_within();
-    /// tree.node_mut(&id5).append_child_tree_from_within(st3);
-    ///
-    /// // validate the tree
-    ///
-    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
-    ///
-    /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
-    /// assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
-    /// ```
-    pub fn append_child_tree_from_within(&mut self, subtree: impl SubTreeWithin<V>) {
-        subtree.append_to_node_within_as_child(self, self.num_children());
-    }
+    // /// # Examples
+    // ///
+    // /// ## Append Subtree moved from another Position of the Tree
+    // ///
+    // /// ```
+    // /// use orx_tree::*;
+    // ///
+    // /// //      1                1              1
+    // /// //     ╱ ╲              ╱ ╲             |
+    // /// //    ╱   ╲            ╱   ╲            |
+    // /// //   2     3          2     3           2
+    // /// //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
+    // /// // 4   5 6   7      4 5 8 6   7       4 5 8
+    // /// // |                                    |
+    // /// // 8                                    3
+    // /// //                                     ╱ ╲
+    // /// //                                    6   7
+    // ///
+    // /// let mut tree = DynTree::<_>::new(1);
+    // ///
+    // /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    // /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
+    // /// let id8 = tree.node_mut(&id4).push_child(8);
+    // /// tree.node_mut(&id3).push_children([6, 7]);
+    // ///
+    // /// // move subtree rooted at n8 (single node) as a child of n2
+    // /// let st8 = id8.into_subtree_within();
+    // /// tree.node_mut(&id2).append_child_tree_from_within(st8);
+    // ///
+    // /// // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
+    // /// let st3 = id3.into_subtree_within();
+    // /// tree.node_mut(&id5).append_child_tree_from_within(st3);
+    // ///
+    // /// // validate the tree
+    // ///
+    // /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    // /// assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
+    // ///
+    // /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+    // /// assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
+    // /// ```
+    // pub fn append_child_tree_from_within<Vs>(&mut self, subtree: impl SubTree<Vs, V>)
+    // where
+    //     Vs: TreeVariant<Item = V::Item>,
+    // {
+    //     subtree.append_to_node_as_child(self, self.num_children());
+    // }
 
     /// ***O(1)*** Moves the subtree of this tree rooted at the node with the given `child_idx`
     /// as a child of this node.
@@ -2031,21 +2052,22 @@ where
     pub(crate) fn append_subtree_as_child(
         &mut self,
         subtree: impl IntoIterator<Item = (usize, V::Item)>,
-        child_idx: usize,
+        child_position: usize,
     ) -> NodeIdx<V> {
         let mut iter = subtree.into_iter();
         let (mut current_depth, value) = iter.next().expect("tree is not empty");
         debug_assert_eq!(current_depth, 0);
 
-        let idx = match child_idx == self.num_children() {
+        let idx = match child_position == self.num_children() {
             true => self.push_child(value),
             false => {
-                let ptr = Self::insert_sibling_get_ptr(self.col, value, &self.node_ptr, child_idx);
+                let ptr =
+                    Self::insert_sibling_get_ptr(self.col, value, &self.node_ptr, child_position);
                 self.node_idx_for(&ptr)
             }
         };
 
-        let position = child_idx;
+        let position = child_position;
         let mut dst = self.child_mut(position).expect("child exists");
 
         for (depth, value) in iter {
@@ -2204,42 +2226,42 @@ where
     }
 }
 
-#[test]
-fn abc() {
-    use crate::*;
-    use alloc::vec::Vec;
+// #[test]
+// fn abc() {
+//     use crate::*;
+//     use alloc::vec::Vec;
 
-    //      1                1              1
-    //     ╱ ╲              ╱ ╲             |
-    //    ╱   ╲            ╱   ╲            |
-    //   2     3          2     3           2
-    //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
-    // 4   5 6   7      4 5 8 6   7       4 5 8
-    // |                                    |
-    // 8                                    3
-    //                                     ╱ ╲
-    //                                    6   7
+//     //      1                1              1
+//     //     ╱ ╲              ╱ ╲             |
+//     //    ╱   ╲            ╱   ╲            |
+//     //   2     3          2     3           2
+//     //  ╱ ╲   ╱ ╲   =>   ╱|╲   ╱ ╲    =>   ╱|╲
+//     // 4   5 6   7      4 5 8 6   7       4 5 8
+//     // |                                    |
+//     // 8                                    3
+//     //                                     ╱ ╲
+//     //                                    6   7
 
-    let mut tree = DynTree::<_>::new(1);
+//     let mut tree = DynTree::<_>::new(1);
 
-    let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    let id8 = tree.node_mut(&id4).push_child(8);
-    tree.node_mut(&id3).push_children([6, 7]);
+//     let [id2, id3] = tree.root_mut().push_children([2, 3]);
+//     let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
+//     let id8 = tree.node_mut(&id4).push_child(8);
+//     tree.node_mut(&id3).push_children([6, 7]);
 
-    // move subtree rooted at n8 (single node) as a child of n2
-    let st8 = id8.into_subtree_within();
-    tree.node_mut(&id2).append_child_tree_from_within(st8);
+//     // move subtree rooted at n8 (single node) as a child of n2
+//     let st8 = id8.into_subtree_within();
+//     tree.node_mut(&id2).append_child_tree_from_within(st8);
 
-    // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
-    let st3 = id3.into_subtree_within();
-    tree.node_mut(&id5).append_child_tree_from_within(st3);
+//     // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
+//     let st3 = id3.into_subtree_within();
+//     tree.node_mut(&id5).append_child_tree_from_within(st3);
 
-    // validate the tree
+//     // validate the tree
 
-    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
+//     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+//     assert_eq!(bfs, [1, 2, 4, 5, 8, 3, 6, 7]);
 
-    let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
-    assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
-}
+//     let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+//     assert_eq!(dfs, [1, 2, 4, 5, 3, 6, 7, 8]);
+// }
