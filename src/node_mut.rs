@@ -362,7 +362,7 @@ where
     /// Appends the entire `subtree` of another tree as a child of this node;
     /// and returns the [`NodeIdx`] of the created child node.
     ///
-    /// In other words, the root of the subtree will be immediate sibling of this node,
+    /// In other words, the root of the subtree will be immediate child of this node,
     /// and the other nodes of the subtree will also be added with the same orientation
     /// relative to the subtree root.
     ///
@@ -1025,6 +1025,36 @@ where
 
     // growth - within - vertically
 
+    /// Appends the entire `subtree` of this tree as a child of this node;
+    /// and returns the [`NodeIdx`] of the created child node.
+    ///
+    /// In other words, the root of the subtree will be immediate child of this node,
+    /// and the other nodes of the subtree will also be added with the same orientation
+    /// relative to the subtree root.
+    ///
+    /// # Subtree Variants
+    ///
+    /// * **I.** Subtree moved out of this tree
+    ///   * The subtree will be moved from its original to child of this node.
+    ///   * Can be created by [`into_subtree_within`] method.
+    ///   * **Panics** if the root of the subtree is an ancestor of this node.
+    ///   * ***O(1)***
+    /// * **II.** Cloned / copied subtree from this tree
+    ///   * A subtree cloned or copied from another tree.
+    ///   * The source tree remains unchanged.
+    ///   * Can be created by [`as_cloned_subtree_within`] and [`as_copied_subtree_within`] methods.
+    ///   * ***O(n)***
+    ///
+    /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
+    /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
+    /// [`into_subtree_within`]: crate::NodeIdx::into_subtree_within
+    ///
+    /// # Panics
+    ///
+    /// Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
+    /// the root of the subtree is an ancestor of this node.
+    /// Notice that such a move would break structural properties of the tree.
+    ///
     /// # Examples
     ///
     /// ## I. Append Subtree moved from another position of this tree
@@ -1110,8 +1140,8 @@ where
     /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [1, 2, 4, 5, 8, 5, 8, 3, 6, 7, 3, 6, 7]);
     /// ```
-    pub fn push_child_tree_within(&mut self, subtree: impl SubTreeWithin<V>) {
-        subtree.append_to_node_within_as_child(self, self.num_children());
+    pub fn push_child_tree_within(&mut self, subtree: impl SubTreeWithin<V>) -> NodeIdx<V> {
+        subtree.append_to_node_within_as_child(self, self.num_children())
     }
 
     /// ***O(1)*** Moves the subtree of this tree rooted at the node with the given `child_idx`

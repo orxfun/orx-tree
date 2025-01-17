@@ -29,7 +29,8 @@ where
         self,
         parent: &mut NodeMut<V, M, P, MO>,
         child_position: usize,
-    ) where
+    ) -> NodeIdx<V>
+    where
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
@@ -46,5 +47,7 @@ where
             )
         });
         parent.append_subtree_as_child(subtree, child_position);
+
+        self.idx.clone()
     }
 }
