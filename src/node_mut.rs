@@ -2078,6 +2078,17 @@ where
 
     // subtree
 
+    /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
+    /// to this node.
+    ///
+    /// Consuming the created subtree in methods such as [`append_child_tree`] or [`append_sibling_tree`] will remove the
+    /// subtree from this tree and move it to the target tree.
+    /// Please see **Append Subtree taken out of another Tree** section of the examples of these methods.
+    ///
+    /// Otherwise, it has no impact on the tree.
+    ///
+    /// [`append_child_tree`]: crate::NodeMut::append_child_tree
+    /// [`append_sibling_tree`]: crate::NodeMut::append_sibling_tree
     pub fn into_subtree(self) -> NodeMutAsSubTree<'a, V, M, P, MO> {
         NodeMutAsSubTree::new(self)
     }
