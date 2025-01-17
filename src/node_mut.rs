@@ -652,7 +652,7 @@ where
             Side::Right => self.sibling_idx() + 1,
         };
 
-        let ptr = Self::insert_sibling_get_ptr(&mut self.col, value, &parent_ptr, position);
+        let ptr = Self::insert_sibling_get_ptr(self.col, value, &parent_ptr, position);
         self.node_idx_for(&ptr)
     }
 
@@ -739,7 +739,7 @@ where
 
         values.map(|sibling| {
             let sibling_ptr =
-                Self::insert_sibling_get_ptr(&mut self.col, sibling, &parent_ptr, position);
+                Self::insert_sibling_get_ptr(self.col, sibling, &parent_ptr, position);
             position += 1;
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
@@ -836,7 +836,7 @@ where
 
         values.into_iter().map(move |sibling| {
             let sibling_ptr =
-                Self::insert_sibling_get_ptr(&mut self.col, sibling, &parent_ptr, position);
+                Self::insert_sibling_get_ptr(self.col, sibling, &parent_ptr, position);
             position += 1;
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
@@ -1045,7 +1045,7 @@ where
             Side::Right => self.sibling_idx() + 1,
         };
 
-        let mut parent = NodeMut::<V, M, P, MO>::new(&mut self.col, parent_ptr);
+        let mut parent = NodeMut::<V, M, P, MO>::new(self.col, parent_ptr);
 
         subtree.append_to_node_as_child(&mut parent, position)
     }
@@ -1936,8 +1936,7 @@ where
         let idx = match child_idx == self.num_children() {
             true => self.push_child(value),
             false => {
-                let ptr =
-                    Self::insert_sibling_get_ptr(&mut self.col, value, &self.node_ptr, child_idx);
+                let ptr = Self::insert_sibling_get_ptr(self.col, value, &self.node_ptr, child_idx);
                 self.node_idx_for(&ptr)
             }
         };
