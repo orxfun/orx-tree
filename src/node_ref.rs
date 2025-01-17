@@ -5,14 +5,11 @@ use crate::{
     pinned_storage::PinnedStorage,
     subtrees::{ClonedSubTree, CopiedSubTree},
     traversal::{
-        enumeration::Enumeration,
-        enumerations::{DepthVal, Val},
-        over::{OverDepthPtr, OverItem},
-        traverser_core::TraverserCore,
+        enumeration::Enumeration, enumerations::Val, over::OverItem, traverser_core::TraverserCore,
         Over, OverData,
     },
     tree_variant::RefsChildren,
-    Dfs, Node, NodeIdx, Traverser, Tree, TreeVariant,
+    Node, NodeIdx, Traverser, Tree, TreeVariant,
 };
 use orx_selfref_col::{NodePtr, Refs};
 
@@ -923,13 +920,6 @@ where
 
     /// Clone the subtree rooted at this node as a separate tree.
     ///
-    /// # See also
-    ///
-    /// * [`clone_as_tree_with`]: to reuse a depth-first traverser for repeated traversals
-    ///   to avoid additional allocation.
-    ///
-    /// [`clone_as_tree_with`]: NodeRef::clone_as_tree_with
-    ///
     /// # Examples
     ///
     /// ```
@@ -977,66 +967,10 @@ where
         P::PinnedVec<V2>: Default,
         V::Item: Clone,
     {
-        let mut traverser = Dfs::<OverDepthPtr>::new();
-        self.clone_as_tree_with(&mut traverser)
-    }
-
-    /// Clone the subtree rooted at this node as a separate tree.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      0
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   1     2
-    /// //  ╱ ╲   ╱ ╲
-    /// // 3   4 5   6
-    /// // |     |  ╱ ╲
-    /// // 7     8 9  10
-    ///
-    /// let mut tree = DynTree::<i32>::new(0);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id1, id2] = root.push_children([1, 2]);
-    ///
-    /// let mut n1 = tree.node_mut(&id1);
-    /// let [id3, _] = n1.push_children([3, 4]);
-    ///
-    /// tree.node_mut(&id3).push_child(7);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id5, id6] = n2.push_children([5, 6]);
-    ///
-    /// tree.node_mut(&id5).push_child(8);
-    /// tree.node_mut(&id6).push_children([9, 10]);
-    ///
-    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    ///
-    /// // clone the subtree rooted at node 2 into another tree
-    /// // which might be a different tree type
-    ///
-    /// let mut dfs = Traversal.dfs().with_depth();
-    ///
-    /// let clone: BinaryTree::<i32> = tree.node(&id2).clone_as_tree_with(&mut dfs);
-    ///
-    /// let bfs: Vec<_> = clone.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [2, 5, 6, 8, 9, 10]);
-    /// ```
-    fn clone_as_tree_with<V2, O>(&'a self, traverser: &mut Dfs<O>) -> Tree<V2, M, P>
-    where
-        V2: TreeVariant<Item = V::Item> + 'a,
-        P::PinnedVec<V2>: Default,
-        V::Item: Clone,
-        O: Over<Enumeration = DepthVal>,
-    {
         let mut tree = Tree::new(self.data().clone());
 
         for child in self.children() {
-            tree.root_mut().push_tree_with(&child, traverser);
+            tree.root_mut().append_child_tree(child.as_cloned_subtree());
         }
 
         tree
@@ -1354,6 +1288,7 @@ where
     ///
     /// [`append_child_tree`]: crate::NodeMut::append_child_tree
     /// [`append_sibling_tree`]: crate::NodeMut::append_sibling_tree
+    #[allow(clippy::wrong_self_convention)]
     fn as_cloned_subtree(self) -> ClonedSubTree<'a, V, M, P, Self>
     where
         V::Item: Clone,
@@ -1374,6 +1309,7 @@ where
     ///
     /// [`append_child_tree`]: crate::NodeMut::append_child_tree
     /// [`append_sibling_tree`]: crate::NodeMut::append_sibling_tree
+    #[allow(clippy::wrong_self_convention)]
     fn as_copied_subtree(self) -> CopiedSubTree<'a, V, M, P, Self>
     where
         V::Item: Copy,

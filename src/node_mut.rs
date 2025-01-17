@@ -6,16 +6,14 @@ use crate::{
     pinned_storage::{PinnedStorage, SplitRecursive},
     subtrees::NodeMutAsSubTree,
     traversal::{
-        enumerations::{DepthVal, Val},
-        over::OverDepthPtr,
+        enumerations::Val,
         over_mut::{OverItemInto, OverItemMut},
         post_order::iter_ptr::PostOrderIterPtr,
-        traverser_core::TraverserCore,
-        Over, OverData, OverMut,
+        OverData, OverMut,
     },
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
-    Dfs, NodeIdx, NodeRef, SubTree, Traverser, TreeVariant,
+    NodeIdx, NodeRef, SubTree, Traverser, TreeVariant,
 };
 use core::{fmt::Debug, marker::PhantomData};
 use orx_selfref_col::{NodePtr, Refs};
@@ -387,230 +385,6 @@ where
         })
     }
 
-    /// Pushes the subtree rooted at the given `subtree` node as a child of this node.
-    ///
-    /// The source `subtree` remains unchanged, the values are cloned into this tree.
-    ///
-    /// # See also
-    ///
-    /// See also [`push_tree_with`] which is identical to this method except that it re-uses
-    /// a depth-first-search traverser, which otherwise is created temporarily within this
-    /// method.
-    ///
-    /// [`push_tree_with`]: crate::NodeMut::push_tree_with
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// // TREE a
-    /// //      0
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   1     2
-    /// //  ╱ ╲   ╱ ╲
-    /// // 3   4 5   6
-    /// // |     |  ╱ ╲
-    /// // 7     8 9  10
-    ///
-    /// let mut a = DynTree::<i32>::new(0);
-    /// let [a1, a2] = a.root_mut().push_children([1, 2]);
-    /// let [a3, a4] = a.node_mut(&a1).push_children([3, 4]);
-    /// a.node_mut(&a3).push_child(7);
-    /// let [a5, a6] = a.node_mut(&a2).push_children([5, 6]);
-    /// a.node_mut(&a5).push_child(8);
-    /// a.node_mut(&a6).push_children([9, 10]);
-    ///
-    /// let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    ///
-    /// // TREE b
-    /// //     10
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //  11     12
-    /// //  ╱     ╱ | ╲
-    /// // 13   14 15 16
-    ///
-    /// let mut b = DaryTree::<4, i32>::new(10);
-    /// let [b11, b12] = b.root_mut().push_children([11, 12]);
-    /// b.node_mut(&b11).push_child(13);
-    /// b.node_mut(&b12).push_children([14, 15, 16]);
-    ///
-    /// let bfs: Vec<_> = b.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [10, 11, 12, 13, 14, 15, 16]);
-    ///
-    /// // Subtrees from tree b => Tree a
-    /// // push subtree rooted at 12 as a child of node 4
-    /// // push subtree rooted at 11 as a child of node 6
-    /// //         0
-    /// //        ╱ ╲
-    /// //       ╱   ╲
-    /// //      ╱     ╲
-    /// //     ╱       ╲
-    /// //    1         2
-    /// //   ╱ ╲       ╱ ╲
-    /// //  ╱   ╲     ╱   ╲
-    /// // 3     4   5     6
-    /// // |     |   |   ╱ | ╲
-    /// // 7    12   8  9 10  11
-    /// //    ╱ | ╲            |
-    /// //   14 15 16         13
-    ///
-    /// a.node_mut(&a4).push_tree(&b.node(&b12));
-    /// a.node_mut(&a6).push_tree(&b.node(&b11));
-    ///
-    /// let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(
-    ///     bfs,
-    ///     [0, 1, 2, 3, 4, 5, 6, 7, 12, 8, 9, 10, 11, 14, 15, 16, 13]
-    /// );
-    /// ```
-    pub fn push_tree<V2, M2, P2>(&mut self, subtree: &impl NodeRef<'a, V2, M2, P2>)
-    where
-        V2: TreeVariant<Item = V::Item> + 'a,
-        M2: MemoryPolicy,
-        P2: PinnedStorage,
-        V::Item: Clone,
-    {
-        let mut traverser = Dfs::<OverDepthPtr>::new();
-        self.push_tree_with(subtree, &mut traverser);
-    }
-
-    /// Pushes the subtree rooted at the given `subtree` node as a child of this node.
-    ///
-    /// The source `subtree` remains unchanged, the values are cloned into this tree.
-    ///
-    /// # See also
-    ///
-    /// This method does not allocate and uses the provided depth-first-search `traverser`.
-    /// See also [`push_tree`] which is identical to this method it creates the traverser
-    /// temporarily within the method.
-    ///
-    /// [`push_tree`]: crate::NodeMut::push_tree
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// // TREE a
-    /// //      0
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   1     2
-    /// //  ╱ ╲   ╱ ╲
-    /// // 3   4 5   6
-    /// // |     |  ╱ ╲
-    /// // 7     8 9  10
-    ///
-    /// let mut a = DynTree::<i32>::new(0);
-    /// let [a1, a2] = a.root_mut().push_children([1, 2]);
-    /// let [a3, a4] = a.node_mut(&a1).push_children([3, 4]);
-    /// a.node_mut(&a3).push_child(7);
-    /// let [a5, a6] = a.node_mut(&a2).push_children([5, 6]);
-    /// a.node_mut(&a5).push_child(8);
-    /// a.node_mut(&a6).push_children([9, 10]);
-    ///
-    /// let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    ///
-    /// // TREE b
-    /// //     10
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //  11     12
-    /// //  ╱     ╱ | ╲
-    /// // 13   14 15 16
-    ///
-    /// let mut b = DaryTree::<4, i32>::new(10);
-    /// let [b11, b12] = b.root_mut().push_children([11, 12]);
-    /// b.node_mut(&b11).push_child(13);
-    /// b.node_mut(&b12).push_children([14, 15, 16]);
-    ///
-    /// let bfs: Vec<_> = b.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [10, 11, 12, 13, 14, 15, 16]);
-    ///
-    /// // Subtrees from tree b => Tree a
-    /// // push subtree rooted at 12 as a child of node 4
-    /// // push subtree rooted at 11 as a child of node 6
-    /// //         0
-    /// //        ╱ ╲
-    /// //       ╱   ╲
-    /// //      ╱     ╲
-    /// //     ╱       ╲
-    /// //    1         2
-    /// //   ╱ ╲       ╱ ╲
-    /// //  ╱   ╲     ╱   ╲
-    /// // 3     4   5     6
-    /// // |     |   |   ╱ | ╲
-    /// // 7    12   8  9 10  11
-    /// //    ╱ | ╲            |
-    /// //   14 15 16         13
-    ///
-    /// let mut dfs = Traversal.dfs().with_depth(); // reusable traverser
-    ///
-    /// a.node_mut(&a4).push_tree_with(&b.node(&b12), &mut dfs);
-    /// a.node_mut(&a6).push_tree_with(&b.node(&b11), &mut dfs);
-    ///
-    /// let bfs: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    /// assert_eq!(
-    ///     bfs,
-    ///     [0, 1, 2, 3, 4, 5, 6, 7, 12, 8, 9, 10, 11, 14, 15, 16, 13]
-    /// );
-    /// ```
-    #[allow(clippy::missing_panics_doc)]
-    pub fn push_tree_with<V2, M2, P2, O>(
-        &mut self,
-        subtree: &impl NodeRef<'a, V2, M2, P2>,
-        traverser: &mut Dfs<O>,
-    ) where
-        V2: TreeVariant<Item = V::Item> + 'a,
-        M2: MemoryPolicy,
-        P2: PinnedStorage,
-        O: Over<Enumeration = DepthVal>,
-        V::Item: Clone,
-    {
-        #[inline(always)]
-        fn data_of<V>(node_ptr: NodePtr<V>) -> V::Item
-        where
-            V: TreeVariant,
-            V::Item: Clone,
-        {
-            (unsafe { &*node_ptr.ptr() })
-                .data()
-                .expect("node is active")
-                .clone()
-        }
-
-        let storage = traverser.storage_mut();
-        let mut iter =
-            Dfs::<OverDepthPtr>::iter_ptr_with_storage(subtree.node_ptr().clone(), storage);
-        let (mut current_depth, src_ptr) = iter.next().expect("tree is not empty");
-        debug_assert_eq!(current_depth, 0);
-
-        let position = self.num_children();
-        self.push_child(data_of(src_ptr));
-        let mut dst = self.child_mut(position).expect("child exists");
-
-        for (depth, ptr) in iter {
-            match depth > current_depth {
-                true => debug_assert_eq!(depth, current_depth + 1, "dfs error in clone"),
-                false => {
-                    let num_parent_moves = current_depth - depth + 1;
-                    for _ in 0..num_parent_moves {
-                        dst = dst.into_parent_mut().expect("in bounds");
-                    }
-                }
-            }
-            let position = dst.num_children();
-            dst.push_child(data_of(ptr));
-            dst = dst.into_child_mut(position).expect("child exists");
-            current_depth = depth;
-        }
-    }
-
     /// Appends the entire `subtree` as a child of this node;
     /// and returns the [`NodeIdx`] of the created child node.
     ///
@@ -878,7 +652,7 @@ where
             Side::Right => self.sibling_idx() + 1,
         };
 
-        let ptr = Self::insert_sibling_get_ptr(&mut self.col, value, &parent_ptr, position);
+        let ptr = Self::insert_sibling_get_ptr(self.col, value, &parent_ptr, position);
         self.node_idx_for(&ptr)
     }
 
@@ -965,7 +739,7 @@ where
 
         values.map(|sibling| {
             let sibling_ptr =
-                Self::insert_sibling_get_ptr(&mut self.col, sibling, &parent_ptr, position);
+                Self::insert_sibling_get_ptr(self.col, sibling, &parent_ptr, position);
             position += 1;
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
@@ -1062,7 +836,7 @@ where
 
         values.into_iter().map(move |sibling| {
             let sibling_ptr =
-                Self::insert_sibling_get_ptr(&mut self.col, sibling, &parent_ptr, position);
+                Self::insert_sibling_get_ptr(self.col, sibling, &parent_ptr, position);
             position += 1;
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
@@ -1271,7 +1045,7 @@ where
             Side::Right => self.sibling_idx() + 1,
         };
 
-        let mut parent = NodeMut::<V, M, P, MO>::new(&mut self.col, parent_ptr);
+        let mut parent = NodeMut::<V, M, P, MO>::new(self.col, parent_ptr);
 
         subtree.append_to_node_as_child(&mut parent, position)
     }
@@ -2162,8 +1936,7 @@ where
         let idx = match child_idx == self.num_children() {
             true => self.push_child(value),
             false => {
-                let ptr =
-                    Self::insert_sibling_get_ptr(&mut self.col, value, &self.node_ptr, child_idx);
+                let ptr = Self::insert_sibling_get_ptr(self.col, value, &self.node_ptr, child_idx);
                 self.node_idx_for(&ptr)
             }
         };
