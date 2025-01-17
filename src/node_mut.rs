@@ -19,7 +19,6 @@ use crate::{
 };
 use core::{fmt::Debug, marker::PhantomData};
 use orx_selfref_col::{NodePtr, Refs};
-use std::dbg;
 
 /// A marker trait determining the mutation flexibility of a mutable node.
 pub trait NodeMutOrientation: 'static {}
@@ -612,9 +611,29 @@ where
         }
     }
 
+    /// Appends the entire `subtree` as a child of this node;
+    /// and returns the [`NodeIdx`] of the created child node.
+    ///
+    /// In other words, the root of the subtree will be immediate sibling of this node,
+    /// and the other nodes of the subtree will also be added with the same orientation
+    /// relative to the subtree root.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the tree is of a variant with fixed children capacity,
+    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
+    /// and if this hard capacity is violated with the new child.
+    ///
+    /// [`BinaryTree`]: crate::BinaryTree
+    /// [`DaryTree`]: crate::DaryTree
+    ///
     /// # Examples
     ///
     /// ## Append Subtree cloned-copied from another Tree
+    ///
+    /// Remains the source tree unchanged.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
     /// ```
     /// use orx_tree::*;
@@ -670,6 +689,11 @@ where
     ///
     /// ## Append Subtree taken out of another Tree
     ///
+    /// The source subtree rooted at the given node will be removed from the source
+    /// tree.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
     /// ```
     /// use orx_tree::*;
     ///
@@ -719,6 +743,10 @@ where
     /// ```
     ///
     /// ## Append Another Tree
+    ///
+    /// The source tree will be moved into the target tree.
+    ///
+    /// Runs in ***O(1)*** time.
     ///
     /// ```
     /// use orx_tree::*;
@@ -1043,9 +1071,35 @@ where
         })
     }
 
+    /// Appends the entire `subtree`:
+    ///
+    /// * as the immediate left-sibling of this node when `side` is [`Side::Left`],
+    /// * as the immediate right-sibling of this node when `side` is [`Side::Right`],
+    ///
+    /// returns the [`NodeIdx`] of the sibling child node.
+    ///
+    /// In other words, the root of the subtree will be immediate sibling of this node,
+    /// and the other nodes of the subtree will also be added with the same orientation
+    /// relative to the subtree root.
+    ///
+    /// # Panics
+    ///
+    /// Panics if this node is the root; root node cannot have a sibling.
+    ///
+    /// Further panics if the tree is of a variant with fixed children capacity,
+    /// such as 2 for [`BinaryTree`] or `D` for [`DaryTree`] in general,
+    /// and if this hard capacity is violated with the new sibling.
+    ///
+    /// [`BinaryTree`]: crate::BinaryTree
+    /// [`DaryTree`]: crate::DaryTree
+    ///
     /// # Examples
     ///
     /// ## Append Subtree cloned-copied from another Tree
+    ///
+    /// Remains the source tree unchanged.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
     /// ```
     /// use orx_tree::*;
@@ -1099,6 +1153,11 @@ where
     ///
     /// ## Append Subtree taken out of another Tree
     ///
+    /// The source subtree rooted at the given node will be removed from the source
+    /// tree.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
     /// ```
     /// use orx_tree::*;
     ///
@@ -1148,6 +1207,10 @@ where
     ///
     /// ## Append Another Tree
     ///
+    /// The source tree will be moved into the target tree.
+    ///
+    /// Runs in ***O(1)*** time.
+    ///
     /// ```
     /// use orx_tree::*;
     ///
@@ -1194,10 +1257,11 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10]);
     /// ```
-    pub fn append_sibling_tree(&mut self, side: Side, subtree: impl SubTree<V::Item>) -> NodeIdx<V>
-    where
-        V::Item: Debug,
-    {
+    pub fn append_sibling_tree(
+        &mut self,
+        side: Side,
+        subtree: impl SubTree<V::Item>,
+    ) -> NodeIdx<V> {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
@@ -1206,9 +1270,6 @@ where
             Side::Left => self.sibling_idx(),
             Side::Right => self.sibling_idx() + 1,
         };
-
-        let data = unsafe { &*parent_ptr.ptr() }.data().unwrap();
-        dbg!(position, side, data);
 
         let mut parent = NodeMut::<V, M, P, MO>::new(&mut self.col, parent_ptr);
 
@@ -2090,8 +2151,6 @@ where
         let idx = match child_idx == self.num_children() {
             true => self.push_child(value),
             false => {
-                dbg!(child_idx, self.num_children());
-                // let parent_ptr = self.parent_ptr().expect("node is not root");
                 let ptr =
                     Self::insert_sibling_get_ptr(&mut self.col, value, &self.node_ptr, child_idx);
                 self.node_idx_for(&ptr)
@@ -2255,53 +2314,4 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
-}
-
-#[test]
-fn abc() {
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //  tree    b      c
-    // ----------------------
-    //     0    4      2
-    //    ╱     |     ╱ ╲
-    //   1      7    5   6
-    //  ╱            |  ╱ ╲
-    // 3             8 9   10
-    // ----------------------
-    //      0
-    //     ╱ ╲
-    //    ╱   ╲
-    //   1     2
-    //  ╱ ╲   ╱ ╲
-    // 4   3 5   6
-    // |     |  ╱ ╲
-    // 7     8 9   10
-
-    let mut tree = DynTree::<_>::new(0);
-    let id0 = tree.root().idx();
-    let id1 = tree.node_mut(&id0).push_child(1);
-    let id3 = tree.node_mut(&id1).push_child(3);
-
-    let mut b = BinaryTree::<_>::new(4);
-    b.root_mut().push_child(7);
-
-    let mut c = DaryTree::<4, _>::new(2);
-    let [id5, id6] = c.root_mut().push_children([5, 6]);
-    c.node_mut(&id5).push_child(8);
-    c.node_mut(&id6).push_children([9, 10]);
-
-    // merge b & c into tree
-
-    let id4 = tree.node_mut(&id3).append_sibling_tree(Side::Left, b);
-    let id2 = tree.node_mut(&id1).append_sibling_tree(Side::Right, c);
-
-    assert_eq!(tree.node(&id2).data(), &2);
-    assert_eq!(tree.node(&id4).data(), &4);
-
-    // validate the tree
-
-    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10]);
 }
