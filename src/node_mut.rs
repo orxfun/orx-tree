@@ -1096,6 +1096,104 @@ where
     /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_b, [5, 6, 7, 8, 9, 10]); // unchanged
     /// ``````
+    ///
+    /// ## Append Subtree taken out of another Tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          5
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      6   7
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        8 9   10
+    ///
+    /// let mut a = DynTree::<_>::new(0);
+    /// let [id1, id2] = a.root_mut().push_children([1, 2]);
+    /// a.node_mut(&id1).push_children([3, 4]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(5);
+    /// let [id6, id7] = b.root_mut().push_children([6, 7]);
+    /// b.node_mut(&id6).push_child(8);
+    /// b.node_mut(&id7).push_children([9, 10]);
+    ///
+    /// // move b.subtree(n7) under a.n2
+    /// // move a.subtree(n1) under b.n5
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          5
+    /// //    ╱ ╲        ╱ ╲
+    /// //   7   2      6   1
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 9   10       8 3   4
+    /// //
+    /// //
+    ///
+    /// let n7 = b.node_mut(&id7).into_subtree();
+    /// a.node_mut(&id2).append_sibling_tree(Side::Left, n7);
+    ///
+    /// let n1 = a.node_mut(&id1).into_subtree();
+    /// b.node_mut(&id6).append_sibling_tree(Side::Right, n1);
+    ///
+    /// // validate the trees
+    ///
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 7, 2, 9, 10]);
+    ///
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [5, 6, 1, 8, 3, 4]);
+    /// ```
+    ///
+    /// ## Append Another Tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //  tree    b      c
+    /// // ----------------------
+    /// //     0    4      2
+    /// //    ╱     |     ╱ ╲
+    /// //   1      7    5   6
+    /// //  ╱            |  ╱ ╲
+    /// // 3             8 9   10
+    /// // ----------------------
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   3 5   6
+    /// // |     |  ╱ ╲
+    /// // 7     8 9   10
+    ///
+    /// let mut tree = DynTree::<_>::new(0);
+    /// let id0 = tree.root().idx();
+    /// let id1 = tree.node_mut(&id0).push_child(1);
+    /// let id3 = tree.node_mut(&id1).push_child(3);
+    ///
+    /// let mut b = BinaryTree::<_>::new(4);
+    /// b.root_mut().push_child(7);
+    ///
+    /// let mut c = DaryTree::<4, _>::new(2);
+    /// let [id5, id6] = c.root_mut().push_children([5, 6]);
+    /// c.node_mut(&id5).push_child(8);
+    /// c.node_mut(&id6).push_children([9, 10]);
+    ///
+    /// // merge b & c into tree
+    ///
+    /// let id4 = tree.node_mut(&id3).append_sibling_tree(Side::Left, b);
+    /// let id2 = tree.node_mut(&id1).append_sibling_tree(Side::Right, c);
+    ///
+    /// assert_eq!(tree.node(&id2).data(), &2);
+    /// assert_eq!(tree.node(&id4).data(), &4);
+    ///
+    /// // validate the tree
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10]);
+    /// ```
     pub fn append_sibling_tree(&mut self, side: Side, subtree: impl SubTree<V::Item>) -> NodeIdx<V>
     where
         V::Item: Debug,
@@ -2164,49 +2262,46 @@ fn abc() {
     use crate::*;
     use alloc::vec::Vec;
 
-    //     a          b
-    // -----------------------
-    //     0          5
-    //    ╱ ╲        ╱ ╲
-    //   1   2      6   7
-    //  ╱ ╲         |  ╱ ╲
-    // 3   4        8 9   10
+    //  tree    b      c
+    // ----------------------
+    //     0    4      2
+    //    ╱     |     ╱ ╲
+    //   1      7    5   6
+    //  ╱            |  ╱ ╲
+    // 3             8 9   10
+    // ----------------------
+    //      0
+    //     ╱ ╲
+    //    ╱   ╲
+    //   1     2
+    //  ╱ ╲   ╱ ╲
+    // 4   3 5   6
+    // |     |  ╱ ╲
+    // 7     8 9   10
 
-    let mut a = DynTree::<_>::new(0);
-    let [id1, id2] = a.root_mut().push_children([1, 2]);
-    let [_, id4] = a.node_mut(&id1).push_children([3, 4]);
+    let mut tree = DynTree::<_>::new(0);
+    let id0 = tree.root().idx();
+    let id1 = tree.node_mut(&id0).push_child(1);
+    let id3 = tree.node_mut(&id1).push_child(3);
 
-    let mut b = DaryTree::<4, _>::new(5);
-    let [id6, id7] = b.root_mut().push_children([6, 7]);
-    b.node_mut(&id6).push_child(8);
-    b.node_mut(&id7).push_children([9, 10]);
+    let mut b = BinaryTree::<_>::new(4);
+    b.root_mut().push_child(7);
 
-    // clone b.subtree(n6) under a.n3
-    // clone b.subtree(n7) under a.n0
-    //        a
-    // -----------------------
-    //        0
-    //       ╱|╲
-    //      ╱ | ╲
-    //     ╱  |  ╲
-    //    ╱   |   ╲
-    //   1    2    7
-    //  ╱|╲       ╱ ╲
-    // 3 6 4     9   10
-    //   |
-    //   8
+    let mut c = DaryTree::<4, _>::new(2);
+    let [id5, id6] = c.root_mut().push_children([5, 6]);
+    c.node_mut(&id5).push_child(8);
+    c.node_mut(&id6).push_children([9, 10]);
 
-    let n6 = b.node(&id6).as_cloned_subtree();
-    a.node_mut(&id4).append_sibling_tree(Side::Left, n6);
+    // merge b & c into tree
 
-    let n7 = b.node(&id7).as_copied_subtree();
-    a.node_mut(&id2).append_sibling_tree(Side::Right, n7);
+    let id4 = tree.node_mut(&id3).append_sibling_tree(Side::Left, b);
+    let id2 = tree.node_mut(&id1).append_sibling_tree(Side::Right, c);
 
-    // validate the trees
+    assert_eq!(tree.node(&id2).data(), &2);
+    assert_eq!(tree.node(&id4).data(), &4);
 
-    let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs_a, [0, 1, 2, 7, 3, 6, 4, 9, 10, 8]);
+    // validate the tree
 
-    let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs_b, [5, 6, 7, 8, 9, 10]); // unchanged
+    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10]);
 }
