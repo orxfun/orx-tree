@@ -615,7 +615,7 @@ where
     ///     Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
     /// );
     ///
-    /// // we can swap n2 & n5
+    /// // we can swap n2 & n7
     /// //      1
     /// //     ╱ ╲
     /// //    ╱   ╲
