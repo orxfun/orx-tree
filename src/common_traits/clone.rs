@@ -1,7 +1,4 @@
-use crate::{
-    memory::MemoryPolicy, pinned_storage::PinnedStorage, traversal::over::OverDepthPtr, Dfs,
-    NodeRef, Traverser, Tree, TreeVariant,
-};
+use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeRef, Tree, TreeVariant};
 
 impl<V, M, P> Clone for Tree<V, M, P>
 where
@@ -16,11 +13,8 @@ where
     /// # See also
     ///
     /// * [`clone_as_tree`]: to clone a subtree rooted at a given node as a separate tree.
-    /// * [`clone_as_tree_with`]: to clone a subtree rooted at a given node as a separate tree
-    ///   by reusing a traverser.
     ///
     /// [`clone_as_tree`]: crate::NodeRef::clone_as_tree
-    /// [`clone_as_tree_with`]: crate::NodeRef::clone_as_tree_with
     ///
     /// # Examples
     ///
@@ -77,11 +71,10 @@ where
         match self.get_root() {
             None => Self::empty(),
             Some(root) => {
-                let mut traverser = Dfs::<OverDepthPtr>::new();
                 let mut tree = Self::new(root.data().clone());
 
                 for child in root.children() {
-                    tree.root_mut().push_tree_with(&child, &mut traverser);
+                    tree.root_mut().append_child_tree(child.as_cloned_subtree());
                 }
 
                 tree
