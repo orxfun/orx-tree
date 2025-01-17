@@ -38,6 +38,7 @@ mod node;
 mod node_mut;
 mod node_ref;
 mod subtrees;
+mod subtrees_within;
 mod tree;
 mod tree_node_idx;
 mod tree_variant;

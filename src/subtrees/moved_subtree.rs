@@ -5,7 +5,7 @@ use crate::{
     Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant,
 };
 
-pub struct NodeMutAsSubTree<'a, V, M, P, MO>
+pub struct MovedSubTree<'a, V, M, P, MO>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,
@@ -15,7 +15,7 @@ where
     node: NodeMut<'a, V, M, P, MO>,
 }
 
-impl<'a, V, M, P, MO> NodeMutAsSubTree<'a, V, M, P, MO>
+impl<'a, V, M, P, MO> MovedSubTree<'a, V, M, P, MO>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,
@@ -27,7 +27,7 @@ where
     }
 }
 
-impl<'a, V, M, P, MO> SubTreeCore<V::Item> for NodeMutAsSubTree<'a, V, M, P, MO>
+impl<'a, V, M, P, MO> SubTreeCore<V::Item> for MovedSubTree<'a, V, M, P, MO>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,

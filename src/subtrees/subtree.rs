@@ -20,8 +20,7 @@ pub(crate) mod sealed {
 
 /// A subtree is a subset of a tree, also having a single root and satisfying structural tree properties.
 ///
-/// SubTree implementations are used to efficiently and conveniently move parts of the tree within itself,
-/// and move subtrees among different trees.
+/// SubTree implementations are used to efficiently and conveniently move parts of the tree between different trees.
 pub trait SubTree<T>: sealed::SubTreeCore<T> {}
 
 impl<T, S> SubTree<T> for S where S: sealed::SubTreeCore<T> {}
