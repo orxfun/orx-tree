@@ -74,7 +74,7 @@ where
                 let mut tree = Self::new(root.data().clone());
 
                 for child in root.children() {
-                    tree.root_mut().append_child_tree(child.as_cloned_subtree());
+                    tree.root_mut().push_child_tree(child.as_cloned_subtree());
                 }
 
                 tree

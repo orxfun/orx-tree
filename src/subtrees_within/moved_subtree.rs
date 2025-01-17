@@ -21,7 +21,8 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
         self,
         parent: &mut NodeMut<V, M, P, MO>,
         child_position: usize,
-    ) where
+    ) -> NodeIdx<V>
+    where
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
@@ -45,5 +46,7 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
 
         let node_parent = unsafe { &mut *ptr_parent.ptr_mut() };
         node_parent.next_mut().insert(child_position, ptr_child);
+
+        self.idx.clone()
     }
 }

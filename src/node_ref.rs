@@ -970,7 +970,7 @@ where
         let mut tree = Tree::new(self.data().clone());
 
         for child in self.children() {
-            tree.root_mut().append_child_tree(child.as_cloned_subtree());
+            tree.root_mut().push_child_tree(child.as_cloned_subtree());
         }
 
         tree
@@ -1279,15 +1279,15 @@ where
     /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
     /// to this node.
     ///
-    /// Consuming the created subtree in methods such as [`append_child_tree`] or [`append_sibling_tree`] will create
+    /// Consuming the created subtree in methods such as [`push_child_tree`] or [`push_sibling_tree`] will create
     /// the same subtree structure in the target tree with cloned values.
     /// This subtree and the tree it belongs to remain unchanged.
     /// Please see **Append Subtree cloned-copied from another Tree** section of the examples of these methods.
     ///
     /// Otherwise, it has no impact on the tree.
     ///
-    /// [`append_child_tree`]: crate::NodeMut::append_child_tree
-    /// [`append_sibling_tree`]: crate::NodeMut::append_sibling_tree
+    /// [`push_child_tree`]: crate::NodeMut::push_child_tree
+    /// [`push_sibling_tree`]: crate::NodeMut::push_sibling_tree
     #[allow(clippy::wrong_self_convention)]
     fn as_cloned_subtree(self) -> ClonedSubTree<'a, V, M, P, Self>
     where
@@ -1300,15 +1300,15 @@ where
     /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
     /// to this node.
     ///
-    /// Consuming the created subtree in methods such as [`append_child_tree`] or [`append_sibling_tree`] will create
+    /// Consuming the created subtree in methods such as [`push_child_tree`] or [`push_sibling_tree`] will create
     /// the same subtree structure in the target tree with copied values.
     /// This subtree and the tree it belongs to remain unchanged.
     /// Please see **Append Subtree cloned-copied from another Tree** section of the examples of these methods.
     ///
     /// Otherwise, it has no impact on the tree.
     ///
-    /// [`append_child_tree`]: crate::NodeMut::append_child_tree
-    /// [`append_sibling_tree`]: crate::NodeMut::append_sibling_tree
+    /// [`push_child_tree`]: crate::NodeMut::push_child_tree
+    /// [`push_sibling_tree`]: crate::NodeMut::push_sibling_tree
     #[allow(clippy::wrong_self_convention)]
     fn as_copied_subtree(self) -> CopiedSubTree<'a, V, M, P, Self>
     where
