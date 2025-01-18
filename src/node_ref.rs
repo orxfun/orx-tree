@@ -469,6 +469,62 @@ where
             .map(|ptr| Node::new(self.col(), ptr))
     }
 
+    /// Returns true if this node is an ancestor of the node with the given `idx`;
+    /// false otherwise.
+    ///
+    /// Searches in ***O(D)*** where D is the depth of the tree.
+    ///
+    /// Note that the node is **not** an ancestor of itself.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, id5] = n2.push_children([4, 5]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.push_children([6, 7]);
+    ///
+    /// // ancestor tests
+    ///
+    /// assert!(tree.root().is_ancestor_of(&id4));
+    /// assert!(tree.root().is_ancestor_of(&id7));
+    ///
+    /// assert!(tree.node(&id2).is_ancestor_of(&id5));
+    /// assert!(tree.node(&id3).is_ancestor_of(&id6));
+    ///
+    /// // the other way around
+    /// assert!(!tree.node(&id6).is_ancestor_of(&id3));
+    ///
+    /// // a node is not an ancestor of itself
+    /// assert!(!tree.node(&id6).is_ancestor_of(&id6));
+    ///
+    /// // nodes belong to independent subtrees
+    /// assert!(!tree.node(&id2).is_ancestor_of(&id6));
+    /// ```
+    fn is_ancestor_of(&self, idx: &NodeIdx<V>) -> bool {
+        let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
+        let descendant_ptr = idx.0.node_ptr();
+        let ancestor_ptr = self.node_ptr().clone();
+        AncestorsIterPtr::new(root_ptr, descendant_ptr)
+            .skip(1) // a node is not an ancestor of itself
+            .any(|ptr| ptr == ancestor_ptr)
+    }
+
     // traversal
 
     /// Creates an iterator that yields references to data of all nodes belonging to the subtree rooted at this node.
