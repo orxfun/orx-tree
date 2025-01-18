@@ -576,15 +576,17 @@ where
     ///   * Can be created by [`as_cloned_subtree_within`] and [`as_copied_subtree_within`] methods.
     ///   * ***O(n)***
     ///
-    /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
-    /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
-    /// [`into_subtree_within`]: crate::NodeIdx::into_subtree_within
-    ///
     /// # Panics
     ///
     /// Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
     /// the root of the subtree is an ancestor of this node.
     /// Notice that such a move would break structural properties of the tree.
+    /// When we are not certain, we can test the relation using the the [`is_ancestor_of`] method.
+    ///
+    /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
+    /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
+    /// [`into_subtree_within`]: crate::NodeIdx::into_subtree_within
+    /// [`is_ancestor_of`]: crate::NodeRef::is_ancestor_of
     ///
     /// # Examples
     ///
@@ -1166,16 +1168,18 @@ where
     ///   * Can be created by [`as_cloned_subtree_within`] and [`as_copied_subtree_within`] methods.
     ///   * ***O(n)***
     ///
-    /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
-    /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
-    /// [`into_subtree_within`]: crate::NodeIdx::into_subtree_within
-    ///
     /// # Panics
     ///
     /// * Panics if this node is the root; root node cannot have a sibling.
     /// * Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
     ///   the root of the subtree is an ancestor of this node.
     ///   Notice that such a move would break structural properties of the tree.
+    ///   When we are not certain, we can test the relation using the the [`is_ancestor_of`] method.
+    ///
+    /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
+    /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
+    /// [`into_subtree_within`]: crate::NodeIdx::into_subtree_within
+    /// [`is_ancestor_of`]: crate::NodeRef::is_ancestor_of
     ///
     /// # Examples
     ///
