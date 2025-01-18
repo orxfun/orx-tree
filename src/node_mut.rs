@@ -121,9 +121,9 @@ where
     ///
     /// # See also
     ///
-    /// See [`swap_nodes`] to swap two independent subtrees rooted at given node indices.
+    /// See [`try_swap_nodes`] to swap two independent subtrees rooted at given node indices.
     ///
-    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
     ///
     /// # Examples
     ///
@@ -552,7 +552,10 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     /// ```
-    pub fn push_child_tree(&mut self, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
+    pub fn push_child_tree<Vs>(&mut self, subtree: impl SubTree<Vs>) -> NodeIdx<V>
+    where
+        Vs: TreeVariant<Item = V::Item>,
+    {
         subtree.append_to_node_as_child(self, self.num_children())
     }
 
@@ -1129,7 +1132,10 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10]);
     /// ```
-    pub fn push_sibling_tree(&mut self, side: Side, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
+    pub fn push_sibling_tree<Vs>(&mut self, side: Side, subtree: impl SubTree<Vs>) -> NodeIdx<V>
+    where
+        Vs: TreeVariant<Item = V::Item>,
+    {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
@@ -1351,10 +1357,10 @@ where
         let child_ptr = self.node_ptr.clone();
         let child = unsafe { &mut *child_ptr.ptr_mut() };
 
-        let ancestor_ptr = child.prev().get();
+        let ancestor_ptr = child.prev().get().cloned();
 
         // down arrows
-        match ancestor_ptr {
+        match &ancestor_ptr {
             Some(ancestor_ptr) => {
                 let ancestor = unsafe { &mut *ancestor_ptr.ptr_mut() };
                 ancestor
@@ -1374,7 +1380,8 @@ where
 
         let child = unsafe { &mut *child_ptr.ptr_mut() };
         child.prev_mut().set_some(parent_ptr.clone());
-        parent.prev_mut().set(ancestor_ptr.cloned());
+
+        parent.prev_mut().set(ancestor_ptr);
 
         self.node_idx_for(&parent_ptr)
     }
@@ -2245,7 +2252,7 @@ where
         (self.col, self.node_ptr)
     }
 
-    fn parent_ptr(&self) -> Option<NodePtr<V>> {
+    pub(crate) fn parent_ptr(&self) -> Option<NodePtr<V>> {
         self.node().prev().get().cloned()
     }
 
