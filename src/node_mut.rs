@@ -1391,6 +1391,16 @@ where
     /// Removes this node and all of its descendants from the tree; and returns the
     /// data of this node.
     ///
+    /// # See also
+    ///
+    /// Note that this method returns the data of this node, while the data of the descendants
+    /// are dropped.
+    ///
+    /// If the data of the entire subtree is required, you may use [`into_walk`] method with
+    /// the desired traversal to define the order of the returned iterator.
+    ///
+    /// [`into_walk`]: crate::NodeMut::into_walk
+    ///
     /// # Examples
     ///
     /// ```
@@ -1413,7 +1423,7 @@ where
     /// let mut n2 = tree.node_mut(&id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// let id8 = tree.node_mut(&id4).push_child(8);
     ///
     /// let mut n3 = tree.node_mut(&id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
@@ -1421,35 +1431,34 @@ where
     /// tree.node_mut(&id6).push_child(9);
     /// tree.node_mut(&id7).push_children([10, 11]);
     ///
-    /// // remove n4 downwards (removes 4 and 8)
+    /// // prune n4 (removes 4 and 8)
     ///
-    /// let data = tree.node_mut(&id4).remove();
+    /// let data = tree.node_mut(&id4).prune();
     /// assert_eq!(data, 4);
-    /// assert_eq!(tree.len(), 9);
     ///
-    /// let root = tree.root();
-    /// let values: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// let values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(values, [1, 2, 3, 5, 6, 7, 9, 10, 11]);
     ///
-    /// // remove n3 downwards (3, 6, 7, 9, 10, 11)
+    /// assert_eq!(tree.get_node(&id4), None);
+    /// assert_eq!(tree.try_node(&id8), Err(NodeIdxError::RemovedNode));
     ///
-    /// let data = tree.node_mut(&id3).remove();
+    /// // prune n3 (3, 6, 7, 9, 10, 11)
+    ///
+    /// let data = tree.node_mut(&id3).prune();
     /// assert_eq!(data, 3);
-    /// assert_eq!(tree.len(), 3);
     ///
-    /// let root = tree.root();
-    /// let values: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// let values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(values, [1, 2, 5]);
     ///
-    /// // remove the root: clear the entire (remaining) tree
+    /// // prune the root: clear the entire (remaining) tree
     ///
-    /// let data = tree.get_root_mut().unwrap().remove();
+    /// let data = tree.get_root_mut().unwrap().prune();
     /// assert_eq!(data, 1);
-    /// assert_eq!(tree.len(), 0);
+    /// assert!(tree.is_empty());
     /// assert_eq!(tree.get_root(), None);
     /// ```
     #[allow(clippy::missing_panics_doc)]
-    pub fn remove(self) -> V::Item {
+    pub fn prune(self) -> V::Item {
         // TODO: we have the option to choose any traversal here; they are all safe
         // with SelfRefCol. We can pick the fastest one after benchmarks.
 
@@ -1853,14 +1862,14 @@ where
     /// for x in n7.walk_mut_with(&mut dfs) {
     ///     *x += 100;
     /// }
-    /// let values: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
+    /// let values: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 107, 110, 111]);
     ///
     /// let n3 = tree.node_mut(&id3);
     /// let removed: Vec<_> = n3.into_walk_with(&mut dfs).collect();
     /// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
     ///
-    /// let remaining: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
+    /// let remaining: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(remaining, [1, 2, 4, 8, 5]);
     /// ```
     ///
@@ -2009,14 +2018,14 @@ where
     /// let removed: Vec<_> = n4.into_walk::<PostOrder>().collect();
     /// assert_eq!(removed, [8, 4]);
     ///
-    /// let remaining: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().copied().collect();
+    /// let remaining: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(remaining, [1, 2, 3, 5, 6, 7, 9, 10, 11]);
     ///
     /// let n3 = tree.node_mut(&id3);
     /// let removed: Vec<_> = n3.into_walk::<Dfs>().collect();
     /// assert_eq!(removed, [3, 6, 9, 7, 10, 11]);
     ///
-    /// let remaining: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().copied().collect();
+    /// let remaining: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(remaining, [1, 2, 5]);
     ///
     /// let root = tree.get_root_mut().unwrap();
@@ -2100,14 +2109,14 @@ where
     /// for x in n7.walk_mut_with(&mut dfs) {
     ///     *x += 100;
     /// }
-    /// let values: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
+    /// let values: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 107, 110, 111]);
     ///
     /// let n3 = tree.node_mut(&id3);
     /// let removed: Vec<_> = n3.into_walk_with(&mut dfs).collect();
     /// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
     ///
-    /// let remaining: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
+    /// let remaining: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(remaining, [1, 2, 4, 8, 5]);
     /// ```
     ///

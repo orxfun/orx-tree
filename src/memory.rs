@@ -18,7 +18,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///   * It automatically reclaims memory whenever the utilization falls below 75%.
 ///   * Automatic triggers of memory reclaims might lead to implicit invalidation of node indices due to [`ReorganizedCollection`].
 ///   * It is important to note that, even when using Auto policy, tree growth will never trigger memory reclaim.
-///     Only node removing mutations such as [`remove`] can trigger node reorganization.
+///     Only node removing mutations such as [`prune`] can trigger node reorganization.
 /// * [`AutoWithThreshold`]
 ///   * This is a generalization of the Auto policy; in particular, Auto is equivalent to `AutoWithThreshold<2>`.
 ///   * Its constant parameter `D` defines the utilization threshold to trigger the memory reclaim operation.
@@ -27,7 +27,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// * [`Lazy`]
 ///   * It never reclaims memory.
 ///   * It never leads to implicit invalidation of node indices.
-///     In other words, a node index can only be invalidated if we remove that node from the tree ([`RemovedNode`]).
+///     In other words, a node index can only be invalidated if we prune that node from the tree ([`RemovedNode`]).
 ///
 /// An ideal use pattern can conveniently be achieved by using auto and lazy policies together,
 /// using the free memory policy transformation methods.
@@ -35,7 +35,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// [`PinnedVec`]: orx_pinned_vec::PinnedVec
 /// [`NodeIdx`]: crate::NodeIdx
-/// [`remove`]: crate::NodeMut::remove
+/// [`prune`]: crate::NodeMut::prune
 /// [`ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
 /// [`RemovedNode`]: crate::NodeIdxError::RemovedNode
 ///
@@ -95,7 +95,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // let's close two nodes (nodes 4 & 8)
 /// // this is not enough to trigger a memory reclaim
-/// tree.node_mut(&id4).remove();
+/// tree.node_mut(&id4).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
@@ -111,7 +111,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // # 3 - SHRINK TRIGGERING MEMORY RECLAIM
 ///
 /// // let's close more nodes (7, 10, 11) to trigger the memory reclaim
-/// tree.node_mut(&id7).remove();
+/// tree.node_mut(&id7).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // even node 2 is still on the tree;
@@ -186,7 +186,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // # 2 - SHRINK, NO MEMORY RECLAIM
 ///
 /// // let's close two nodes (nodes 4 & 8)
-/// tree.node_mut(&id4).remove();
+/// tree.node_mut(&id4).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
@@ -203,7 +203,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // let's close more nodes (7, 10, 11)
 /// // this would've triggered memory reclaim in Auto policy, but not in Lazy policy
-/// tree.node_mut(&id7).remove();
+/// tree.node_mut(&id7).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // all indices are still valid
@@ -269,7 +269,7 @@ impl MemoryPolicy for Lazy {
 /// * It automatically reclaims memory whenever the utilization falls below 75%.
 /// * Automatic triggers of memory reclaims might lead to implicit invalidation of node indices due to [`ReorganizedCollection`].
 /// * It is important to note that, even when using Auto policy, tree growth will never trigger memory reclaim.
-///   Only node removing mutations such as [`remove`] can trigger node reorganization.
+///   Only node removing mutations such as [`prune`] can trigger node reorganization.
 ///
 /// Compared to `Lazy`, auto approach has the following pros & cons:
 ///
@@ -290,7 +290,7 @@ impl MemoryPolicy for Lazy {
 /// please see the Examples section of [`MemoryPolicy`].
 ///
 /// [`ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
-/// [`remove`]: crate::NodeMut::remove
+/// [`prune`]: crate::NodeMut::prune
 pub struct Auto;
 impl MemoryPolicy for Auto {
     type MemoryReclaimPolicy<V>
