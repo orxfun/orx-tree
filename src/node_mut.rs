@@ -224,12 +224,10 @@ where
     ///
     /// // validate the tree
     ///
-    /// let root = tree.root();
-    ///
-    /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     ///
-    /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
+    /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [0, 1, 3, 7, 4, 2, 5, 8, 6, 9, 10]);
     /// ```
     pub fn push_child(&mut self, value: V::Item) -> NodeIdx<V> {
@@ -1490,6 +1488,101 @@ where
         // # SAFETY: On the other hand, close_and_reclaim might trigger a reclaim
         // operation which moves around the nodes, invalidating other pointers;
         // however, only after 'self.node_ptr' is also closed.
+        self.col.close_and_reclaim(&self.node_ptr)
+    }
+
+    /// Removes this node and returns its data;
+    /// and connects the children of this node to its parent.
+    ///
+    /// Therefore, unlike [`prune`], the resulting tree will contain only one less node.
+    ///
+    /// Assume that this node's parent had `n` children while this node is the i-th child.
+    /// Further, assume that this node has `m` children.
+    /// Then, the i-th element of the parent's children will be replaced with the m children.
+    /// After the move, the parent will contain `n - 1 + m` children.
+    ///
+    /// [`prune`]: crate::NodeMut::prune
+    ///
+    /// # Panics
+    ///
+    /// Due to the fact that the tree can contain only one root, this move panics:
+    ///
+    /// * if this node is the root,
+    /// * and it has more than one child.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1                    1                  1
+    /// //     ╱ ╲                  ╱ ╲                ╱|╲
+    /// //    ╱   ╲                ╱   ╲              ╱ | ╲
+    /// //   2     3     (-n7)    2     3     (-n2)  4  5  3
+    /// //  ╱ ╲   ╱ ╲     =>     ╱ ╲   ╱| ╲    =>    |    ╱| ╲
+    /// // 4   5 6   7          4   5 6 10 11        8   6 10 11
+    /// // |     |  ╱ ╲         |     |                  |
+    /// // 8     9 10  11       8     9                  9
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.push_children([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push_child(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.push_children([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // take out n7
+    ///
+    /// let d7 = tree.node_mut(&id7).take_out();
+    /// assert_eq!(d7, 7);
+    /// assert_eq!(tree.try_node(&id7), Err(NodeIdxError::RemovedNode));
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 10, 11, 8, 9]);
+    ///
+    /// // take out n2
+    ///
+    /// let d2 = tree.node_mut(&id2).take_out();
+    /// assert_eq!(d2, 2);
+    /// assert_eq!(tree.get_node(&id2), None);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 4, 5, 3, 8, 6, 10, 11, 9]);
+    /// ```
+    pub fn take_out(self) -> V::Item {
+        assert!(!self.is_root() || self.num_children() == 1, "If taken out node is the root, it must have only one child which will be the new root.");
+
+        let parent_ptr = self.parent_ptr();
+        let sibling_idx = self.sibling_idx();
+
+        for child_ptr in self.node().next().children_ptr() {
+            let child = unsafe { &mut *child_ptr.ptr_mut() };
+            child.prev_mut().set(parent_ptr.clone());
+        }
+
+        match parent_ptr {
+            None => {
+                let first_child = self.node().next().children_ptr().next().cloned();
+                self.col.ends_mut().set(first_child);
+            }
+            Some(parent_ptr) => {
+                let parent = unsafe { &mut *parent_ptr.ptr_mut() };
+                parent.next_mut().remove_at(sibling_idx);
+                for child_ptr in self.node().next().children_ptr().rev().cloned() {
+                    parent.next_mut().insert(sibling_idx, child_ptr);
+                }
+            }
+        }
+
         self.col.close_and_reclaim(&self.node_ptr)
     }
 
