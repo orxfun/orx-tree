@@ -1289,6 +1289,96 @@ where
         subtree.append_to_node_within_as_child(&mut parent, position)
     }
 
+    // move
+
+    /// ***O(1)*** Inserts a node with the given `value` as the parent of this node;
+    /// and returns the [`NodeIdx`] of the new parent node.
+    ///
+    /// As a result of this move:
+    ///
+    /// * this node and all its descendants will be down-shifted by one level in depth
+    /// * this node will be the only child of the new parent node
+    /// * this node's earlier parent will be the parent of the new parent node
+    /// * if this node was the root, the new parent will now be the root
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //                       0
+    /// //                       |
+    /// //      1                1
+    /// //     ╱ ╲              ╱ ╲
+    /// //    ╱   ╲            ╱   ╲
+    /// //   2     3     =>   6     7
+    /// //        ╱ ╲         |     |
+    /// //       4   5        2     3
+    /// //                         ╱ ╲
+    /// //                        4   5
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// n3.push_children([4, 5]);
+    ///
+    /// // push parent (insert a node vertically)
+    ///
+    /// let id0 = tree.root_mut().push_parent(0);
+    /// let id6 = tree.node_mut(&id2).push_parent(6);
+    /// let id7 = tree.node_mut(&id3).push_parent(7);
+    ///
+    /// // test inserted parent indices
+    ///
+    /// assert!(tree.node(&id0).is_root());
+    /// assert_eq!(tree.node(&id6).data(), &6);
+    /// assert_eq!(tree.node(&id7).data(), &7);
+    ///
+    /// // validate the tree
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [0, 1, 6, 7, 2, 3, 4, 5]);
+    ///
+    /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [0, 1, 6, 2, 7, 3, 4, 5]);
+    /// ```
+    pub fn push_parent(&mut self, value: V::Item) -> NodeIdx<V> {
+        let parent_ptr = self.col.push(value);
+
+        let child_ptr = self.node_ptr.clone();
+        let child = unsafe { &mut *child_ptr.ptr_mut() };
+
+        let ancestor_ptr = child.prev().get();
+
+        // down arrows
+        match ancestor_ptr {
+            Some(ancestor_ptr) => {
+                let ancestor = unsafe { &mut *ancestor_ptr.ptr_mut() };
+                ancestor
+                    .next_mut()
+                    .replace_with(&child_ptr, parent_ptr.clone());
+            }
+            None => {
+                // this node was the root => parent will be the new root
+                self.col.ends_mut().set_some(parent_ptr.clone());
+            }
+        }
+
+        let parent = unsafe { &mut *parent_ptr.ptr_mut() };
+        parent.next_mut().push(child_ptr.clone());
+
+        // up arrows
+
+        let child = unsafe { &mut *child_ptr.ptr_mut() };
+        child.prev_mut().set_some(parent_ptr.clone());
+        parent.prev_mut().set(ancestor_ptr.cloned());
+
+        self.node_idx_for(&parent_ptr)
+    }
+
     // shrink
 
     /// Removes this node and all of its descendants from the tree; and returns the
