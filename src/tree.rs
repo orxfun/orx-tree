@@ -546,8 +546,111 @@ where
 
     // move nodes
 
+    /// ***O(1)*** Tries to swap the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`
+    /// in constant time (*).
+    ///
+    /// The indices remain valid.
+    ///
+    /// In order to have a valid swap operation, the two subtrees must be **independent** of each other without
+    /// any shared node. Necessary and sufficient condition is then as follows:
+    ///
+    /// * node with the `first_idx` is not an ancestor of the node with the `second_idx`,
+    /// * and vice versa.
+    ///
+    /// Swap operation will succeed if both indices are valid and the above condition holds. Panics ...
+    ///
+    /// # Panics
+    ///
+    /// * Panics if either of the node indices is invalid.
+    /// * Panics if node with the `first_idx` is an ancestor of the node with the `second_idx`; or vice versa.
+    ///
+    /// # See also
+    ///
+    /// (*) Validation of the independence of the subtrees is performed in ***O(D)*** time where D is the maximum
+    /// depth of the tree. When we are certain that the subtrees do not intersect, we can use the unsafe variant
+    /// [`swap_nodes_unchecked`] to bypass the validation.
+    ///
+    /// See also:
+    ///
+    /// * [`swap_data_with`]
+    /// * [`swap_nodes`]
+    /// * [`try_swap_nodes`]
+    /// * [`swap_nodes_unchecked`]
+    ///
+    /// [`swap_data_with`]: crate::NodeMut::swap_data_with
+    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
+    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.push_children([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push_child(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.push_children([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push_child(9);
+    /// let [_, _] = tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // we can swap n2 & n7
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   7     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 10 11 6   2
+    /// //       |  ╱ ╲
+    /// //       9 4   5
+    /// //         |
+    /// //         8
+    ///
+    /// tree.swap_nodes(&id2, &id7);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
+    /// ```
     pub fn swap_nodes(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
-        //
+        assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
+        assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
+        let ptr_root = self.root_ptr().expect("tree is not empty");
+        let ptr_p = first_idx.0.node_ptr();
+        let ptr_q = second_idx.0.node_ptr();
+
+        match ptr_p == ptr_q {
+            true => {}
+            false => {
+                assert!(
+                    AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).all(|x| x != ptr_q),
+                    "Node with `second_idx` is an ancestor of the node with `first_idx`; cannot swap nodes."
+                );
+                assert!(
+                    AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).all(|x| x != ptr_p),
+                    "Node with `first_idx` is an ancestor of the node with `second_idx`; cannot swap nodes."
+                );
+                // # SAFETY: all possible error cases are checked and handled
+                unsafe { self.swap_nodes_unchecked(first_idx, second_idx) };
+            }
+        }
     }
 
     /// ***O(1)*** Tries to swap the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`
@@ -571,10 +674,17 @@ where
     /// depth of the tree. When we are certain that the subtrees do not intersect, we can use the unsafe variant
     /// [`swap_nodes_unchecked`] to bypass the validation.
     ///
-    /// In order to only swap data of two nodes, rather than the subtrees, please see [`swap_data_with`] method.
+    /// See also:
     ///
-    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
+    /// * [`swap_data_with`]
+    /// * [`swap_nodes`]
+    /// * [`try_swap_nodes`]
+    /// * [`swap_nodes_unchecked`]
+    ///
     /// [`swap_data_with`]: crate::NodeMut::swap_data_with
+    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
+    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
     ///
     /// # Examples
     ///
@@ -683,9 +793,17 @@ where
     /// It is safe to use this method only when the swap operation is valid; i.e., abovementioned independence condition
     /// of the subtrees holds.
     ///
-    /// See also the [`try_swap_nodes`] method for a safe variant.
+    /// # See also
     ///
-    /// [`try_swap_nodes`]: Tree::try_swap_nodes
+    /// * [`swap_data_with`]
+    /// * [`swap_nodes`]
+    /// * [`try_swap_nodes`]
+    /// * [`swap_nodes_unchecked`]
+    ///
+    /// [`swap_data_with`]: crate::NodeMut::swap_data_with
+    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
+    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
     ///
     /// # Examples
     ///
