@@ -1357,10 +1357,10 @@ where
         let child_ptr = self.node_ptr.clone();
         let child = unsafe { &mut *child_ptr.ptr_mut() };
 
-        let ancestor_ptr = child.prev().get();
+        let ancestor_ptr = child.prev().get().cloned();
 
         // down arrows
-        match ancestor_ptr {
+        match &ancestor_ptr {
             Some(ancestor_ptr) => {
                 let ancestor = unsafe { &mut *ancestor_ptr.ptr_mut() };
                 ancestor
@@ -1381,8 +1381,7 @@ where
         let child = unsafe { &mut *child_ptr.ptr_mut() };
         child.prev_mut().set_some(parent_ptr.clone());
 
-        let parent = unsafe { &mut *parent_ptr.ptr_mut() };
-        parent.prev_mut().set(ancestor_ptr.cloned());
+        parent.prev_mut().set(ancestor_ptr);
 
         self.node_idx_for(&parent_ptr)
     }
