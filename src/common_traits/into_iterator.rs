@@ -1,4 +1,5 @@
 use crate::{helpers::N, pinned_storage::PinnedStorage, MemoryPolicy, Tree, TreeVariant};
+use core::iter::FusedIterator;
 use orx_pinned_vec::PinnedVec;
 
 // owned
@@ -90,6 +91,13 @@ where
             }
         }
     }
+}
+
+impl<V, I> FusedIterator for TreeIntoIter<V, I>
+where
+    V: TreeVariant,
+    I: Iterator<Item = N<V>>,
+{
 }
 
 // ref
@@ -184,6 +192,13 @@ where
             }
         }
     }
+}
+
+impl<'a, V, I> FusedIterator for TreeIter<'a, V, I>
+where
+    V: TreeVariant + 'a,
+    I: Iterator<Item = &'a N<V>>,
+{
 }
 
 // mut
@@ -286,4 +301,11 @@ where
             }
         }
     }
+}
+
+impl<'a, V, I> FusedIterator for TreeIterMut<'a, V, I>
+where
+    V: TreeVariant + 'a,
+    I: Iterator<Item = &'a mut N<V>>,
+{
 }
