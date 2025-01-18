@@ -47,6 +47,15 @@ where
         self.node.node_ptr().clone()
     }
 
+    fn root_parent_ptr(&self) -> Option<NodePtr<V>> {
+        let root = unsafe { &*self.node.node_ptr().ptr() };
+        root.prev().get().cloned()
+    }
+
+    fn root_sibling_idx(&self) -> usize {
+        self.node.sibling_idx()
+    }
+
     fn append_to_node_as_child<V2, M2, P2, MO>(
         self,
         parent: &mut NodeMut<V2, M2, P2, MO>,

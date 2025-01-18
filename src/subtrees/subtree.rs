@@ -9,9 +9,11 @@ pub(crate) mod sealed {
     use orx_selfref_col::NodePtr;
 
     pub trait SubTreeCore<Vs: TreeVariant>: Sized {
-        fn root_ptr(&self) -> NodePtr<Vs> {
-            todo!()
-        }
+        fn root_ptr(&self) -> NodePtr<Vs>;
+
+        fn root_parent_ptr(&self) -> Option<NodePtr<Vs>>;
+
+        fn root_sibling_idx(&self) -> usize;
 
         fn append_to_node_as_child<V, M, P, MO>(
             self,

@@ -3,7 +3,7 @@ use crate::{
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{traverser_core::TraverserCore, OverDepthData},
-    Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant,
+    Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
 };
 use orx_selfref_col::NodePtr;
 
@@ -38,6 +38,14 @@ where
 {
     fn root_ptr(&self) -> NodePtr<V> {
         self.node.node_ptr().clone()
+    }
+
+    fn root_parent_ptr(&self) -> Option<NodePtr<V>> {
+        self.node.parent_ptr()
+    }
+
+    fn root_sibling_idx(&self) -> usize {
+        self.node.sibling_idx()
     }
 
     fn append_to_node_as_child<V2, M2, P2, MO2>(

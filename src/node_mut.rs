@@ -1393,7 +1393,7 @@ where
         let parent_ptr_a = self.parent_ptr();
         let child_pos_a = self.sibling_idx();
 
-        // let parent_ptr_b =
+        let parent_ptr_b = subtree.root_ptr();
 
         let x = self.into_subtree();
         //
@@ -2265,7 +2265,7 @@ where
         (self.col, self.node_ptr)
     }
 
-    fn parent_ptr(&self) -> Option<NodePtr<V>> {
+    pub(crate) fn parent_ptr(&self) -> Option<NodePtr<V>> {
         self.node().prev().get().cloned()
     }
 

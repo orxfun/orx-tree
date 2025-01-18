@@ -17,6 +17,14 @@ where
         self.root().node_ptr().clone()
     }
 
+    fn root_parent_ptr(&self) -> Option<NodePtr<V>> {
+        None
+    }
+
+    fn root_sibling_idx(&self) -> usize {
+        0
+    }
+
     // TODO: convert to O(1) by using SplitVec Recursive properties
     fn append_to_node_as_child<V2, M2, P2, MO>(
         mut self,
