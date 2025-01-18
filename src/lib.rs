@@ -58,3 +58,6 @@ pub use tree_variant::TreeVariant;
 // ERRORS
 pub use errors::NodeSwapError;
 pub use orx_selfref_col::NodeIdxError;
+
+// RE-IMPORT
+pub use orx_iterable::{Collection, CollectionMut};
