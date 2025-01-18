@@ -167,3 +167,96 @@ where
         self.iter.next().and_then(|node| node.data())
     }
 }
+
+// mut
+
+impl<'a, V, M, P> IntoIterator for &'a mut Tree<V, M, P>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+{
+    type Item = &'a mut V::Item;
+
+    type IntoIter =
+        TreeIterMut<'a, V, <<P as PinnedStorage>::PinnedVec<V> as PinnedVec<N<V>>>::IterMut<'a>>;
+
+    /// Creates a mutable iterator over references to the data of the nodes of the tree in
+    /// a deterministic but an arbitrary order.
+    ///
+    /// In order to iterate over the values the tree nodes in a particular order,
+    /// you may use [`walk_mut`] method on the root of the tree (or on any subtree) with the desired traverser.
+    ///
+    /// [`walk_mut`]: crate::NodeMut::walk_mut
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     2
+    /// //  ╱ ╲   ╱ ╲
+    /// // 3   4 5   6
+    /// // |
+    /// // 7
+    ///
+    /// let mut tree = DaryTree::<4, _>::new(0);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id1, id2] = root.push_children([1, 2]);
+    ///
+    /// let mut n1 = tree.node_mut(&id1);
+    /// let [id3, _] = n1.push_children([3, 4]);
+    ///
+    /// tree.node_mut(&id3).push_child(7);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// n2.push_children([5, 6]);
+    ///
+    /// // mutably iterate over the tree in an arbitrary order
+    ///
+    /// for x in (&mut tree).into_iter() {
+    ///     *x += 5;
+    /// }
+    ///
+    /// // since Tree auto-implements orx_iterable::CollectionMut
+    ///
+    /// for x in tree.iter_mut() {
+    ///     *x += 5;
+    /// }
+    ///
+    /// // validate
+    ///
+    /// let values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(values, [10, 11, 12, 13, 14, 15, 16, 17]);
+    /// ```
+    fn into_iter(self) -> Self::IntoIter {
+        TreeIterMut {
+            iter: self.0.nodes_mut().iter_mut(),
+        }
+    }
+}
+
+pub struct TreeIterMut<'a, V, I>
+where
+    V: TreeVariant + 'a,
+    I: Iterator<Item = &'a mut N<V>>,
+{
+    iter: I,
+}
+
+impl<'a, V, I> Iterator for TreeIterMut<'a, V, I>
+where
+    V: TreeVariant + 'a,
+    I: Iterator<Item = &'a mut N<V>>,
+{
+    type Item = &'a mut V::Item;
+
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().and_then(|node| node.data_mut())
+    }
+}
