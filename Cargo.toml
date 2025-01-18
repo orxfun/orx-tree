@@ -8,6 +8,7 @@ orx-pinned-vec = "3.11"
 orx-split-vec = "3.11"
 orx-selfref-col = { path = "../orx-selfref-col" }
 orx-self-or = "1.0"
+orx-iterable = "1.1.1"
 
 [dev-dependencies]
 test-case = { version = "3.3.1", default-features = false }
