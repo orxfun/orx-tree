@@ -77,9 +77,18 @@ where
 {
     type Item = V::Item;
 
-    #[inline(always)]
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().and_then(|mut node| node.take_data())
+        loop {
+            match self.iter.next() {
+                None => return None,
+                Some(mut node) => {
+                    if node.is_active() {
+                        return node.take_data();
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -162,9 +171,18 @@ where
 {
     type Item = &'a V::Item;
 
-    #[inline(always)]
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().and_then(|node| node.data())
+        loop {
+            match self.iter.next() {
+                None => return None,
+                Some(node) => {
+                    if node.is_active() {
+                        return node.data();
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -257,6 +275,15 @@ where
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().and_then(|node| node.data_mut())
+        loop {
+            match self.iter.next() {
+                None => return None,
+                Some(node) => {
+                    if node.is_active() {
+                        return node.data_mut();
+                    }
+                }
+            }
+        }
     }
 }
