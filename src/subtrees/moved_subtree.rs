@@ -1,9 +1,11 @@
 use super::subtree::sealed::SubTreeCore;
 use crate::{
+    node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{traverser_core::TraverserCore, OverDepthData},
     Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant,
 };
+use orx_selfref_col::NodePtr;
 
 pub struct MovedSubTree<'a, V, M, P, MO>
 where
@@ -27,13 +29,17 @@ where
     }
 }
 
-impl<'a, V, M, P, MO> SubTreeCore<V::Item> for MovedSubTree<'a, V, M, P, MO>
+impl<'a, V, M, P, MO> SubTreeCore<V> for MovedSubTree<'a, V, M, P, MO>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,
     P: PinnedStorage,
     MO: NodeMutOrientation,
 {
+    fn root_ptr(&self) -> NodePtr<V> {
+        self.node.node_ptr().clone()
+    }
+
     fn append_to_node_as_child<V2, M2, P2, MO2>(
         self,
         parent: &mut NodeMut<V2, M2, P2, MO2>,

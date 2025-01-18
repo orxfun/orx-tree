@@ -5,6 +5,7 @@ use crate::{
     Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
 };
 use core::marker::PhantomData;
+use orx_selfref_col::NodePtr;
 
 pub struct CopiedSubTree<'a, V, M, P, N>
 where
@@ -34,7 +35,7 @@ where
     }
 }
 
-impl<'a, V, M, P, N> SubTreeCore<V::Item> for CopiedSubTree<'a, V, M, P, N>
+impl<'a, V, M, P, N> SubTreeCore<V> for CopiedSubTree<'a, V, M, P, N>
 where
     V: TreeVariant + 'a,
     M: MemoryPolicy,
@@ -42,6 +43,10 @@ where
     N: NodeRef<'a, V, M, P>,
     V::Item: Copy,
 {
+    fn root_ptr(&self) -> NodePtr<V> {
+        self.node.node_ptr().clone()
+    }
+
     fn append_to_node_as_child<V2, M2, P2, MO>(
         self,
         parent: &mut NodeMut<V2, M2, P2, MO>,

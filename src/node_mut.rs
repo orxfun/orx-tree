@@ -552,7 +552,10 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     /// ```
-    pub fn push_child_tree(&mut self, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
+    pub fn push_child_tree<Vs>(&mut self, subtree: impl SubTree<Vs>) -> NodeIdx<V>
+    where
+        Vs: TreeVariant<Item = V::Item>,
+    {
         subtree.append_to_node_as_child(self, self.num_children())
     }
 
@@ -1129,7 +1132,10 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10]);
     /// ```
-    pub fn push_sibling_tree(&mut self, side: Side, subtree: impl SubTree<V::Item>) -> NodeIdx<V> {
+    pub fn push_sibling_tree<Vs>(&mut self, side: Side, subtree: impl SubTree<Vs>) -> NodeIdx<V>
+    where
+        Vs: TreeVariant<Item = V::Item>,
+    {
         let parent_ptr = self
             .parent_ptr()
             .expect("Cannot push sibling to the root node");
@@ -1374,9 +1380,24 @@ where
 
         let child = unsafe { &mut *child_ptr.ptr_mut() };
         child.prev_mut().set_some(parent_ptr.clone());
+
+        let parent = unsafe { &mut *parent_ptr.ptr_mut() };
         parent.prev_mut().set(ancestor_ptr.cloned());
 
         self.node_idx_for(&parent_ptr)
+    }
+
+    pub fn swap<Vs>(self, subtree: impl SubTree<Vs>)
+    where
+        Vs: TreeVariant<Item = V::Item>,
+    {
+        let parent_ptr_a = self.parent_ptr();
+        let child_pos_a = self.sibling_idx();
+
+        // let parent_ptr_b =
+
+        let x = self.into_subtree();
+        //
     }
 
     // shrink
