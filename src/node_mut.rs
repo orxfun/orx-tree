@@ -121,9 +121,9 @@ where
     ///
     /// # See also
     ///
-    /// See [`swap_nodes`] to swap two independent subtrees rooted at given node indices.
+    /// See [`try_swap_nodes`] to swap two independent subtrees rooted at given node indices.
     ///
-    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
     ///
     /// # Examples
     ///
@@ -1384,19 +1384,6 @@ where
         parent.prev_mut().set(ancestor_ptr);
 
         self.node_idx_for(&parent_ptr)
-    }
-
-    pub fn swap<Vs>(self, subtree: impl SubTree<Vs>)
-    where
-        Vs: TreeVariant<Item = V::Item>,
-    {
-        let parent_ptr_a = self.parent_ptr();
-        let child_pos_a = self.sibling_idx();
-
-        let parent_ptr_b = subtree.root_ptr();
-
-        let x = self.into_subtree();
-        //
     }
 
     // shrink

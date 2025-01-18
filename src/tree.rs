@@ -546,9 +546,15 @@ where
 
     // move nodes
 
-    /// ***O(1)*** Swaps the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`
+    pub fn swap_nodes(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
+        //
+    }
+
+    /// ***O(1)*** Tries to swap the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`
     /// in constant time (*).
     /// Returns the error if the swap operation is invalid.
+    ///
+    /// The indices remain valid.
     ///
     /// In order to have a valid swap operation, the two subtrees must be **independent** of each other without
     /// any shared node. Necessary and sufficient condition is then as follows:
@@ -604,14 +610,14 @@ where
     /// // cannot swap n3 & n10
     ///
     /// assert_eq!(
-    ///     tree.swap_nodes(&id3, &id10),
+    ///     tree.try_swap_nodes(&id3, &id10),
     ///     Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
     /// );
     ///
     /// // cannot swap n4 & n1 (root)
     ///
     /// assert_eq!(
-    ///     tree.swap_nodes(&id4, &id1),
+    ///     tree.try_swap_nodes(&id4, &id1),
     ///     Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
     /// );
     ///
@@ -627,13 +633,13 @@ where
     /// //         |
     /// //         8
     ///
-    /// let result = tree.swap_nodes(&id2, &id7);
+    /// let result = tree.try_swap_nodes(&id2, &id7);
     /// assert_eq!(result, Ok(()));
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
     /// ```
-    pub fn swap_nodes(
+    pub fn try_swap_nodes(
         &mut self,
         first_idx: &NodeIdx<V>,
         second_idx: &NodeIdx<V>,
@@ -652,42 +658,15 @@ where
         } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).any(|x| x == ptr_p) {
             Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
         } else {
-            let p = unsafe { &mut *ptr_p.ptr_mut() };
-            let q = unsafe { &mut *ptr_q.ptr_mut() };
-
-            let parent_p = p.prev().get().cloned();
-            let parent_q = q.prev().get().cloned();
-
-            match parent_p {
-                Some(parent_ptr_p) => {
-                    let parent_p = unsafe { &mut *parent_ptr_p.ptr_mut() };
-                    parent_p.next_mut().replace_with(&ptr_p, ptr_q.clone());
-
-                    q.prev_mut().set_some(parent_ptr_p);
-                }
-                None => {
-                    q.prev_mut().set_none();
-                }
-            }
-
-            match parent_q {
-                Some(parent_ptr_q) => {
-                    let parent_q = unsafe { &mut *parent_ptr_q.ptr_mut() };
-                    parent_q.next_mut().replace_with(&ptr_q, ptr_p);
-
-                    p.prev_mut().set_some(parent_ptr_q);
-                }
-                None => {
-                    p.prev_mut().set_none();
-                }
-            }
-
+            // # SAFETY: all possible error cases are checked and handled
+            unsafe { self.swap_nodes_unchecked(first_idx, second_idx) };
             Ok(())
         }
     }
 
-    /// ***O(1)*** Swaps the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`
-    /// in constant time.
+    /// ***O(1)*** Swaps the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`.
+    ///
+    /// The indices remain valid.
     ///
     /// In order to have a valid swap operation, the two subtrees must be **independent** of each other without
     /// any shared node. Necessary and sufficient condition is then as follows:
@@ -704,9 +683,9 @@ where
     /// It is safe to use this method only when the swap operation is valid; i.e., abovementioned independence condition
     /// of the subtrees holds.
     ///
-    /// See also the [`swap_nodes`] method for a safe variant.
+    /// See also the [`try_swap_nodes`] method for a safe variant.
     ///
-    /// [`swap_nodes`]: Tree::swap_nodes
+    /// [`try_swap_nodes`]: Tree::try_swap_nodes
     ///
     /// # Examples
     ///
