@@ -1,7 +1,22 @@
 use crate::{
-    memory::MemoryPolicy, pinned_storage::PinnedStorage, Node, NodeMut, NodeRef, TreeVariant,
+    memory::MemoryPolicy, pinned_storage::PinnedStorage, Node, NodeMut, NodeRef, Tree, TreeVariant,
 };
 use core::fmt::Debug;
+
+impl<V, M, P> Debug for Tree<V, M, P>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    V::Item: Debug,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        // TODO: provide a proper implementation
+        f.debug_tuple("Tree").finish()
+    }
+}
+
+// nodes
 
 impl<V, M, P> Debug for Node<'_, V, M, P>
 where

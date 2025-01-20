@@ -273,12 +273,10 @@ where
     ///
     /// // validate the tree
     ///
-    /// let root = tree.root();
-    ///
-    /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     ///
-    /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
+    /// let dfs: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [0, 1, 3, 7, 4, 2, 5, 8, 6, 9, 10]);
     /// ```
     pub fn push_children<const N: usize>(&mut self, values: [V::Item; N]) -> [NodeIdx<V>; N] {
@@ -2367,14 +2365,20 @@ where
         NodeIdx(orx_selfref_col::NodeIdx::new(self.col.memory_state(), ptr))
     }
 
-    pub(crate) fn append_subtree_as_child(
+    /// Tries to append the `subtree` as the `child_position`-th child of this node.
+    ///
+    /// This operation might only fail if the there is an increasing jump in depths that is
+    /// greater than one.
+    /// The method returns the (depth, succeeding_depth) pair as the error when this error
+    /// is observed.
+    #[allow(clippy::unwrap_in_result)]
+    pub(crate) fn try_append_subtree_as_child(
         &mut self,
         subtree: impl IntoIterator<Item = (usize, V::Item)>,
         child_position: usize,
-    ) -> NodeIdx<V> {
+    ) -> Result<NodeIdx<V>, (usize, usize)> {
         let mut iter = subtree.into_iter();
         let (mut current_depth, value) = iter.next().expect("tree is not empty");
-        debug_assert_eq!(current_depth, 0);
 
         let idx = match child_position == self.num_children() {
             true => self.push_child(value),
@@ -2390,7 +2394,11 @@ where
 
         for (depth, value) in iter {
             match depth > current_depth {
-                true => debug_assert_eq!(depth, current_depth + 1, "dfs error in clone"),
+                true => {
+                    if depth > current_depth + 1 {
+                        return Err((current_depth, depth));
+                    }
+                }
                 false => {
                     let num_parent_moves = current_depth - depth + 1;
                     for _ in 0..num_parent_moves {
@@ -2404,7 +2412,28 @@ where
             current_depth = depth;
         }
 
-        idx
+        Ok(idx)
+    }
+
+    /// Appends the `subtree` as the `child_position`-th child of this node.
+    ///
+    /// # Panics
+    ///
+    /// It is only safe to call this method where the `subtree` represents a valid depth-first sequence.
+    /// Note that any sequence created by [`Dfs`] iterator using the [`OverDepthData`] is always valid, and hence, the conversion cannot fail.
+    ///
+    /// Please see [`DepthFirstSequence`] for validity conditions.
+    ///
+    /// [`DepthFirstSequence`]: crate::DepthFirstSequence
+    /// [`Dfs`]: crate::Dfs
+    /// [`OverDepthData`]: crate::traversal::OverDepthData
+    pub(crate) fn append_subtree_as_child(
+        &mut self,
+        subtree: impl IntoIterator<Item = (usize, V::Item)>,
+        child_position: usize,
+    ) -> NodeIdx<V> {
+        self.try_append_subtree_as_child(subtree, child_position)
+            .expect("Since the depth first sequence is created by internal Dfs walk methods, sequence to subtree conversion cannot fail")
     }
 }
 
