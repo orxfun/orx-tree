@@ -43,6 +43,7 @@ mod tree;
 mod tree_node_idx;
 mod tree_variant;
 
+pub use common_traits::{DepthFirstSequence, DepthFirstSequenceError};
 pub use dary::{Binary, BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
 pub use memory::{Auto, AutoWithThreshold, Lazy, MemoryPolicy};
 pub use node::Node;
