@@ -5,11 +5,14 @@ use crate::{
     pinned_storage::PinnedStorage,
     subtrees::{ClonedSubTree, CopiedSubTree},
     traversal::{
-        enumeration::Enumeration, enumerations::Val, over::OverItem, traverser_core::TraverserCore,
+        enumeration::Enumeration,
+        enumerations::Val,
+        over::{OverDepthPtr, OverItem},
+        traverser_core::TraverserCore,
         Over, OverData,
     },
     tree_variant::RefsChildren,
-    Node, NodeIdx, Traverser, Tree, TreeVariant,
+    Dfs, Node, NodeIdx, Traverser, Tree, TreeVariant,
 };
 use orx_selfref_col::{NodePtr, Refs};
 
@@ -94,7 +97,7 @@ where
     /// // 4   5 6
     ///
     /// let mut tree = DynTree::<i32>::new(1);
-    /// assert_eq!(tree.root().is_leaf(), true); // both root & leaf
+    /// assert_eq!(tree.get_root().unwrap().is_leaf(), true); // both root & leaf
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -108,7 +111,7 @@ where
     /// // walk over any subtree rooted at a selected node
     /// // with different traversals
     ///
-    /// assert_eq!(tree.root().is_leaf(), false);
+    /// assert_eq!(tree.get_root().unwrap().is_leaf(), false);
     /// assert_eq!(tree.node(&id2).is_leaf(), false);
     /// assert_eq!(tree.node(&id3).is_leaf(), false);
     ///
@@ -525,6 +528,47 @@ where
             .any(|ptr| ptr == ancestor_ptr)
     }
 
+    /// Returns the maximum of depths of leaf nodes belonging to the subtree rooted at this node.
+    /// The depth of this (root of the subtree) node is considered to be 0.
+    ///
+    /// If this is a leaf node, max-depth of its subtree will be 0 which is the depth of the root (itself).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// //       |
+    /// //       8
+    ///
+    /// let mut tree = DynTree::<i32>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    /// let [id6, _] = tree.node_mut(&id3).push_children([6, 7]);
+    /// tree.node_mut(&id6).push_child(8);
+    ///
+    /// assert_eq!(tree.root().max_depth(), 3); // max depth of the tree
+    /// assert_eq!(tree.node(&id2).max_depth(), 1);
+    /// assert_eq!(tree.node(&id3).max_depth(), 2);
+    /// assert_eq!(tree.node(&id4).max_depth(), 0); // subtree with only the root
+    /// assert_eq!(tree.node(&id6).max_depth(), 1);
+    /// ```
+    fn max_depth(&self) -> usize {
+        let mut traverser = Dfs::<OverDepthPtr>::new();
+        Dfs::<OverDepthPtr>::iter_ptr_with_storage(self.node_ptr().clone(), traverser.storage_mut())
+            .map(|(depth, _)| depth)
+            .max()
+            .expect("the iterator is not empty")
+    }
+
     // traversal
 
     /// Creates an iterator that yields references to data of all nodes belonging to the subtree rooted at this node.
@@ -674,14 +718,14 @@ where
     /// for x in n7.walk_mut_with(&mut dfs) {
     ///     *x += 100;
     /// }
-    /// let values: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
+    /// let values: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 107, 110, 111]);
     ///
     /// let n3 = tree.node_mut(&id3);
     /// let removed: Vec<_> = n3.into_walk_with(&mut dfs).collect();
     /// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
     ///
-    /// let remaining: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
+    /// let remaining: Vec<_> = tree.get_root().unwrap().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(remaining, [1, 2, 4, 8, 5]);
     /// ```
     ///
