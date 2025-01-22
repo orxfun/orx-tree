@@ -164,7 +164,6 @@ Please see the notes and examples of NodeIdx and MemoryPolicy:
 ///
 /// ```
 /// use orx_tree::*;
-/// use orx_tree::traversal::*;
 ///
 /// //      1
 /// //     ╱ ╲
