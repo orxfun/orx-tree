@@ -27,7 +27,7 @@ where
     fn node_ptr(&self) -> &NodePtr<V>;
 
     #[inline(always)]
-    fn node(&self) -> &N<V> {
+    fn node(&self) -> &'a N<V> {
         unsafe { &*self.node_ptr().ptr() }
     }
 }
@@ -142,10 +142,7 @@ where
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_panics_doc)]
-    fn data<'b>(&'b self) -> &'b V::Item
-    where
-        'a: 'b,
-    {
+    fn data(&self) -> &'a V::Item {
         self.node()
             .data()
             .expect("node holding a tree reference must be active")
@@ -528,10 +525,11 @@ where
             .any(|ptr| ptr == ancestor_ptr)
     }
 
-    /// Returns the maximum of depths of leaf nodes belonging to the subtree rooted at this node.
-    /// The depth of this (root of the subtree) node is considered to be 0.
+    /// Returns the height of this node relative to the deepest leaf of the subtree rooted at this node.
     ///
-    /// If this is a leaf node, max-depth of its subtree will be 0 which is the depth of the root (itself).
+    /// Equivalently, returns the maximum of depths of leaf nodes belonging to the subtree rooted at this node.
+    ///
+    /// If this is a leaf node, height will be 0 which is the depth of the root (itself).
     ///
     /// # Examples
     ///
@@ -555,13 +553,13 @@ where
     /// let [id6, _] = tree.node_mut(&id3).push_children([6, 7]);
     /// tree.node_mut(&id6).push_child(8);
     ///
-    /// assert_eq!(tree.root().max_depth(), 3); // max depth of the tree
-    /// assert_eq!(tree.node(&id2).max_depth(), 1);
-    /// assert_eq!(tree.node(&id3).max_depth(), 2);
-    /// assert_eq!(tree.node(&id4).max_depth(), 0); // subtree with only the root
-    /// assert_eq!(tree.node(&id6).max_depth(), 1);
+    /// assert_eq!(tree.root().height(), 3); // max depth of the tree
+    /// assert_eq!(tree.node(&id2).height(), 1);
+    /// assert_eq!(tree.node(&id3).height(), 2);
+    /// assert_eq!(tree.node(&id4).height(), 0); // subtree with only the root
+    /// assert_eq!(tree.node(&id6).height(), 1);
     /// ```
-    fn max_depth(&self) -> usize {
+    fn height(&self) -> usize {
         let mut traverser = Dfs::<OverDepthPtr>::new();
         Dfs::<OverDepthPtr>::iter_ptr_with_storage(self.node_ptr().clone(), traverser.storage_mut())
             .map(|(depth, _)| depth)
@@ -619,15 +617,9 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.push_children([4, 5]);
-    ///
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
     /// tree.node_mut(&id4).push_child(8);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.push_children([6, 7]);
-    ///
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
     /// tree.node_mut(&id6).push_child(9);
     /// tree.node_mut(&id7).push_children([10, 11]);
     ///
