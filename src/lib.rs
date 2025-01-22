@@ -29,11 +29,11 @@ pub mod memory;
 /// Module defining the choice over the pinned storage of the tree.
 pub mod pinned_storage;
 
+mod aliases;
 mod common_traits;
 mod dary;
 mod r#dyn;
 mod errors;
-mod helpers;
 mod node;
 mod node_mut;
 mod node_ref;

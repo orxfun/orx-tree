@@ -1,5 +1,5 @@
 use crate::{
-    helpers::Col,
+    aliases::Col,
     iter::AncestorsIterPtr,
     memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
@@ -55,7 +55,7 @@ where
     /// let tree: DynTree<i32> = DynTree::new(42);
     ///
     /// assert_eq!(tree.len(), 1);
-    /// assert_eq!(tree.get_root().unwrap().data(), &42);
+    /// assert_eq!(tree.root().data(), &42);
     /// ```
     pub fn new(root_value: V::Item) -> Self
     where
@@ -119,7 +119,7 @@ where
     /// tree.push_root(42);
     /// assert!(!tree.is_empty());
     /// assert_eq!(tree.len(), 1);
-    /// assert_eq!(tree.get_root().unwrap().data(), &42);
+    /// assert_eq!(tree.root().data(), &42);
     /// ```
     pub fn push_root(&mut self, root_value: V::Item) -> NodeIdx<V> {
         assert!(
@@ -151,7 +151,7 @@ where
     /// node.push_child(7);
     ///
     /// assert_eq!(tree.len(), 4);
-    /// assert_eq!(tree.get_root().unwrap().data(), &42);
+    /// assert_eq!(tree.root().data(), &42);
     ///
     /// tree.clear();
     /// assert!(tree.is_empty());
@@ -255,7 +255,7 @@ where
     ///
     /// // initiate a rooted tree
     /// let mut tree = DynTree::<_>::new('a');
-    /// assert_eq!(tree.get_root().unwrap().data(), &'a');
+    /// assert_eq!(tree.root().data(), &'a');
     ///
     /// tree.clear();
     /// assert_eq!(tree.get_root(), None);
@@ -265,7 +265,7 @@ where
     /// assert_eq!(tree.get_root(), None);
     ///
     /// tree.push_root('a');
-    /// assert_eq!(tree.get_root().unwrap().data(), &'a');
+    /// assert_eq!(tree.root().data(), &'a');
     /// ```
     pub fn get_root(&self) -> Option<Node<V, M, P>> {
         self.root_ptr().cloned().map(|p| Node::new(&self.0, p))

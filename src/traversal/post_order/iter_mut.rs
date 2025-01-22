@@ -1,7 +1,7 @@
 use super::iter_ptr::PostOrderIterPtr;
 use super::states::State;
 use super::{iter_ptr::Item, post_enumeration::PostOrderEnumeration};
-use crate::helpers::Col;
+use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;

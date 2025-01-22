@@ -41,6 +41,8 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// # Examples
 ///
+/// ## Auto Memory Claim
+///
 /// Since Auto is the default memory policy, we do not need to include it in the tree type signature.
 /// The following example demonstrates how this policy impacts the validity of node indices.
 ///
@@ -62,24 +64,18 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // 8     9 10  11
 ///
 /// fn bfs_values(tree: &DynTree<i32>) -> Vec<i32> {
-///     tree.get_root().unwrap().walk::<Bfs>().copied().collect()
+///     tree.root().walk::<Bfs>().copied().collect()
 /// }
 ///
 /// // # 1. GROW
 ///
-/// let mut tree = DynTree::<i32>::new(1); // equivalently => DynTree::<i32, Auto>::new(1)
+/// // equivalently => DynTree::<i32, Auto>::new(1)
+/// let mut tree = DynTree::<i32>::new(1);
 ///
-/// let mut root = tree.root_mut();
-/// let [id2, id3] = root.push_children([2, 3]);
-///
-/// let mut n2 = tree.node_mut(&id2);
-/// let [id4, _] = n2.push_children([4, 5]);
-///
+/// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+/// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
 /// let [id8] = tree.node_mut(&id4).push_children([8]);
-///
-/// let mut n3 = tree.node_mut(&id3);
-/// let [id6, id7] = n3.push_children([6, 7]);
-///
+/// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
 /// tree.node_mut(&id6).push_child(9);
 /// tree.node_mut(&id7).push_children([10, 11]);
 ///
@@ -125,12 +121,14 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // all indices obtained prior to reorganization are now invalid
 /// // we can restore the valid indices again
 ///
-/// let id2 = tree.get_root().unwrap().child(0).unwrap().idx();
+/// let id2 = tree.root().child(0).unwrap().idx();
 /// assert!(tree.is_node_idx_valid(&id2));
 /// assert!(tree.try_node(&id2).is_ok());
 /// let n2 = tree.node(&id2);
 /// assert_eq!(n2.data(), &2);
 /// ```
+///
+/// ## Lazy Memory Claim: Preventing Invalid Indices
 ///
 /// Now assume that we want to make sure that the indices we cached during growth
 /// are valid during the stages #2 and #3.
@@ -153,25 +151,18 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // 8     9 10  11
 ///
 /// fn bfs_values<M: MemoryPolicy>(tree: &DynTree<i32, M>) -> Vec<i32> {
-///     tree.get_root().unwrap().walk::<Bfs>().copied().collect()
+///     tree.root().walk::<Bfs>().copied().collect()
 /// }
 ///
 /// // # 1. GROW
 ///
-/// let tree = DynTree::<i32>::new(1);
-/// let mut tree = tree.into_lazy_reclaim(); // or just => DynTree::<i32, Lazy>::new(1);
+/// // or just => DynTree::<i32, Lazy>::new(1);
+/// let mut tree = DynTree::<i32>::new(1).into_lazy_reclaim();
 ///
-/// let mut root = tree.root_mut();
-/// let [id2, id3] = root.push_children([2, 3]);
-///
-/// let mut n2 = tree.node_mut(&id2);
-/// let [id4, _] = n2.push_children([4, 5]);
-///
+/// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+/// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
 /// let [id8] = tree.node_mut(&id4).push_children([8]);
-///
-/// let mut n3 = tree.node_mut(&id3);
-/// let [id6, id7] = n3.push_children([6, 7]);
-///
+/// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
 /// tree.node_mut(&id6).push_child(9);
 /// tree.node_mut(&id7).push_children([10, 11]);
 ///
@@ -206,7 +197,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// tree.node_mut(&id7).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
-/// // all indices are still valid
+/// // all indices are still valid ✓
 /// assert!(tree.is_node_idx_valid(&id2));
 /// assert!(tree.try_node(&id2).is_ok());
 /// let n2 = tree.node(&id2);

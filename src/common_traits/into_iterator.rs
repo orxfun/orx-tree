@@ -1,4 +1,4 @@
-use crate::{helpers::N, pinned_storage::PinnedStorage, MemoryPolicy, Tree, TreeVariant};
+use crate::{aliases::N, pinned_storage::PinnedStorage, MemoryPolicy, Tree, TreeVariant};
 use core::iter::FusedIterator;
 use orx_pinned_vec::PinnedVec;
 

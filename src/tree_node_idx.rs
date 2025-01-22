@@ -5,10 +5,12 @@ use crate::{
 use core::fmt::Debug;
 
 pub(crate) const INVALID_IDX_ERROR: &str = "\n
-NodeIdx is not valid for the given tree.
-Please see the notes and examples of NodeIdx and MemoryPolicy:
+NodeIdx is not valid for the given tree. Please see the notes and examples of NodeIdx and MemoryPolicy:
 * https://docs.rs/orx-tree/latest/orx_tree/struct.NodeIdx.html
-* https://docs.rs/orx-tree/latest/orx_tree/trait.MemoryPolicy.html\n
+* https://docs.rs/orx-tree/latest/orx_tree/trait.MemoryPolicy.html
+
+Specifically, see the example in the following chapter to prevent invalid indices:
+* https://docs.rs/orx-tree/latest/orx_tree/trait.MemoryPolicy.html#lazy-memory-claim-preventing-invalid-indices
 \n";
 
 /// An index associated only with the node it is created for.
