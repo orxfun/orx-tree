@@ -1727,8 +1727,7 @@ where
         self.node()
             .next()
             .get_ptr(child_index)
-            .cloned()
-            .map(|p| NodeMut::new(self.col, p))
+            .map(|p| NodeMut::new(self.col, p.clone()))
     }
 
     /// Creates an iterator over mutable nodes of children of this node.

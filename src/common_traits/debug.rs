@@ -12,6 +12,13 @@ where
     V::Item: Debug,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        fn safe_avg(a: usize, b: usize) -> f64 {
+            match b {
+                0 => 0.0,
+                _ => (100 * a / b) as f64 / 100.0,
+            }
+        }
+
         let mut depth_first_sequence = alloc::vec::Vec::new();
         let mut t = Traversal.dfs().over_nodes().with_depth();
         let root = self.get_root();
@@ -37,10 +44,9 @@ where
             }
         }
 
-        let avg_degree = (100 * total_num_children / self.len()) as f64 / 100.0;
-        let avg_non_leaf_degree =
-            (100 * total_num_children / (self.len() - num_leaves)) as f64 / 100.0;
-        let avg_depth = (100 * total_depth / self.len()) as f64 / 100.0;
+        let avg_degree = safe_avg(total_num_children, self.len());
+        let avg_non_leaf_degree = safe_avg(total_num_children, self.len() - num_leaves);
+        let avg_depth = safe_avg(total_depth, self.len());
 
         f.debug_struct("Tree")
             .field("len", &self.len())
