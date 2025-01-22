@@ -459,11 +459,13 @@ where
     /// //  ╱ ╲         |  ╱ ╲
     /// // 3   4        8 9   10
     ///
-    /// let mut a = DynTree::<_>::new(0);
+    /// // into_lazy_reclaim: to keep the indices valid
+    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
     /// let [id1, id2] = a.root_mut().push_children([1, 2]);
     /// a.node_mut(&id1).push_children([3, 4]);
     ///
-    /// let mut b = DaryTree::<4, _>::new(5);
+    /// // into_lazy_reclaim: to keep the indices valid
+    /// let mut b = DaryTree::<4, _>::new(5).into_lazy_reclaim();
     /// let id5 = b.root().idx();
     /// let [id6, id7] = b.root_mut().push_children([6, 7]);
     /// b.node_mut(&id6).push_child(8);
@@ -1040,11 +1042,13 @@ where
     /// //  ╱ ╲         |  ╱ ╲
     /// // 3   4        8 9   10
     ///
-    /// let mut a = DynTree::<_>::new(0);
+    /// // into_lazy_reclaim -> to keep indices valid
+    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
     /// let [id1, id2] = a.root_mut().push_children([1, 2]);
     /// a.node_mut(&id1).push_children([3, 4]);
     ///
-    /// let mut b = DaryTree::<4, _>::new(5);
+    /// // into_lazy_reclaim -> to keep indices valid
+    /// let mut b = DaryTree::<4, _>::new(5).into_lazy_reclaim();
     /// let [id6, id7] = b.root_mut().push_children([6, 7]);
     /// b.node_mut(&id6).push_child(8);
     /// b.node_mut(&id7).push_children([9, 10]);
@@ -2074,7 +2078,6 @@ where
     ///
     /// ```
     /// use orx_tree::*;
-    /// use orx_tree::traversal::*;
     ///
     /// //      1
     /// //     ╱ ╲

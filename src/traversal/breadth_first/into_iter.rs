@@ -18,6 +18,7 @@ where
     S: SoM<VecDeque<Item<V, E>>>,
 {
     col: &'a mut Col<V, M, P>,
+    root_ptr: NodePtr<V>,
     iter: BfsIterPtr<V, E, S>,
 }
 
@@ -42,14 +43,14 @@ where
     /// * Finally, this iterator's lifetime is equal to the borrow duration of the mutable node.
     #[allow(clippy::type_complexity)]
     pub(crate) unsafe fn from(
-        (col, iter, node_ptr): (&'a mut Col<V, M, P>, BfsIterPtr<V, E, S>, NodePtr<V>),
+        (col, iter, root_ptr): (&'a mut Col<V, M, P>, BfsIterPtr<V, E, S>, NodePtr<V>),
     ) -> Self {
-        let node = unsafe { &mut *node_ptr.ptr_mut() };
+        let node = unsafe { &mut *root_ptr.ptr_mut() };
 
         match node.prev().get() {
             Some(parent) => {
                 let parent = unsafe { &mut *parent.ptr_mut() };
-                let sibling_idx = parent.next_mut().remove(node_ptr.ptr() as usize);
+                let sibling_idx = parent.next_mut().remove(root_ptr.ptr() as usize);
                 debug_assert!(sibling_idx.is_some());
 
                 node.prev_mut().clear();
@@ -60,7 +61,11 @@ where
             }
         }
 
-        Self { col, iter }
+        Self {
+            col,
+            root_ptr,
+            iter,
+        }
     }
 
     fn take_element(&mut self, element: E::Item<NodePtr<V>>) -> E::Item<V::Item> {
@@ -98,5 +103,6 @@ where
         while let Some(element) = self.iter.next() {
             self.take_element(element);
         }
+        self.col.reclaim_from_closed_node(&self.root_ptr);
     }
 }

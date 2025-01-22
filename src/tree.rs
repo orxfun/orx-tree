@@ -310,9 +310,34 @@ where
     ///   => [`NodeIdxError::ReorganizedCollection`]
     ///
     /// Please see [`NodeIdx`] documentation for details on the validity of node indices.
+    ///
+    /// * If [`is_node_idx_valid`] is true, then [`node_idx_error`] is None;
+    /// * If [`is_node_idx_valid`] is false, then [`node_idx_error`] is Some.
+    ///
+    /// [`is_node_idx_valid`]: crate::Tree::is_node_idx_valid
+    /// [`node_idx_error`]: crate::Tree::node_idx_error
     #[inline(always)]
     pub fn is_node_idx_valid(&self, node_idx: &NodeIdx<V>) -> bool {
         node_idx.0.is_valid_for(&self.0)
+    }
+
+    /// Returns the node index error if the `node_idx` is invalid.
+    /// Returns None if the index is valid for this tree.
+    ///
+    /// Returns Some if any of the following holds:
+    ///
+    /// * the node index is created from a different tree => [`NodeIdxError::OutOfBounds`]
+    /// * the node that this index is created for is removed from the tree => [`NodeIdxError::RemovedNode`]
+    /// * the tree is using `Auto` memory reclaim policy and nodes are reorganized due to node removals
+    ///   => [`NodeIdxError::ReorganizedCollection`]
+    ///
+    /// * If [`is_node_idx_valid`] is true, then [`node_idx_error`] is None;
+    /// * If [`is_node_idx_valid`] is false, then [`node_idx_error`] is Some.
+    ///
+    /// [`is_node_idx_valid`]: crate::Tree::is_node_idx_valid
+    /// [`node_idx_error`]: crate::Tree::node_idx_error
+    pub fn node_idx_error(&self, node_idx: &NodeIdx<V>) -> Option<NodeIdxError> {
+        self.0.node_idx_error(&node_idx.0)
     }
 
     /// Returns the node with the given `node_idx`.
