@@ -18,6 +18,6 @@ serde_json = { version = "1.0.135", default-features = false, features = [
 ] }
 
 [features]
-default = ["std", "serde"]
+default = ["std"]
 std = []
 serde = ["dep:serde"]
