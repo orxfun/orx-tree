@@ -9,10 +9,15 @@ orx-split-vec = "3.11"
 orx-selfref-col = { path = "../orx-selfref-col" }
 orx-self-or = "1.0"
 orx-iterable = "1.1.1"
+serde = { version = "1.0.217", optional = true, default-features = false }
 
 [dev-dependencies]
 test-case = { version = "3.3.1", default-features = false }
+serde_json = { version = "1.0.135", default-features = false, features = [
+    "std",
+] }
 
 [features]
 default = ["std"]
 std = []
+serde = ["dep:serde"]
