@@ -1391,6 +1391,15 @@ where
     /// Removes this node and all of its descendants from the tree; and returns the
     /// data of this node.
     ///
+    /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
+    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    ///
+    /// [`Auto`]: crate::Auto
+    /// [`Lazy`]: crate::Lazy
+    /// [`MemoryPolicy`]: crate::MemoryPolicy
+    ///
     /// # See also
     ///
     /// Note that this method returns the data of this node, while the data of the descendants
@@ -1504,6 +1513,15 @@ where
     /// After the move, the parent will contain `n - 1 + m` children.
     ///
     /// [`prune`]: crate::NodeMut::prune
+    ///
+    /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
+    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    ///
+    /// [`Auto`]: crate::Auto
+    /// [`Lazy`]: crate::Lazy
+    /// [`MemoryPolicy`]: crate::MemoryPolicy
     ///
     /// # Panics
     ///
@@ -2065,6 +2083,15 @@ where
     /// These methods additionally allow for iterating over nodes rather than data; and yielding node depths and sibling
     /// indices in addition to node data.
     ///
+    /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
+    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    ///
+    /// [`Auto`]: crate::Auto
+    /// [`Lazy`]: crate::Lazy
+    /// [`MemoryPolicy`]: crate::MemoryPolicy
+    ///
     /// [`Bfs`]: crate::Bfs
     /// [`Dfs`]: crate::Dfs
     /// [`PostOrder`]: crate::PostOrder
@@ -2156,6 +2183,15 @@ where
     /// [`Bfs`]: crate::Bfs
     /// [`Dfs`]: crate::Dfs
     /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
+    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    ///
+    /// [`Auto`]: crate::Auto
+    /// [`Lazy`]: crate::Lazy
+    /// [`MemoryPolicy`]: crate::MemoryPolicy
     ///
     /// # Examples
     ///
