@@ -1,5 +1,5 @@
 use crate::{
-    helpers::{Col, N},
+    aliases::{Col, N},
     iter::ChildrenMutIter,
     memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
@@ -1452,7 +1452,7 @@ where
     ///
     /// // prune the root: clear the entire (remaining) tree
     ///
-    /// let data = tree.get_root_mut().unwrap().prune();
+    /// let data = tree.root_mut().prune();
     /// assert_eq!(data, 1);
     /// assert!(tree.is_empty());
     /// assert_eq!(tree.get_root(), None);
@@ -2122,7 +2122,7 @@ where
     /// let remaining: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(remaining, [1, 2, 5]);
     ///
-    /// let root = tree.get_root_mut().unwrap();
+    /// let root = tree.root_mut();
     /// let removed: Vec<_> = root.into_walk::<Bfs>().collect(); // empties the tree
     /// assert_eq!(removed, [1, 2, 5]);
     ///

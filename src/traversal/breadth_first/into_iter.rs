@@ -1,7 +1,7 @@
 use super::iter_ptr::BfsIterPtr;
 use super::queue::Item;
 use super::BreadthFirstEnumeration;
-use crate::helpers::Col;
+use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::TreeVariant;

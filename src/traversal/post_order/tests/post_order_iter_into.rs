@@ -104,7 +104,7 @@ fn post_order_into_iter_partially_used(use_iter: UseIter) {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -136,7 +136,7 @@ fn post_order_into_iter_partially_used(use_iter: UseIter) {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -183,7 +183,7 @@ fn post_order_into_iter_val() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -207,7 +207,7 @@ fn post_order_into_iter_val() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -268,7 +268,7 @@ fn post_order_into_iter_depth() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -299,7 +299,7 @@ fn post_order_into_iter_depth() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -360,7 +360,7 @@ fn post_order_into_iter_sibling_idx() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -391,7 +391,7 @@ fn post_order_into_iter_sibling_idx() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }
@@ -457,7 +457,7 @@ fn post_order_into_iter_depth_sibling_idx() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 4, 5, 8].map(|x| x.to_string()));
     }
 
@@ -491,7 +491,7 @@ fn post_order_into_iter_depth_sibling_idx() {
             tree.get_root().map(|x| x.data().clone()),
             Some(1.to_string())
         );
-        let values: Vec<_> = tree.get_root().unwrap().walk::<Bfs>().cloned().collect();
+        let values: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
         assert_eq!(values, [1, 2, 3, 4, 5, 6, 8, 9].map(|x| x.to_string()));
     }
 }

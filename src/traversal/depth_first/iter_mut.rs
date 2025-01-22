@@ -1,7 +1,7 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
 use super::iter_ptr::DfsIterPtr;
 use super::stack::Item;
-use crate::helpers::Col;
+use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;

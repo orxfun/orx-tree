@@ -1,4 +1,4 @@
-use crate::helpers::Col;
+use crate::aliases::Col;
 use crate::memory::{Auto, MemoryPolicy};
 use crate::pinned_storage::{PinnedStorage, SplitRecursive};
 use crate::Node;
