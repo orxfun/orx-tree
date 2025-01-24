@@ -64,12 +64,12 @@ fn post_order_iter_ptr() {
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     assert_eq!(data(iter), [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     assert_eq!(data(iter), [9, 6, 10, 11, 7, 3]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((stack, ptr));
     assert_eq!(data(iter), [10, 11, 7]);

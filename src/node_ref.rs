@@ -250,18 +250,59 @@ where
     ///
     /// let root = tree.root();
     ///
-    /// let a = root.child(0).unwrap();
+    /// let a = root.get_child(0).unwrap();
     /// assert_eq!(a.data(), &'a');
     /// assert_eq!(a.num_children(), 3);
     ///
-    /// assert_eq!(a.child(1).unwrap().data(), &'d');
-    /// assert_eq!(a.child(3), None);
+    /// assert_eq!(a.get_child(1).unwrap().data(), &'d');
+    /// assert_eq!(a.get_child(3), None);
     /// ```
-    fn child(&self, child_index: usize) -> Option<Node<V, M, P>> {
+    fn get_child(&self, child_index: usize) -> Option<Node<V, M, P>> {
         self.node()
             .next()
             .get_ptr(child_index)
             .map(|ptr| Node::new(self.col(), ptr.clone()))
+    }
+
+    /// Returns the `child-index`-th child of the node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the child index is out of bounds; i.e., `child_index >= self.num_children()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// // build the tree:
+    /// // r
+    /// // |-- a
+    /// //     |-- c, d, e
+    /// // |-- b
+    /// let mut tree = DynTree::<char>::new('r');
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id_a] = root.push_children(['a']);
+    /// root.push_child('b');
+    ///
+    /// let mut a = tree.node_mut(&id_a);
+    /// a.push_children(['c', 'd', 'e']);
+    ///
+    /// // use child to access lower level nodes
+    ///
+    /// let root = tree.root();
+    ///
+    /// let a = root.child(0);
+    /// assert_eq!(a.data(), &'a');
+    /// assert_eq!(a.num_children(), 3);
+    ///
+    /// assert_eq!(a.child(1).data(), &'d');
+    /// // let child = a.child(3); // out-of-bounds, panics!
+    /// ```
+    fn child(&self, child_index: usize) -> Node<V, M, P> {
+        self.get_child(child_index)
+            .expect("Given child_index is out of bounds; i.e., child_index >= self.num_children()")
     }
 
     /// Returns the parent of this node; returns None if this is the root node.
@@ -761,7 +802,7 @@ where
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
-    /// assert_eq!(node.child(1).map(|x| *x.data()), Some(11));
+    /// assert_eq!(node.get_child(1).map(|x| *x.data()), Some(11));
     ///
     /// // or to additionally yield depth and/or sibling-idx
     ///

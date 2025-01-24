@@ -6,8 +6,7 @@ edition = "2021"
 [dependencies]
 orx-pinned-vec = "3.11"
 orx-split-vec = "3.11"
-# orx-selfref-col = "2.3"
-orx-selfref-col = { path = "../orx-selfref-col" }
+orx-selfref-col = "2.3"
 orx-self-or = "1.0"
 orx-iterable = "1.1.1"
 serde = { version = "1.0.217", optional = true, default-features = false }

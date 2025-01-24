@@ -151,8 +151,8 @@ Specifically, see the example in the following chapter to prevent invalid indice
 ///
 /// // task: access node 5 and get its index
 /// let root = tree.root();
-/// let n2 = root.child(0).unwrap();
-/// let n5 = n2.child(1).unwrap();
+/// let n2 = root.child(0);
+/// let n5 = n2.child(1);
 /// let id5 = n5.idx();
 ///
 /// // now we can use idx5 to directly access node 5

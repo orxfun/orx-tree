@@ -63,11 +63,11 @@ fn bfs_iter_for<O: Over<Enumeration = Val>>() {
     let iter = traverser.iter(&root);
     assert_eq!(data::<O>(iter), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let iter = traverser.iter(&n3);
     assert_eq!(data::<O>(iter), [3, 6, 7, 9, 10, 11]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let iter = traverser.iter(&n7);
     assert_eq!(data::<O>(iter), [7, 10, 11]);
 }
@@ -99,7 +99,7 @@ fn bfs_iter_ref_depth() {
             [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
         );
 
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let iter = traverser.iter(&n3);
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 1, 1, 2, 2, 2]);
     }
@@ -123,7 +123,7 @@ fn bfs_iter_ref_sibling() {
             [0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1]
         );
 
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let iter = traverser.iter(&n3);
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 1, 0, 0, 1]);
     }
@@ -152,7 +152,7 @@ fn bfs_iter_ref_depth_sibling() {
             [0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1]
         );
 
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let iter = traverser.iter(&n3);
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 1, 1, 2, 2, 2]);
         let iter = traverser.iter(&n3);

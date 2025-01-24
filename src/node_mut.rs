@@ -1636,7 +1636,7 @@ where
     /// root.push_children([2, 3]);
     ///
     /// for c in 0..root.num_children() {
-    ///     let mut node = root.child_mut(c).unwrap();
+    ///     let mut node = root.get_child_mut(c).unwrap();
     ///
     ///     let val = *node.data();
     ///     let children = (0..val).map(|x| x + 1 + val);
@@ -1644,7 +1644,7 @@ where
     ///     let _ = node.extend_children(children).count();
     ///
     ///     for c in 0..node.num_children() {
-    ///         let mut node = node.child_mut(c).unwrap();
+    ///         let mut node = node.get_child_mut(c).unwrap();
     ///         node.push_child(*node.data() + 3);
     ///     }
     /// }
@@ -1659,7 +1659,7 @@ where
     /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
     /// ```
-    pub fn child_mut(&mut self, child_index: usize) -> Option<NodeMut<V, M, P>> {
+    pub fn get_child_mut(&mut self, child_index: usize) -> Option<NodeMut<V, M, P>> {
         self.node()
             .next()
             .get_ptr(child_index)
@@ -1667,12 +1667,71 @@ where
             .map(move |p| NodeMut::new(self.col, p))
     }
 
+    /// Returns the mutable node of the `child-index`-th child of this node.
+    ///
+    /// See also [`into_child_mut`] for consuming traversal.
+    ///
+    /// [`into_child_mut`]: crate::NodeMut::into_child_mut
+    ///
+    /// # Panics
+    ///
+    /// Panics if the child index is out of bounds; i.e., `child_index >= self.num_children()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //       1
+    /// //      ╱ ╲
+    /// //     ╱   ╲
+    /// //    ╱     ╲
+    /// //   2       3
+    /// //  ╱ ╲    ╱ | ╲
+    /// // 3   4  4  5  6
+    /// // |   |  |  |  |
+    /// // 6   7  7  8  9
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// root.push_children([2, 3]);
+    ///
+    /// for c in 0..root.num_children() {
+    ///     let mut node = root.child_mut(c);
+    ///
+    ///     let val = *node.data();
+    ///     let children = (0..val).map(|x| x + 1 + val);
+    ///
+    ///     let _ = node.extend_children(children).count();
+    ///
+    ///     for c in 0..node.num_children() {
+    ///         let mut node = node.child_mut(c);
+    ///         node.push_child(*node.data() + 3);
+    ///     }
+    /// }
+    ///
+    /// // validate the tree
+    ///
+    /// let root = tree.root();
+    ///
+    /// let bfs: Vec<_> = root.walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 3, 4, 4, 5, 6, 6, 7, 7, 8, 9]);
+    ///
+    /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
+    /// ```
+    pub fn child_mut(&mut self, child_index: usize) -> NodeMut<V, M, P> {
+        self.get_child_mut(child_index)
+            .expect("Given child_index is out of bounds; i.e., child_index >= self.num_children()")
+    }
+
     /// Consumes this mutable node and returns the mutable node of the `child-index`-th child;
     /// returns None if the child index is out of bounds.
     ///
-    /// See also [`child_mut`] for non-consuming access.
+    /// See also [`get_child_mut`] for non-consuming access.
     ///
-    /// [`child_mut`]: crate::NodeMut::child_mut
+    /// [`get_child_mut`]: crate::NodeMut::get_child_mut
     ///
     /// # Examples
     ///
@@ -2025,7 +2084,7 @@ where
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
-    /// assert_eq!(node.child(1).map(|x| *x.data()), Some(11));
+    /// assert_eq!(node.get_child(1).map(|x| *x.data()), Some(11));
     ///
     /// // or to additionally yield depth and/or sibling-idx
     ///
@@ -2289,7 +2348,7 @@ where
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
-    /// assert_eq!(node.child(1).map(|x| *x.data()), Some(11));
+    /// assert_eq!(node.get_child(1).map(|x| *x.data()), Some(11));
     ///
     /// // or to additionally yield depth and/or sibling-idx
     ///
@@ -2428,7 +2487,7 @@ where
         };
 
         let position = child_position;
-        let mut dst = self.child_mut(position).expect("child exists");
+        let mut dst = self.get_child_mut(position).expect("child exists");
 
         for (depth, value) in iter {
             match depth > current_depth {
