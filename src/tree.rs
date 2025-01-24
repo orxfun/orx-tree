@@ -612,19 +612,19 @@ where
     ///
     /// (*) Validation of the independence of the subtrees is performed in ***O(D)*** time where D is the maximum
     /// depth of the tree. When we are certain that the subtrees do not intersect, we can use the unsafe variant
-    /// [`swap_nodes_unchecked`] to bypass the validation.
+    /// [`swap_subtrees_unchecked`] to bypass the validation.
     ///
     /// See also:
     ///
     /// * [`swap_data_with`]
-    /// * [`swap_nodes`]
+    /// * [`swap_subtrees`]
     /// * [`try_swap_nodes`]
-    /// * [`swap_nodes_unchecked`]
+    /// * [`swap_subtrees_unchecked`]
     ///
     /// [`swap_data_with`]: crate::NodeMut::swap_data_with
-    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`swap_subtrees`]: crate::Tree::swap_subtrees
     /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
-    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
+    /// [`swap_subtrees_unchecked`]: crate::Tree::swap_subtrees_unchecked
     ///
     /// # Examples
     ///
@@ -668,12 +668,12 @@ where
     /// //         |
     /// //         8
     ///
-    /// tree.swap_nodes(&id2, &id7);
+    /// tree.swap_subtrees(&id2, &id7);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
     /// ```
-    pub fn swap_nodes(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
+    pub fn swap_subtrees(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
         assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
         assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
         let ptr_root = self.root_ptr().expect("tree is not empty");
@@ -692,7 +692,7 @@ where
                     "Node with `first_idx` is an ancestor of the node with `second_idx`; cannot swap nodes."
                 );
                 // # SAFETY: all possible error cases are checked and handled
-                unsafe { self.swap_nodes_unchecked(first_idx, second_idx) };
+                unsafe { self.swap_subtrees_unchecked(first_idx, second_idx) };
             }
         }
     }
@@ -716,19 +716,19 @@ where
     ///
     /// (*) Validation of the independence of the subtrees is performed in ***O(D)*** time where D is the maximum
     /// depth of the tree. When we are certain that the subtrees do not intersect, we can use the unsafe variant
-    /// [`swap_nodes_unchecked`] to bypass the validation.
+    /// [`swap_subtrees_unchecked`] to bypass the validation.
     ///
     /// See also:
     ///
     /// * [`swap_data_with`]
-    /// * [`swap_nodes`]
+    /// * [`swap_subtrees`]
     /// * [`try_swap_nodes`]
-    /// * [`swap_nodes_unchecked`]
+    /// * [`swap_subtrees_unchecked`]
     ///
     /// [`swap_data_with`]: crate::NodeMut::swap_data_with
-    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`swap_subtrees`]: crate::Tree::swap_subtrees
     /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
-    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
+    /// [`swap_subtrees_unchecked`]: crate::Tree::swap_subtrees_unchecked
     ///
     /// # Examples
     ///
@@ -813,7 +813,7 @@ where
             Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
         } else {
             // # SAFETY: all possible error cases are checked and handled
-            unsafe { self.swap_nodes_unchecked(first_idx, second_idx) };
+            unsafe { self.swap_subtrees_unchecked(first_idx, second_idx) };
             Ok(())
         }
     }
@@ -840,14 +840,14 @@ where
     /// # See also
     ///
     /// * [`swap_data_with`]
-    /// * [`swap_nodes`]
+    /// * [`swap_subtrees`]
     /// * [`try_swap_nodes`]
-    /// * [`swap_nodes_unchecked`]
+    /// * [`swap_subtrees_unchecked`]
     ///
     /// [`swap_data_with`]: crate::NodeMut::swap_data_with
-    /// [`swap_nodes`]: crate::Tree::swap_nodes
+    /// [`swap_subtrees`]: crate::Tree::swap_subtrees
     /// [`try_swap_nodes`]: crate::Tree::try_swap_nodes
-    /// [`swap_nodes_unchecked`]: crate::Tree::swap_nodes_unchecked
+    /// [`swap_subtrees_unchecked`]: crate::Tree::swap_subtrees_unchecked
     ///
     /// # Examples
     ///
@@ -891,12 +891,16 @@ where
     /// //         |
     /// //         8
     ///
-    /// unsafe { tree.swap_nodes_unchecked(&id2, &id7) };
+    /// unsafe { tree.swap_subtrees_unchecked(&id2, &id7) };
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
     /// ```
-    pub unsafe fn swap_nodes_unchecked(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
+    pub unsafe fn swap_subtrees_unchecked(
+        &mut self,
+        first_idx: &NodeIdx<V>,
+        second_idx: &NodeIdx<V>,
+    ) {
         assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
         assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
 

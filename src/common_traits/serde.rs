@@ -23,7 +23,7 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// let tree = BinaryTree::empty();
+    /// let tree = BinaryTree::<i32>::empty();
     /// let json = serde_json::to_string(&tree).unwrap();
     /// assert_eq!(json, "[]");
     ///
@@ -87,8 +87,11 @@ where
 {
     type Value = Tree<V, M, P>;
 
-    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {}
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+        formatter.write_str("Expecting a DepthFirstSequence which contains (depth, value) pairs in depth-first order. Following is an example valid sequence of (depth, value) pairs: [[0, 0], [1, 1], [2, 3], [3, 6], [1, 2], [2, 4], [2, 5], [3, 7]].")
+    }
 
+    #[allow(clippy::unwrap_in_result)]
     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
     where
         A: serde::de::SeqAccess<'de>,
@@ -96,7 +99,7 @@ where
         let err = |x| Err(serde::de::Error::custom(x));
         use alloc::format;
 
-        let mut tree = Tree::empty();
+        let mut tree = Tree::default();
 
         if let Some(x) = seq.next_element()? {
             let (depth, value): (usize, V::Item) = x;
