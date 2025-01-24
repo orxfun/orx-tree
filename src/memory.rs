@@ -70,7 +70,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // # 1. GROW
 ///
 /// // equivalently => DynTree::<i32, Auto>::new(1)
-/// let mut tree = DynTree::<i32>::new(1);
+/// let mut tree = DynTree::new(1);
 ///
 /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
 /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
@@ -157,7 +157,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // # 1. GROW
 ///
 /// // or just => DynTree::<i32, Lazy>::new(1);
-/// let mut tree = DynTree::<i32>::new(1).into_lazy_reclaim();
+/// let mut tree = DynTree::new(1).into_lazy_reclaim();
 ///
 /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
 /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
