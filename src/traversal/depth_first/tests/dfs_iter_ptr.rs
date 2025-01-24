@@ -64,12 +64,12 @@ fn dfs_iter_ptr() {
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
     assert_eq!(data(iter), [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
     assert_eq!(data(iter), [3, 6, 9, 7, 10, 11]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((stack, ptr));
     assert_eq!(data(iter), [7, 10, 11]);

@@ -70,13 +70,13 @@ fn post_order_iter_for<O: Over>() {
     let iter = PostOrderIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = PostOrderIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [9, 6, 10, 11, 7, 3]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, Val, _>::from((stack, ptr));
     let iter = PostOrderIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
@@ -113,7 +113,7 @@ fn post_order_iter_ref_depth() {
         [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter =
@@ -138,7 +138,7 @@ fn post_order_iter_ref_sibling() {
         [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, SiblingIdxVal, _, &i32>::from((
@@ -169,7 +169,7 @@ fn post_order_iter_ref_depth_sibling() {
         [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((

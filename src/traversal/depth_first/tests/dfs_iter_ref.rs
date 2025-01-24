@@ -69,13 +69,13 @@ fn dfs_iter_for<O: Over>() {
     let iter = DfsIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = DfsIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [3, 6, 9, 7, 10, 11]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = DfsIterPtr::<_, Val, _>::from((stack, ptr));
     let iter = DfsIterRef::<_, _, _, Val, _, Item<'_, O>>::from((root.col(), iter));
@@ -111,7 +111,7 @@ fn dfs_iter_ref_depth() {
         [0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 3]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((root.col(), iter));
@@ -133,7 +133,7 @@ fn dfs_iter_ref_sibling() {
         [0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter =
@@ -162,7 +162,7 @@ fn dfs_iter_ref_depth_sibling() {
         [0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((

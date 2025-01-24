@@ -65,12 +65,12 @@ fn bfs_iter_ptr() {
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     assert_eq!(data(iter), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     assert_eq!(data(iter), [3, 6, 7, 9, 10, 11]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((queue, ptr));
     assert_eq!(data(iter), [7, 10, 11]);

@@ -121,7 +121,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // all indices obtained prior to reorganization are now invalid
 /// // we can restore the valid indices again
 ///
-/// let id2 = tree.root().child(0).unwrap().idx();
+/// let id2 = tree.root().get_child(0).unwrap().idx();
 /// assert!(tree.is_node_idx_valid(&id2));
 /// assert!(tree.try_node(&id2).is_ok());
 /// let n2 = tree.node(&id2);

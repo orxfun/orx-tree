@@ -81,7 +81,7 @@ fn post_order_into_iter_partially_used(use_iter: UseIter) {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         {
@@ -112,8 +112,8 @@ fn post_order_into_iter_partially_used(use_iter: UseIter) {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
-        let n7 = n3.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
+        let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         {
@@ -168,7 +168,7 @@ fn post_order_into_iter_val() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
@@ -191,8 +191,8 @@ fn post_order_into_iter_val() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
-        let n7 = n3.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
+        let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
@@ -246,7 +246,7 @@ fn post_order_into_iter_depth() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
@@ -276,8 +276,8 @@ fn post_order_into_iter_depth() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
-        let n7 = n3.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
+        let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
@@ -338,7 +338,7 @@ fn post_order_into_iter_sibling_idx() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
@@ -368,8 +368,8 @@ fn post_order_into_iter_sibling_idx() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
-        let n7 = n3.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
+        let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr().clone();
         let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
@@ -432,7 +432,7 @@ fn post_order_into_iter_depth_sibling_idx() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr().clone();
         let iter =
             PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
@@ -465,8 +465,8 @@ fn post_order_into_iter_depth_sibling_idx() {
         let mut tree = tree();
 
         let root = tree.root();
-        let n3 = root.child(1).unwrap();
-        let n7 = n3.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
+        let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr().clone();
         let iter =
             PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr.clone()));

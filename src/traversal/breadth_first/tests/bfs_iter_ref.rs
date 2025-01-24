@@ -70,13 +70,13 @@ fn bfs_iter_for<O: Over>() {
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, Item<'_, O>>::from((root.col(), iter));
     assert_eq!(data::<'_, O>(iter), [3, 6, 7, 9, 10, 11]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let ptr = n7.node_ptr().clone();
     let iter = BfsIterPtr::<_, Val, _>::from((queue, ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, Item<'_, O>>::from((root.col(), iter));
@@ -112,7 +112,7 @@ fn bfs_iter_ref_depth() {
         [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthVal, _>::from((&mut queue, ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, DepthVal, _, &i32>::from((root.col(), iter));
@@ -134,7 +134,7 @@ fn bfs_iter_ref_sibling() {
         [0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, SiblingIdxVal, _>::from((&mut queue, ptr));
     let iter =
@@ -163,7 +163,7 @@ fn bfs_iter_ref_depth_sibling() {
         [0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1]
     );
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let ptr = n3.node_ptr().clone();
     let iter = BfsIterPtr::<_, DepthSiblingIdxVal, _>::from((VecDeque::default(), ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &i32>::from((

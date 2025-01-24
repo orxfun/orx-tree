@@ -66,11 +66,11 @@ where
     let iter = traverser.iter(&root);
     assert_eq!(data::<O>(iter), [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
 
-    let n3 = root.child(1).unwrap();
+    let n3 = root.get_child(1).unwrap();
     let iter = traverser.iter(&n3);
     assert_eq!(data::<O>(iter), [9, 6, 10, 11, 7, 3]);
 
-    let n7 = n3.child(1).unwrap();
+    let n7 = n3.get_child(1).unwrap();
     let iter = traverser.iter(&n7);
     assert_eq!(data::<O>(iter), [10, 11, 7]);
 }
@@ -102,7 +102,7 @@ fn post_order_iter_ref_depth() {
             [3, 2, 2, 1, 3, 2, 3, 3, 2, 1, 0]
         );
 
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let iter = traverser.iter(&n3);
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
     }
@@ -127,7 +127,7 @@ fn post_order_iter_ref_sibling() {
             [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
         );
 
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let iter = traverser.iter(&n3);
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [0, 0, 0, 1, 1, 0]);
     }
@@ -162,7 +162,7 @@ fn post_order_iter_ref_depth_sibling() {
             [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0]
         );
 
-        let n3 = root.child(1).unwrap();
+        let n3 = root.get_child(1).unwrap();
         let iter = traverser.iter(&n3);
         assert_eq!(iter.map(|x| x.0).collect::<Vec<_>>(), [2, 1, 2, 2, 1, 0]);
         let iter = traverser.iter(&n3);
