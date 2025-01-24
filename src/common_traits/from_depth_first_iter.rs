@@ -212,10 +212,10 @@ where
     fn try_from(value: DepthFirstSequence<V::Item, I>) -> Result<Self, Self::Error> {
         let mut iter = value.0.into_iter();
         match iter.next() {
-            None => Ok(Tree::empty()),
+            None => Ok(Tree::default()),
             Some((d, root)) => match d {
                 0 => {
-                    let mut tree = Tree::new(root);
+                    let mut tree = Tree::new_with_root(root);
                     match tree.root_mut().try_append_subtree_as_child(iter, 0) {
                         Ok(_) => Ok(tree),
                         Err((depth, succeeding_depth)) => {

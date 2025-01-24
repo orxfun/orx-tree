@@ -23,11 +23,11 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// let tree = BinaryTree::<i32>::empty();
+    /// let tree = BinaryTree::empty();
     /// let json = serde_json::to_string(&tree).unwrap();
     /// assert_eq!(json, "[]");
     ///
-    /// let tree = DynTree::<i32>::new(10);
+    /// let tree = DynTree::new(10);
     /// let json = serde_json::to_string(&tree).unwrap();
     /// assert_eq!(json, "[[0,10]]");
     ///
@@ -87,9 +87,7 @@ where
 {
     type Value = Tree<V, M, P>;
 
-    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
-        formatter.write_str("DepthFirstSequence which is a sequence of (depth, value) pairs in depth-first traversal order.")
-    }
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {}
 
     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
     where
@@ -111,9 +109,7 @@ where
 
             let mut dst = tree.root_mut();
 
-            while let Some(x) = seq.next_element()? {
-                let (depth, value): (usize, V::Item) = x;
-
+            while let Some((depth, value)) = seq.next_element::<(usize, V::Item)>()? {
                 match depth > current_depth {
                     true => {
                         if depth > current_depth + 1 {

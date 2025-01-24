@@ -30,7 +30,7 @@ where
     /// // |     |  ╱ ╲
     /// // 7     8 9  10
     ///
-    /// let mut tree = DynTree::<i32>::new(0);
+    /// let mut tree = DynTree::new(0);
     ///
     /// let mut root = tree.root_mut();
     /// let [id1, id2] = root.push_children([1, 2]);
@@ -69,9 +69,9 @@ where
     /// ```
     fn clone(&self) -> Self {
         match self.get_root() {
-            None => Self::empty(),
+            None => Self::default(),
             Some(root) => {
-                let mut tree = Self::new(root.data().clone());
+                let mut tree = Self::new_with_root(root.data().clone());
 
                 for child in root.children() {
                     tree.root_mut().push_child_tree(child.as_cloned_subtree());

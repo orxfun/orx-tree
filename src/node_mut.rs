@@ -92,7 +92,7 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// let mut tree = DynTree::<i32>::new(0);
+    /// let mut tree = DynTree::new(0);
     ///
     /// let mut root = tree.root_mut();
     ///
@@ -137,7 +137,7 @@ where
     /// //  ╱ ╲   ╱
     /// // 4   5 6
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let id1 = root.idx();
@@ -703,7 +703,7 @@ where
     /// //  ╱ ╲     ╲
     /// // 4   5     6
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -778,7 +778,7 @@ where
     /// //  ╱ ╲     ╲
     /// // 4   5     6
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -867,7 +867,7 @@ where
     /// //  ╱ ╲     ╲
     /// // 4   5     6
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1323,7 +1323,7 @@ where
     /// //                         ╱ ╲
     /// //                        4   5
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1392,9 +1392,9 @@ where
     /// data of this node.
     ///
     /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
-    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
-    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
-    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    /// > cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// > for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// > section presents a convenient way that allows us to make sure that the indices are valid.
     ///
     /// [`Auto`]: crate::Auto
     /// [`Lazy`]: crate::Lazy
@@ -1424,7 +1424,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1515,9 +1515,9 @@ where
     /// [`prune`]: crate::NodeMut::prune
     ///
     /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
-    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
-    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
-    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    /// > cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// > for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// > section presents a convenient way that allows us to make sure that the indices are valid.
     ///
     /// [`Auto`]: crate::Auto
     /// [`Lazy`]: crate::Lazy
@@ -1544,7 +1544,7 @@ where
     /// // |     |  ╱ ╲         |     |                  |
     /// // 8     9 10  11       8     9                  9
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1864,7 +1864,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1944,7 +1944,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1999,7 +1999,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -2083,9 +2083,9 @@ where
     /// indices in addition to node data.
     ///
     /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
-    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
-    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
-    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    /// > cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// > for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// > section presents a convenient way that allows us to make sure that the indices are valid.
     ///
     /// [`Auto`]: crate::Auto
     /// [`Lazy`]: crate::Lazy
@@ -2114,7 +2114,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -2184,9 +2184,9 @@ where
     /// [`PostOrder`]: crate::PostOrder
     ///
     /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
-    /// cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
-    /// for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
-    /// section presents a convenient way that allows us to make sure that the indices are valid.
+    /// > cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// > for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// > section presents a convenient way that allows us to make sure that the indices are valid.
     ///
     /// [`Auto`]: crate::Auto
     /// [`Lazy`]: crate::Lazy
@@ -2208,7 +2208,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -2263,7 +2263,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);

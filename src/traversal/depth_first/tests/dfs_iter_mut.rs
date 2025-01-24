@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 /// 8     9 10  11
 /// ```
 fn tree() -> DynTree<i32> {
-    let mut tree = DynTree::<i32>::new(1);
+    let mut tree = DynTree::new(1);
 
     let mut root = tree.root_mut();
     let [id2, id3] = root.push_children([2, 3]);
@@ -42,7 +42,7 @@ fn tree() -> DynTree<i32> {
 
 #[test]
 fn dfs_iter_ref_empty() {
-    let tree = DynTree::<i32>::empty();
+    let tree = DynTree::empty();
     let iter = DfsIterPtr::<Dyn<i32>, Val>::default();
     let mut iter =
         unsafe { DfsIterMut::<_, Auto, SplitRecursive, Val, _, &mut i32>::from((&tree.0, iter)) };

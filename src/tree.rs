@@ -16,12 +16,39 @@ where
     M: MemoryPolicy,
     P: PinnedStorage;
 
-impl<V, M, P> Tree<V, M, P>
+impl<V> Tree<V, Auto, SplitRecursive>
 where
     V: TreeVariant,
-    M: MemoryPolicy,
-    P: PinnedStorage,
 {
+    /// Creates a new tree including the root node with the given `root_value`.
+    ///
+    /// Note that the following is the preferred constructor for non-empty trees
+    ///
+    /// ```ignore
+    /// let tree = DynTree::new(42);
+    /// ```
+    ///
+    /// while it is equivalent and shorthand for the following:
+    ///
+    /// ```ignore
+    /// let mut tree = DynTree::empty();
+    /// tree.push_root(42);
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    ///
+    /// let tree = DynTree::new(42);
+    ///
+    /// assert_eq!(tree.len(), 1);
+    /// assert_eq!(tree.root().data(), &42);
+    /// ```
+    pub fn new(root_value: V::Item) -> Self {
+        Self::new_with_root(root_value)
+    }
+
     /// Creates an empty tree.
     ///
     /// You may call [`push_root`] to instantiate the empty tree.
@@ -33,42 +60,34 @@ where
     /// ```rust
     /// use orx_tree::*;
     ///
-    /// let tree: DynTree<i32> = DynTree::empty();
+    /// let tree = DynTree::<String>::empty();
     ///
     /// assert!(tree.is_empty());
     /// assert_eq!(tree.get_root(), None);
     /// ```
-    pub fn empty() -> Self
-    where
-        P::PinnedVec<V>: Default,
-    {
-        Self(Col::<V, M, P>::new())
+    pub fn empty() -> Self {
+        Self(Col::<V, Auto, SplitRecursive>::new())
     }
+}
 
-    /// Creates a new tree including the root node with the given `root_value`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use orx_tree::*;
-    ///
-    /// let tree: DynTree<i32> = DynTree::new(42);
-    ///
-    /// assert_eq!(tree.len(), 1);
-    /// assert_eq!(tree.root().data(), &42);
-    /// ```
-    pub fn new(root_value: V::Item) -> Self
-    where
-        P::PinnedVec<V>: Default,
-    {
-        let mut col = Col::<V, M, P>::new();
-        let root_ptr = col.push(root_value);
-        let root_mut: &mut RefsSingle<V> = col.ends_mut();
-        root_mut.set_some(root_ptr);
-
-        Self(col)
+impl<V, M, P> Default for Tree<V, M, P>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    P::PinnedVec<V>: Default,
+{
+    fn default() -> Self {
+        Self(Col::<V, M, P>::default())
     }
+}
 
+impl<V, M, P> Tree<V, M, P>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+{
     /// ***O(1)*** Returns the number of nodes in the tree.
     ///
     /// # Examples
@@ -374,7 +393,7 @@ where
     /// //        ╱ ╲
     /// //       4   5
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -428,7 +447,7 @@ where
     /// //        ╱ ╲
     /// //       4   5
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -621,7 +640,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -725,7 +744,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let id1 = root.idx();
@@ -844,7 +863,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -926,6 +945,18 @@ where
     }
 
     // helpers
+
+    pub(crate) fn new_with_root(root_value: V::Item) -> Self
+    where
+        P::PinnedVec<V>: Default,
+    {
+        let mut col = Col::<V, M, P>::new();
+        let root_ptr = col.push(root_value);
+        let root_mut: &mut RefsSingle<V> = col.ends_mut();
+        root_mut.set_some(root_ptr);
+
+        Self(col)
+    }
 
     /// Returns the pointer to the root; None if empty.
     fn root_ptr(&self) -> Option<&NodePtr<V>> {

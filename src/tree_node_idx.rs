@@ -65,7 +65,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// //    ╱   ╲
 /// //   2     3
 ///
-/// let mut tree = DynTree::<i32>::new(1);
+/// let mut tree = DynTree::new(1);
 ///
 /// let mut root = tree.root_mut();
 ///
@@ -88,7 +88,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// //    ╱ ╱╲  ╲
 /// //   2 3  4  5
 ///
-/// let mut tree = DynTree::<i32>::new(1);
+/// let mut tree = DynTree::new(1);
 ///
 /// let mut root = tree.root_mut();
 ///
@@ -108,7 +108,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// //    ╱ ╱╲  ╲
 /// //   2 3  4  5
 ///
-/// let mut tree = DynTree::<i32>::new(1);
+/// let mut tree = DynTree::new(1);
 ///
 /// let mut root = tree.root_mut();
 ///
@@ -140,7 +140,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// //  ╱ ╲
 /// // 4   5
 ///
-/// let mut tree = DynTree::<i32>::new(1);
+/// let mut tree = DynTree::new(1);
 ///
 /// let mut root = tree.root_mut();
 ///
@@ -174,7 +174,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// //  ╱ ╲
 /// // 4   5
 ///
-/// let mut tree = DynTree::<i32>::new(1);
+/// let mut tree = DynTree::new(1);
 ///
 /// let mut root = tree.root_mut();
 ///

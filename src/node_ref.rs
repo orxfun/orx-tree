@@ -96,7 +96,7 @@ where
     /// //  ╱ ╲   ╱
     /// // 4   5 6
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     /// assert_eq!(tree.get_root().unwrap().is_leaf(), true); // both root & leaf
     ///
     /// let mut root = tree.root_mut();
@@ -131,7 +131,7 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// let mut tree = DynTree::<i32>::new(0);
+    /// let mut tree = DynTree::new(0);
     ///
     /// let mut root = tree.root_mut();
     /// assert_eq!(root.data(), &0);
@@ -155,7 +155,7 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// let mut tree = DynTree::<i32>::new(0);
+    /// let mut tree = DynTree::new(0);
     ///
     /// let mut root = tree.root_mut();
     /// assert_eq!(root.num_children(), 0);
@@ -372,7 +372,7 @@ where
     /// // |
     /// // 8
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -431,7 +431,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -488,7 +488,7 @@ where
     /// //  ╱ ╲   ╱ ╲
     /// // 4   5 6   7
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -545,7 +545,7 @@ where
     /// //       |
     /// //       8
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -613,7 +613,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -680,7 +680,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -735,7 +735,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -831,7 +831,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -922,7 +922,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1027,7 +1027,7 @@ where
     /// // |     |  ╱ ╲
     /// // 7     8 9  10
     ///
-    /// let mut tree = DynTree::<i32>::new(0);
+    /// let mut tree = DynTree::new(0);
     ///
     /// let mut root = tree.root_mut();
     /// let [id1, id2] = root.push_children([1, 2]);
@@ -1049,7 +1049,7 @@ where
     /// // clone the subtree rooted at node 2 into another tree
     /// // which might be a different tree type
     ///
-    /// let clone: BinaryTree::<i32> = tree.node(&id2).clone_as_tree();
+    /// let clone: BinaryTree<i32> = tree.node(&id2).clone_as_tree();
     ///
     /// let bfs: Vec<_> = clone.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [2, 5, 6, 8, 9, 10]);
@@ -1060,7 +1060,7 @@ where
         P::PinnedVec<V2>: Default,
         V::Item: Clone,
     {
-        let mut tree = Tree::new(self.data().clone());
+        let mut tree = Tree::new_with_root(self.data().clone());
 
         for child in self.children() {
             tree.root_mut().push_child_tree(child.as_cloned_subtree());
@@ -1101,7 +1101,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1188,7 +1188,7 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::<i32>::new(1);
+    /// let mut tree = DynTree::new(1);
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
@@ -1286,7 +1286,7 @@ where
     /// // |     |  ╱ ╲
     /// // 7     8 9  10
     ///
-    /// let mut a = DynTree::<i32>::new(0);
+    /// let mut a = DynTree::new(0);
     /// let [a1, a2] = a.root_mut().push_children([1, 2]);
     /// let [a3, _] = a.node_mut(&a1).push_children([3, 4]);
     /// a.node_mut(&a3).push_child(7);
@@ -1348,9 +1348,9 @@ where
     /// This method additionally allow for yielding node depths and sibling indices in addition to node indices.
     ///
     /// [`indices_with`]: crate::NodeRef::indices_with
-    fn indices_with<'b, T, O>(
+    fn indices_with<T, O>(
         &self,
-        traverser: &'b mut T,
+        traverser: &mut T,
     ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>>
     where
         O: Over,

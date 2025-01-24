@@ -25,7 +25,7 @@ use orx_selfref_col::{NodePtr, Variant};
 /// 8     9 10  11
 /// ```
 fn tree() -> DynTree<i32> {
-    let mut tree = DynTree::<i32>::new(1);
+    let mut tree = DynTree::new(1);
 
     let mut root = tree.root_mut();
     let [id2, id3] = root.push_children([2, 3]);
@@ -46,7 +46,7 @@ fn tree() -> DynTree<i32> {
 
 #[test]
 fn bfs_iter_ref_empty() {
-    let tree = DynTree::<i32>::empty();
+    let tree = DynTree::empty();
     let iter = BfsIterPtr::<Dyn<i32>, Val>::default();
     let mut iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, NodePtr<_>>::from((&tree.0, iter));
     assert_eq!(iter.next(), None);
