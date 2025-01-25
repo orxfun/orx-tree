@@ -36,7 +36,7 @@ On the other hand, [`node.ancestors()`](https://docs.rs/orx-tree/latest/orx_tree
 We also can walk the tree in an alternative desired order by using methods such as:
 
 * [`node.child(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.child), [`node.children()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children), [`node.children_mut()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_mut), [`node.into_child(child_idx)`]((https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.into_child))
-* [`node.parent()`]((https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent)), [`node.into_parent()`]((https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.into_parent)), etc.
+* [`node.parent()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent), [`node.into_parent()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.into_parent), etc.
 
 The tree naturally implements [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing iterators via `iter` and `iter_mut` methods. Since the tree is not a linear data structure, these iterators yield elements in an arbitrary (but deterministic) order. The following are some example cases where the traversal order is not important, and hence, these iterators are useful:
 
