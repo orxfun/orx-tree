@@ -48,7 +48,7 @@ where
         self.node.sibling_idx()
     }
 
-    fn into_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
+    fn create_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
         let node = unsafe { self.node.clone_node_mut() };
         Dfs::<OverDepthData>::into_iter_with_owned_storage(node)
     }

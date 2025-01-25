@@ -25,7 +25,7 @@ where
         0
     }
 
-    fn into_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
+    fn create_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
         let root = self.root_mut();
         Dfs::<OverDepthData>::into_iter_with_owned_storage(root)
     }

@@ -56,7 +56,7 @@ where
         self.node.sibling_idx()
     }
 
-    fn into_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
+    fn create_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
         let ptr = self.node.node_ptr().clone();
         let iter_ptr = Dfs::<OverDepthPtr>::iter_ptr_with_owned_storage(ptr);
         iter_ptr.map(|(depth, ptr)| {

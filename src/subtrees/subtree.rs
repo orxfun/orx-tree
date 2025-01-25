@@ -15,7 +15,7 @@ pub(crate) mod sealed {
 
         fn root_sibling_idx(&self) -> usize;
 
-        fn into_subtree(&mut self) -> impl IntoIterator<Item = (usize, Vs::Item)>;
+        fn create_subtree(&mut self) -> impl IntoIterator<Item = (usize, Vs::Item)>;
 
         // provided methods
 
@@ -30,7 +30,7 @@ pub(crate) mod sealed {
             P: PinnedStorage,
             MO: NodeMutOrientation,
         {
-            let subtree = self.into_subtree();
+            let subtree = self.create_subtree();
             parent.append_subtree_as_child(subtree, child_position)
         }
 
@@ -41,7 +41,7 @@ pub(crate) mod sealed {
             P2: PinnedStorage,
             P2::PinnedVec<V2>: Default,
         {
-            let subtree = self.into_subtree();
+            let subtree = self.create_subtree();
             let dfs = DepthFirstSequence::from(subtree);
             Tree::try_from(dfs).expect("subtree is a valid depth first sequence")
         }
