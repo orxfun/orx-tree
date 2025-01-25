@@ -3,8 +3,8 @@ use crate::TreeVariant;
 pub(crate) mod sealed {
 
     use crate::{
-        pinned_storage::PinnedStorage, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation,
-        TreeVariant,
+        pinned_storage::PinnedStorage, DepthFirstSequence, MemoryPolicy, NodeIdx, NodeMut,
+        NodeMutOrientation, Tree, TreeVariant,
     };
     use orx_selfref_col::NodePtr;
 
@@ -15,16 +15,36 @@ pub(crate) mod sealed {
 
         fn root_sibling_idx(&self) -> usize;
 
+        fn into_subtree(&mut self) -> impl IntoIterator<Item = (usize, Vs::Item)>;
+
+        // provided methods
+
         fn append_to_node_as_child<V, M, P, MO>(
-            self,
+            mut self,
             parent: &mut NodeMut<V, M, P, MO>,
-            child_idx: usize,
+            child_position: usize,
         ) -> NodeIdx<V>
         where
             V: TreeVariant<Item = Vs::Item>,
             M: MemoryPolicy,
             P: PinnedStorage,
-            MO: NodeMutOrientation;
+            MO: NodeMutOrientation,
+        {
+            let subtree = self.into_subtree();
+            parent.append_subtree_as_child(subtree, child_position)
+        }
+
+        fn into_new_tree<V2, M2, P2>(mut self) -> Tree<V2, M2, P2>
+        where
+            V2: TreeVariant<Item = Vs::Item>,
+            M2: MemoryPolicy,
+            P2: PinnedStorage,
+            P2::PinnedVec<V2>: Default,
+        {
+            let subtree = self.into_subtree();
+            let dfs = DepthFirstSequence::from(subtree);
+            Tree::try_from(dfs).expect("subtree is a valid depth first sequence")
+        }
     }
 }
 

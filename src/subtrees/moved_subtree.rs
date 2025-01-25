@@ -3,7 +3,7 @@ use crate::{
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{traverser_core::TraverserCore, OverDepthData},
-    Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
+    Dfs, MemoryPolicy, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
 };
 use orx_selfref_col::NodePtr;
 
@@ -48,18 +48,8 @@ where
         self.node.sibling_idx()
     }
 
-    fn append_to_node_as_child<V2, M2, P2, MO2>(
-        self,
-        parent: &mut NodeMut<V2, M2, P2, MO2>,
-        child_idx: usize,
-    ) -> NodeIdx<V2>
-    where
-        V2: TreeVariant<Item = V::Item>,
-        M2: MemoryPolicy,
-        P2: PinnedStorage,
-        MO2: NodeMutOrientation,
-    {
-        let subtree = Dfs::<OverDepthData>::into_iter_with_owned_storage(self.node);
-        parent.append_subtree_as_child(subtree, child_idx)
+    fn into_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
+        let node = unsafe { self.node.clone_node_mut() };
+        Dfs::<OverDepthData>::into_iter_with_owned_storage(node)
     }
 }

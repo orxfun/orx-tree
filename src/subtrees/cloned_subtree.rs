@@ -2,7 +2,7 @@ use super::subtree::sealed::SubTreeCore;
 use crate::{
     pinned_storage::PinnedStorage,
     traversal::{over::OverDepthPtr, traverser_core::TraverserCore},
-    Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
+    Dfs, MemoryPolicy, NodeRef, TreeVariant,
 };
 use core::marker::PhantomData;
 use orx_selfref_col::NodePtr;
@@ -56,20 +56,10 @@ where
         self.node.sibling_idx()
     }
 
-    fn append_to_node_as_child<V2, M2, P2, MO>(
-        self,
-        parent: &mut NodeMut<V2, M2, P2, MO>,
-        child_position: usize,
-    ) -> NodeIdx<V2>
-    where
-        V2: TreeVariant<Item = V::Item>,
-        M2: MemoryPolicy,
-        P2: PinnedStorage,
-        MO: NodeMutOrientation,
-    {
+    fn into_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
         let ptr = self.node.node_ptr().clone();
         let iter_ptr = Dfs::<OverDepthPtr>::iter_ptr_with_owned_storage(ptr);
-        let subtree = iter_ptr.map(|(depth, ptr)| {
+        iter_ptr.map(|(depth, ptr)| {
             (
                 depth,
                 unsafe { &*ptr.ptr() }
@@ -77,8 +67,6 @@ where
                     .expect("node is active")
                     .clone(),
             )
-        });
-
-        parent.append_subtree_as_child(subtree, child_position)
+        })
     }
 }

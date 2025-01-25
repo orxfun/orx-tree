@@ -4,7 +4,7 @@ use crate::{
     memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
-    subtrees::MovedSubTree,
+    subtrees::{MovedSubTree, SubTreeCore},
     subtrees_within::SubTreeWithin,
     traversal::{
         enumerations::Val,
@@ -14,7 +14,7 @@ use crate::{
     },
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
-    NodeIdx, NodeRef, SubTree, Traverser, TreeVariant,
+    NodeIdx, NodeRef, SubTree, Traverser, Tree, TreeVariant,
 };
 use core::{fmt::Debug, marker::PhantomData};
 use orx_selfref_col::{NodePtr, Refs};
@@ -2483,6 +2483,72 @@ where
         MovedSubTree::new(self)
     }
 
+    /// Removes the subtree rooted at this node from its tree; moves it into a new tree where this node is the root.
+    ///
+    /// See also [`clone_as_tree`] in order to keep the original tree unchanged.
+    ///
+    /// [`clone_as_tree`]: crate::NodeRef::clone_as_tree
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = DynTree::new(1).into_lazy_reclaim(); // ensure index validity
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    /// tree.node_mut(&id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // let's move subtree rooted at n2 into new tree: tree2
+    /// //   2
+    /// //  ╱ ╲
+    /// // 4   5
+    /// // |
+    /// // 8
+    /// let tree2: DynTree<_> = tree.node_mut(&id2).into_new_tree();
+    /// let bfs: Vec<_> = tree2.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [2, 4, 5, 8]);
+    ///
+    /// // let's move subtree rooted at n7 into new tree: tree7
+    /// // this time, the target tree is a BinaryTree
+    /// //   7
+    /// //  ╱ ╲
+    /// // 10  11
+    /// let tree7: BinaryTree<_> = tree.node_mut(&id7).into_new_tree();
+    /// let bfs: Vec<_> = tree7.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [7, 10, 11]);
+    ///
+    /// // these subtrees are removed from the original tree
+    /// // 1
+    /// //  ╲
+    /// //   ╲
+    /// //    3
+    /// //   ╱
+    /// //  6
+    /// //  |
+    /// //  9
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 3, 6, 9]);
+    /// ```
+    pub fn into_new_tree<V2>(self) -> Tree<V2, Auto, P>
+    where
+        V2: TreeVariant<Item = V::Item>,
+        P::PinnedVec<V2>: Default,
+    {
+        self.into_subtree().into_new_tree()
+    }
+
     // helpers
 
     pub(crate) fn new(col: &'a mut Col<V, M, P>, node_ptr: NodePtr<V>) -> Self {
@@ -2626,6 +2692,16 @@ where
                 a.data_mut().expect("valid idx"),
                 b.data_mut().expect("valid idx"),
             );
+        }
+    }
+
+    pub(crate) unsafe fn clone_node_mut(&mut self) -> Self {
+        let node_ptr = self.node_ptr.clone();
+        let col = self.col as *mut Col<V, M, P>;
+        Self {
+            col: unsafe { &mut *col },
+            node_ptr,
+            phantom: PhantomData,
         }
     }
 }
@@ -2779,7 +2855,7 @@ fn abc() {
     // 4   5 6   7
     // |     |  ╱ ╲
     // 8     9 10  11
-    let mut tree = DynTree::new(1);
+    let mut tree = DynTree::new(1).into_lazy_reclaim(); // ensure index validity
     let [id2, id3] = tree.root_mut().push_children([2, 3]);
     let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
     tree.node_mut(&id4).push_child(8);
@@ -2787,9 +2863,34 @@ fn abc() {
     tree.node_mut(&id6).push_child(9);
     tree.node_mut(&id7).push_children([10, 11]);
 
-    // let's remove children of node 3
-    tree.node_mut(&id3).remove_children();
+    // let's move subtree rooted at n2 into new tree: tree2
+    //   2
+    //  ╱ ╲
+    // 4   5
+    // |
+    // 8
+    let tree2: DynTree<_> = tree.node_mut(&id2).into_new_tree();
+    let bfs: Vec<_> = tree2.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [2, 4, 5, 8]);
 
+    // let's move subtree rooted at n7 into new tree: tree7
+    // this time, the target tree is a BinaryTree
+    //   7
+    //  ╱ ╲
+    // 10  11
+    let tree7: BinaryTree<_> = tree.node_mut(&id7).into_new_tree();
+    let bfs: Vec<_> = tree7.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [7, 10, 11]);
+
+    // these subtrees are removed from the original tree
+    // 1
+    //  ╲
+    //   ╲
+    //    3
+    //   ╱
+    //  6
+    //  |
+    //  9
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 2, 3, 4, 5, 8]);
+    assert_eq!(bfs, [1, 3, 6, 9]);
 }
