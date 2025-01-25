@@ -175,6 +175,32 @@ where
         self.node().next().num_children()
     }
 
+    /// Returns the number of siblings **including this node**.
+    /// In other words, it returns the `num_children` of its parent;
+    /// or returns 1 if this is the root.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::new(0);
+    /// let [id1, id2, id3] = tree.root_mut().push_children([1, 2, 3]);
+    /// let id4 = tree.node_mut(&id3).push_child(4);
+    ///
+    /// assert_eq!(tree.root().num_siblings(), 1);
+    /// assert_eq!(tree.node(&id1).num_siblings(), 3);
+    /// assert_eq!(tree.node(&id2).num_siblings(), 3);
+    /// assert_eq!(tree.node(&id3).num_siblings(), 3);
+    /// assert_eq!(tree.node(&id4).num_siblings(), 1);
+    /// ```
+    fn num_siblings(&self) -> usize {
+        match self.parent() {
+            Some(parent) => parent.num_children(),
+            None => 1,
+        }
+    }
+
     /// Returns an exact-sized iterator of children nodes of this node.
     ///
     /// # Examples
@@ -1451,4 +1477,78 @@ where
     {
         CopiedSubTree::new(self)
     }
+}
+
+#[test]
+fn abc() {
+    use crate::*;
+    use std::vec::Vec;
+    use std::*;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲   ╱ ╲
+    // 4   5 6   7
+    // |     |  ╱ ╲
+    // 8     9 10  11
+
+    let mut tree = DynTree::new(1);
+
+    let mut root = tree.root_mut();
+    let [id2, id3] = root.push_children([2, 3]);
+    let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    tree.node_mut(&id4).push_child(8);
+    let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    tree.node_mut(&id6).push_child(9);
+    tree.node_mut(&id7).push_children([10, 11]);
+
+    let mut t = Traversal.dfs().over_nodes().with_depth().with_sibling_idx();
+    let root = tree.root();
+    let mut iter = root.walk_with(&mut t);
+
+    fn set_depth(depths: &mut Vec<bool>, depth: usize, continues: bool) {
+        match depth < depths.len() {
+            true => depths[depth] = continues,
+            false => depths.push(continues),
+        }
+    }
+
+    println!("\n\n");
+    let mut depths: Vec<bool> = vec![];
+
+    if let Some((_, _, root)) = iter.next() {
+        set_depth(&mut depths, 0, true);
+        println!("{}", root.data());
+
+        for (depth, sibling_idx, node) in iter {
+            let is_last_sibling = node.num_siblings() == sibling_idx + 1;
+
+            set_depth(&mut depths, depth, true);
+            set_depth(&mut depths, depth - 1, !is_last_sibling);
+
+            for d in 0..(depth - 1) {
+                match depths[d] {
+                    true => print!("│"),
+                    false => print!(" "),
+                }
+                print!("  ");
+            }
+
+            let first_depth_char = match is_last_sibling {
+                true => '└',
+                false => '├',
+            };
+
+            print!("{}", first_depth_char);
+            print!("──");
+
+            println!("{}", node.data());
+        }
+    }
+
+    println!("\n\n");
+
+    // assert_eq!(tree.len(), 33);
 }
