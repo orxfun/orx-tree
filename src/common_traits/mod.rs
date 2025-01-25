@@ -1,5 +1,6 @@
 mod clone;
 mod debug;
+mod display;
 mod eq;
 mod equality;
 mod from_depth_first_iter;

@@ -115,6 +115,18 @@ let id8 = tree.node_mut(&id4).push_child(8);
 let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
 let id9 = tree.node_mut(&id6).push_child(9);
 tree.node_mut(&id7).push_children([10, 11]);
+println!("{}", &tree);
+// 1
+// ├──2
+// │  ├──4
+// │  │  └──8
+// │  └──5
+// └──3
+//     ├──6
+//     │  └──9
+//     └──7
+//         ├──10
+//         └──11
 
 // B. NODE
 
