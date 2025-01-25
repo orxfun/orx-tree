@@ -50,7 +50,11 @@ where
 {
     /// Returns the node index of this node.
     ///
-    /// TODO: examples
+    /// Note that a [`NodeIdx`] is used to provide safe and constant time access to any node in the tree.
+    ///
+    /// Validity of node indices is crucial, while it is conveniently possible to have complete control
+    /// on this.
+    /// Please see the documentation of [`NodeIdx`] and [`MemoryPolicy`] for details.
     fn idx(&self) -> NodeIdx<V> {
         NodeIdx(orx_selfref_col::NodeIdx::new(
             self.col().memory_state(),

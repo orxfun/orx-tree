@@ -14,31 +14,34 @@ A beautiful tree 🌳 with convenient and efficient growth, mutation and travers
 
 ### Recursive Nature of Trees
 
-Note that [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) has only few methods which mainly allow access to the root or to any node using node indices. Since every node represents a subtree rooted at itself, the core tree functionalities are provided as methods of [`NodeRef`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html) and [`NodeMut`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html).
+Note that [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) has only few methods which mainly allow access to the root or to any node using node indices. Since every node represents a subtree rooted at itself, the core tree functionalities are provided as methods of [`NodeRef`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html) and [`NodeMut`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html), which are immutable and mutable nodes, respectively.
 
 ### Traversals
 
 We can walk all nodes of a subtree rooted at any node using a generic traversal parameter. For instance, let `node` be a node of the tree, then:
 
-* `node.walk::<Bfs>()` creates an iterator that visits all the nodes belonging to the subtree rooted at the *node* in the breadth-first order.
-* `node.walk_mut::<Dfs>()` creates a mutable iterator, this time in the depth-first order.
-* `node_into_walk::<PostOrder>()`, on the other hand, takes the subtree rooted at the *node* out of the tree and yields the elements in post-order.
+* [`node.walk::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Bfs.html) creates an iterator that visits all the nodes belonging to the subtree rooted at the *node* in the breadth-first order.
+* [`node.walk_mut::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Dfs.html) creates a mutable iterator, this time in the (pre-order) depth-first order.
+* [`node_into_walk::<PostOrder>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.PostOrder.html), on the other hand, takes the subtree rooted at the *node* out of the tree and yields the elements in post-order.
 
 ### Special Iterators
 
 Abovementioned traverser kinds can be used to create other specialized iterators as well:
 
-* `node.leaves::<Bfs>()` yields the leaf nodes in the subtree rooted at *node* in breadth-first order.
-* `node.paths::<Dfs>()` yields all the paths or sequences of nodes connecting the *node* to all of its leaves in the depth-first order.
+* [`node.leaves::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves) yields the leaf nodes in the subtree rooted at *node* in breadth-first order.
+* [`node.paths::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.paths) yields all the paths or sequences of nodes connecting the *node* to all of its leaves in the depth-first order.
 
-On the other hand, `node.ancestors()` provides an upward iterator from the *node* to the root of the tree.
+On the other hand, [`node.ancestors()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors) provides an upward iterator from the *node* to the root of the tree.
 
-We also can walk the tree in an arbitrary order we want by using methods such as:
+We also can walk the tree in an alternative desired order by using methods such as:
 
-* `node.child(child_idx)`, `node.children()`, `node.children_mut()`, `node.into_child(child_idx)`
-* `node.parent()`, `node.into_parent()`, etc.
+* [`node.child(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.child), [`node.children()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children), [`node.children_mut()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_mut), [`node.into_child(child_idx)`]((https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.into_child))
+* [`node.parent()`]((https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent)), [`node.into_parent()`]((https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.into_parent)), etc.
 
-Finally, the tree implements [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing arbitrary order iterators via `iter` and `iter_mut`.
+The tree naturally implements [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing iterators via `iter` and `iter_mut` methods. Since the tree is not a linear data structure, these iterators yield elements in an arbitrary (but deterministic) order. The following are some example cases where the traversal order is not important, and hence, these iterators are useful:
+
+* `iter_mut` to map data of node; for instance, to double values of all nodes which happen to have an odd value.
+* `iter` to make reductions; for instance, to get the sum of values of all nodes in a subtree.
 
 ### Constant Time Access to Nodes via Node Indices
 
