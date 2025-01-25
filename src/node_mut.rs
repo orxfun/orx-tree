@@ -169,14 +169,62 @@ where
         assert!(other_idx.0.is_valid_for(self.col), "{}", INVALID_IDX_ERROR);
         let a = self.node_ptr.clone();
         let b = other_idx.0.node_ptr();
+        Self::swap_data_of_nodes(a, b);
+    }
 
-        if a != b {
-            let a = unsafe { &mut *a.ptr_mut() };
-            let b = unsafe { &mut *b.ptr_mut() };
-            core::mem::swap(
-                a.data_mut().expect("valid idx"),
-                b.data_mut().expect("valid idx"),
-            );
+    /// Swaps the data of this node with its parent's data, and returns true.
+    ///
+    /// Does nothing and returns false if this node is the root, and hence, has no parent.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = DynTree::new(1);
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    /// let id8 = tree.node_mut(&id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // let's move 8 up to root one by one, swapping with its parents
+    /// //      8
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   1     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 2   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 4     9 10  11
+    /// tree.node_mut(&id8).swap_data_with_parent();
+    /// tree.node_mut(&id4).swap_data_with_parent();
+    /// tree.node_mut(&id2).swap_data_with_parent();
+    ///
+    /// let swapped = tree.root_mut().swap_data_with_parent();
+    /// assert!(!swapped);
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [8, 1, 3, 2, 5, 6, 7, 4, 9, 10, 11]);
+    /// ```
+    pub fn swap_data_with_parent(&mut self) -> bool {
+        let a = self.node_ptr.clone();
+        let b = unsafe { &*a.ptr() }.prev().get().cloned();
+        match b {
+            Some(b) => {
+                Self::swap_data_of_nodes(a, b);
+                true
+            }
+            None => false,
         }
     }
 
@@ -1887,7 +1935,7 @@ where
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// See also [`walk`] and [`into_walk`] variants.
@@ -1924,18 +1972,10 @@ where
     /// // 8     9 10  11
     ///
     /// let mut tree = DynTree::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.push_children([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.push_children([4, 5]);
-    ///
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
     /// tree.node_mut(&id4).push_child(8);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.push_children([6, 7]);
-    ///
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
     /// tree.node_mut(&id6).push_child(9);
     /// tree.node_mut(&id7).push_children([10, 11]);
     ///
@@ -1975,7 +2015,7 @@ where
     /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// As opposed to [`walk_mut`], this method does require internal allocation.
@@ -2128,7 +2168,7 @@ where
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// See also [`walk`] and [`walk_mut`] for iterators over shared and mutable references, respectively.
@@ -2230,7 +2270,7 @@ where
     /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// As opposed to [`into_walk`], this method does require internal allocation.
@@ -2532,6 +2572,19 @@ where
         self.try_append_subtree_as_child(subtree, child_position)
             .expect("Since the depth first sequence is created by internal Dfs walk methods, sequence to subtree conversion cannot fail")
     }
+
+    /// Swaps the data of the two valid nodes a and b, if they are different nodes.
+    /// Does nothing if a == b.
+    fn swap_data_of_nodes(a: NodePtr<V>, b: NodePtr<V>) {
+        if a != b {
+            let a = unsafe { &mut *a.ptr_mut() };
+            let b = unsafe { &mut *b.ptr_mut() };
+            core::mem::swap(
+                a.data_mut().expect("valid idx"),
+                b.data_mut().expect("valid idx"),
+            );
+        }
+    }
 }
 
 impl<'a, V, M, P> NodeMut<'a, V, M, P, NodeMutUpAndDown>
@@ -2668,4 +2721,45 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
+}
+
+#[test]
+fn abc() {
+    use crate::*;
+    use alloc::vec::Vec;
+
+    //      1
+    //     ╱ ╲
+    //    ╱   ╲
+    //   2     3
+    //  ╱ ╲   ╱ ╲
+    // 4   5 6   7
+    // |     |  ╱ ╲
+    // 8     9 10  11
+    let mut tree = DynTree::new(1);
+    let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    let id8 = tree.node_mut(&id4).push_child(8);
+    let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    tree.node_mut(&id6).push_child(9);
+    tree.node_mut(&id7).push_children([10, 11]);
+
+    // let's move 8 up to root one by one, swapping with its parents
+    //      8
+    //     ╱ ╲
+    //    ╱   ╲
+    //   1     3
+    //  ╱ ╲   ╱ ╲
+    // 2   5 6   7
+    // |     |  ╱ ╲
+    // 4     9 10  11
+    tree.node_mut(&id8).swap_data_with_parent();
+    tree.node_mut(&id4).swap_data_with_parent();
+    tree.node_mut(&id2).swap_data_with_parent();
+
+    let swapped = tree.root_mut().swap_data_with_parent();
+    assert!(!swapped);
+
+    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [8, 1, 3, 2, 5, 6, 7, 4, 9, 10, 11]);
 }

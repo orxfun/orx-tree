@@ -8,7 +8,7 @@ use super::{breadth_first::Bfs, depth_first::Dfs, post_order::PostOrder};
 pub struct Traversal;
 
 impl Traversal {
-    /// Creates the default depth-first-search traverser
+    /// Creates the default (pre-order) depth-first-search traverser
     /// ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
     ///
     /// The default traverser creates iterators that yield references or mutable references

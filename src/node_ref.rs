@@ -641,7 +641,7 @@ where
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Bfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Bfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// # See also
@@ -718,7 +718,7 @@ where
     /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// As opposed to [`walk`], this method does require internal allocation.
@@ -1143,7 +1143,7 @@ where
     /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// Note that `leaves` is a shorthand of a chain of iterator methods over the more general [`walk_with`] method.
@@ -1230,7 +1230,7 @@ where
     /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Dfs`] for depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// Note that `leaves` is a shorthand of a chain of iterator methods over the more general [`walk_with`] method.
