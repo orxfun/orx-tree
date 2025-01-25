@@ -1654,6 +1654,49 @@ where
         self.col.close_and_reclaim(&self.node_ptr)
     }
 
+    /// Removes all children of this node together with the subtrees rooted at the children.
+    /// This node remains in the tree while it becomes a leaf node if it was not already.
+    ///
+    /// Note that, `node.remove_children()` call is just a shorthand for:
+    ///
+    /// ```rust ignore
+    /// for c in node.children_mut() {
+    ///     _ = c.prune();
+    /// }
+    /// ```
+    ///
+    /// # Examples
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = DynTree::new(1);
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    /// tree.node_mut(&id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // let's remove children of node 3
+    /// tree.node_mut(&id3).remove_children();
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 8]);
+    /// ```
+    pub fn remove_children(&mut self) {
+        for c in self.children_mut() {
+            _ = c.prune();
+        }
+    }
+
     // traversal
 
     /// Returns the mutable node of the `child-index`-th child of this node;
@@ -2739,27 +2782,14 @@ fn abc() {
     let mut tree = DynTree::new(1);
     let [id2, id3] = tree.root_mut().push_children([2, 3]);
     let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    let id8 = tree.node_mut(&id4).push_child(8);
+    tree.node_mut(&id4).push_child(8);
     let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
     tree.node_mut(&id6).push_child(9);
     tree.node_mut(&id7).push_children([10, 11]);
 
-    // let's move 8 up to root one by one, swapping with its parents
-    //      8
-    //     ╱ ╲
-    //    ╱   ╲
-    //   1     3
-    //  ╱ ╲   ╱ ╲
-    // 2   5 6   7
-    // |     |  ╱ ╲
-    // 4     9 10  11
-    tree.node_mut(&id8).swap_data_with_parent();
-    tree.node_mut(&id4).swap_data_with_parent();
-    tree.node_mut(&id2).swap_data_with_parent();
-
-    let swapped = tree.root_mut().swap_data_with_parent();
-    assert!(!swapped);
+    // let's remove children of node 3
+    tree.node_mut(&id3).remove_children();
 
     let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [8, 1, 3, 2, 5, 6, 7, 4, 9, 10, 11]);
+    assert_eq!(bfs, [1, 2, 3, 4, 5, 8]);
 }
