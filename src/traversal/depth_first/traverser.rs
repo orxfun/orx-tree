@@ -4,7 +4,7 @@ use crate::traversal::{
     traverser::Traverser,
 };
 
-/// A depth first search traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
+/// A (pre-order) depth first search traverser ([Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)).
 ///
 /// A traverser can be created once and used to traverse over trees multiple times without
 /// requiring additional memory allocation.
