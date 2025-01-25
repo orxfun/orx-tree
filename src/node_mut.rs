@@ -2256,19 +2256,12 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.push_children([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.push_children([4, 5]);
-    ///
+    /// // keep indices valid during removals
+    /// let mut tree = DynTree::new(1).into_lazy_reclaim();
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
     /// tree.node_mut(&id4).push_child(8);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.push_children([6, 7]);
-    ///
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
     /// tree.node_mut(&id6).push_child(9);
     /// tree.node_mut(&id7).push_children([10, 11]);
     ///
@@ -2350,19 +2343,12 @@ where
     /// // |     |  ╱ ╲
     /// // 8     9 10  11
     ///
-    /// let mut tree = DynTree::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.push_children([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.push_children([4, 5]);
-    ///
+    /// // keep indices valid during removals
+    /// let mut tree = DynTree::new(1).into_lazy_reclaim();
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
     /// tree.node_mut(&id4).push_child(8);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.push_children([6, 7]);
-    ///
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
     /// tree.node_mut(&id6).push_child(9);
     /// tree.node_mut(&id7).push_children([10, 11]);
     ///
@@ -2840,57 +2826,4 @@ where
             .cloned()
             .map(|p| NodeMut::new(self.col, p))
     }
-}
-
-#[test]
-fn abc() {
-    use crate::*;
-    use alloc::vec::Vec;
-
-    //      1
-    //     ╱ ╲
-    //    ╱   ╲
-    //   2     3
-    //  ╱ ╲   ╱ ╲
-    // 4   5 6   7
-    // |     |  ╱ ╲
-    // 8     9 10  11
-    let mut tree = DynTree::new(1).into_lazy_reclaim(); // ensure index validity
-    let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    tree.node_mut(&id4).push_child(8);
-    let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    tree.node_mut(&id6).push_child(9);
-    tree.node_mut(&id7).push_children([10, 11]);
-
-    // let's move subtree rooted at n2 into new tree: tree2
-    //   2
-    //  ╱ ╲
-    // 4   5
-    // |
-    // 8
-    let tree2: DynTree<_> = tree.node_mut(&id2).into_new_tree();
-    let bfs: Vec<_> = tree2.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [2, 4, 5, 8]);
-
-    // let's move subtree rooted at n7 into new tree: tree7
-    // this time, the target tree is a BinaryTree
-    //   7
-    //  ╱ ╲
-    // 10  11
-    let tree7: BinaryTree<_> = tree.node_mut(&id7).into_new_tree();
-    let bfs: Vec<_> = tree7.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [7, 10, 11]);
-
-    // these subtrees are removed from the original tree
-    // 1
-    //  ╲
-    //   ╲
-    //    3
-    //   ╱
-    //  6
-    //  |
-    //  9
-    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-    assert_eq!(bfs, [1, 3, 6, 9]);
 }

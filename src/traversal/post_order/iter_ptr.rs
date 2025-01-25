@@ -108,9 +108,7 @@ where
                 None => return None,
                 Some((ptr, child_idx)) => {
                     let node = unsafe { &*ptr.ptr() };
-                    std::dbg!(child_idx);
                     let child_ptr = node.next().get_ptr(*child_idx).cloned();
-                    std::dbg!("ABC");
                     match child_ptr {
                         Some(child_ptr) => self.move_deeper(child_ptr),
                         None => {
