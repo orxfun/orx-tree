@@ -166,6 +166,13 @@ let node3 = tree.node(&id3);
 let paths: Vec<Vec<_>> = node3.paths::<Bfs>().map(|p| p.copied().collect()).collect();
 assert_eq!(paths, [[9, 6, 3], [10, 7, 3], [11, 7, 3]]);
 
+let sum: i32 = tree.iter().sum(); // Collection: iterate in arbitrary order
+assert_eq!(sum, 66);
+
+for x in tree.iter_mut() { // CollectionMut: iterate in arbitrary order
+    *x = 2 * (10 + *x) - *x - 20; // do nothing :)
+}
+
 // # C. MUTATIONS - REMOVALS
 
 let mut tree = tree.into_lazy_reclaim(); // to keep the indices valid
@@ -297,6 +304,28 @@ assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 // 4   5 6   7
 // |     |  ╱ ╲
 // 8     9 10  11
+
+// # E. SPLIT TREE INTO TREES
+
+// let's refresh indices
+let idx: Vec<_> = tree.root().indices::<Bfs>().collect();
+let id2 = idx[1].clone();
+let id7 = idx[6].clone();
+
+// let's move subtree rooted at n2 to its own tree
+let tree2: DynTree<_> = tree.node_mut(&id2).into_new_tree();
+let bfs: Vec<_> = tree2.root().walk::<Bfs>().copied().collect();
+assert_eq!(bfs, [2, 4, 5, 8]);
+
+// let's move subtree rooted at n7 to its own tree, this time a BinaryTree
+let tree7: DynTree<_> = tree.node_mut(&id7).into_new_tree();
+let bfs: Vec<_> = tree7.root().walk::<Bfs>().copied().collect();
+assert_eq!(bfs, [7, 10, 11]);
+
+// these subtrees are moved into new trees; i.e., removed from the original
+// alternatively, we could've used 'clone_as_tree' to leave the original tree unchanged
+let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+assert_eq!(bfs, [1, 3, 6, 9]);
 ```
 
 ## Contributing
