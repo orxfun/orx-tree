@@ -11,40 +11,61 @@ A beautiful tree 🌳 with convenient and efficient growth, mutation and travers
 
 [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) is generic over variants that define the way the children are stored:
 
-* [`DynTree<T>`](https://docs.rs/orx-tree/latest/orx_tree/type.DynTree.html), or equivalently `Tree<Dyn<T>>`, is a tree where each node can contain any number of children stored as a vector.
-* [`DaryTree<D, T>`](https://docs.rs/orx-tree/latest/orx_tree/type.DaryTree.html), or equivalently `Tree<DaryTree<D, T>>`, is a tree where each node can contain at most `D` children stored inlined as an array.
-  * [`BinaryTree<T>`](https://docs.rs/orx-tree/latest/orx_tree/type.BinaryTree.html) is simply a shorthand for `DaryTree<2, T>`.
+* [`DynTree<T>`](https://docs.rs/orx-tree/latest/orx_tree/type.DynTree.html), or equivalently **Tree&lt;Dyn&lt;T&gt;&gt;**, is a tree where each node may contain references to any number of children stored as a vector.
+* [`DaryTree<D, T>`](https://docs.rs/orx-tree/latest/orx_tree/type.DaryTree.html), or equivalently **Tree&lt;DaryTree&lt;D, T&gt;&gt;**, is a tree where each node may contain at most **D** child references stored inlined as an array.
+* [`BinaryTree<T>`](https://docs.rs/orx-tree/latest/orx_tree/type.BinaryTree.html) is simply a shorthand for **DaryTree&lt;2, T&gt;**.
 
 ### Recursive Nature of Trees
 
-Note that [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) has only few methods which mainly allow access to the root or to any node using node indices. Since every node represents a subtree rooted at itself, the core tree functionalities are provided as methods of [`NodeRef`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html) and [`NodeMut`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html), which are immutable and mutable nodes, respectively.
+Note that [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) has only few methods which mainly allow access to the root or to any node using node indices. Since every node represents a subtree with itself being the root of, the core tree functionalities are provided as methods of [`NodeRef`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html) and [`NodeMut`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html), which are immutable and mutable nodes, respectively.
 
 ### Traversals
 
-We can walk all nodes of a subtree rooted at any node using a generic traversal parameter. For instance, let `node` be a node of the tree, then:
+We can iterate over all nodes of a subtree in various ways. In other words, we can *walk* the nodes of any subtree using a generic parameter which defines the order of traversal.
+
+To illustrate, let `node` be any node of the tree. Then:
 
 * [`node.walk::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Bfs.html) creates an iterator that visits all the nodes belonging to the subtree rooted at the *node* in the breadth-first order.
-* [`node.walk_mut::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Dfs.html) creates a mutable iterator, this time in the (pre-order) depth-first order.
+* [`node.walk_mut::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Dfs.html) creates a mutable iterator, this time in depth-first (pre-)order.
 * [`node_into_walk::<PostOrder>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.PostOrder.html), on the other hand, takes the subtree rooted at the *node* out of the tree and yields the elements in post-order.
+
+We can iterate over the data of the nodes, or over the nodes themselves with access to children, parent, siblings, etc. Further, just like *enumerate* appends the iteration order in a regular iterator, we can append tree-specific values to the iteration elements. Specifically, we can add the depth and/or the sibling position of each yield node. These more specialized traversals can be created conveniently using the [`Traversal`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Traversal.html) builder type.
+
+
+```rust
+use orx_tree::*;
+
+let mut tree = DynTree::new(1);
+let [id2, _] = tree.root_mut().push_children([2, 3]);
+tree.node_mut(&id2).push_child(4);
+
+// create a re-usable BFS traverser: over nodes, appending depth and sibling-idx
+let mut t = Traversal.bfs().over_nodes().with_depth().with_sibling_idx();
+
+let vals: Vec<_> = tree
+    .root()
+    .walk_with(&mut t)
+    .map(|(depth, sibling_idx, node)| (depth, sibling_idx, *node.data()))
+    .collect();
+assert_eq!(vals, [(0, 0, 1), (1, 0, 2), (1, 1, 3), (2, 0, 4)]);
+```
 
 ### Special Iterators
 
-Abovementioned traverser kinds can be used to create other specialized iterators as well:
+In addition to iterators over all nodes of a subtree, we can create specialized iterators as well:
 
 * [`node.leaves::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves) yields the leaf nodes in the subtree rooted at *node* in breadth-first order.
 * [`node.paths::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.paths) yields all the paths or sequences of nodes connecting the *node* to all of its leaves in the depth-first order.
+* [`node.ancestors()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors) provides an upward iterator from the *node* to the root of the tree.
 
-On the other hand, [`node.ancestors()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors) provides an upward iterator from the *node* to the root of the tree.
-
-We also can walk the tree in an alternative desired order by using methods such as:
+Alternatively, we can walk the tree freely using methods to step the links in different ways, such as:
 
 * [`node.child(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.child), [`node.children()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children), [`node.children_mut()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_mut), [`node.into_child_mut(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_child_mut)
 * [`node.parent()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent), [`node.into_parent_mut()`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_parent_mut), etc.
 
-The tree naturally implements [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing iterators via `iter` and `iter_mut` methods. Since the tree is not a linear data structure, these iterators yield elements in an arbitrary (but deterministic) order. The following are some example cases where the traversal order is not important, and hence, these iterators are useful:
+### Arbitrary Order Iterators
 
-* `iter_mut` to map data of node; for instance, to double values of all nodes which happen to have an odd value.
-* `iter` to make reductions; for instance, to get the sum of values of all nodes in a subtree.
+The tree naturally implements [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing iterators via `iter` and `iter_mut` methods. Since the tree is not a linear data structure, these iterators yield elements in an arbitrary (but deterministic) order, which is useful in certain situations such as updating the values of the tree using a transformation or applying reductions.
 
 ### Constant Time Access to Nodes via Node Indices
 
@@ -55,15 +76,30 @@ On the other hand, it is more specific for the node due to the following:
 * usize represents a position of the slice. Say we have the slice *[a, b, c]*. Currently, index 0 points to element *a*. However, if we swap the first and third elements, index 0 will now be pointing to *c* because the usize represents a position on the slice.
 * A node index represents the node it is created for. If the index is created for node *a*, it will always point to this node no matter how many times we move the node in the tree. Further, we cannot use this node index on another tree and it does not allow access to another node if node *a* is removed from the tree.
 
+Therefore, node access through node indices is safe. To demonstrate, assume we have the following command:
+
+```rust ignore
+let idx = tree.root_mut().push_child(42);
+```
+
+Here, `idx` does not have a lifetime attached to the `tree`, yet it refers to the node on this tree which currently holds value 42 (thanks to pinned element guarantees). This allows for a safe and efficient access to the nodes:
+
+* `tree.node(&idx)` provides a constant time access to this particular node.
+* `another_tree.node(&idx)` is an out-of-bounds error.
+* `tree.node(&idx)` after removing the node from the tree, say by `tree.node_mut(&idx).prune()` call, is a removed-node error.
+
+
 ### Cache Locality
 
 Nodes of the tree are stored in an underlying [`PinnedVec`](https://crates.io/crates/orx-pinned-vec) with pinned element guarantees. This allows for keeping the nodes close to each other improving cache locality while still providing with constant time mutation methods.
 
 ### Convenient Mutations
 
+The tree aims to make every move on the tree possible, convenient and efficient.
+
 #### Growth & Move Subtrees Around
 
-There exist five methods that adds descendants to a node:
+The following methods demonstrate downward growth by adding descendants to a node:
 
 * [`push_child(value)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_child) => adds a single child
 * [`push_children(values)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_children) => adds a constant number of children
@@ -71,30 +107,34 @@ There exist five methods that adds descendants to a node:
 * [`push_child_tree(subtree)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_child_tree) => appends the subtree as descendants of the *node* such that the root of the subtree is the child of the *node*
 * [`push_child_tree_within(subtree)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_child_tree_within) => similar to the above except that the subtree belongs to the same tree, we might be moving or cloning the subtree
 
-These methods have the *sibling* variants such as [`push_sibling`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_sibling) rather than *push_child* which allows to define the side of the new sibling.
+These methods have the *sibling* variants such as [`push_sibling`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_sibling) rather than *push_child* which additionally allows to define the side of the new sibling (to the left or right).
 
 Further, [`push_parent(value)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_parent) allows to push a node in between a node and its parent.
 
-All together, these methods allow to insert nodes or subtrees at any position of the tree.
+These methods aim to enable inserting nodes or subtrees at any position of the tree.
 
 Note that all the growth methods return the indices of the created nodes allowing for a fluent growth of the tree.
 
-Finally, the tree provides methods to [`swap_subtrees`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.swap_subtrees) withing the tree.
+Additionally, the tree provides methods for special moves such as [`swap_subtrees`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.swap_subtrees) to swap components of the same tree.
 
 #### Removals
 
 We can take out a node from the tree, while connecting its parent to its children via the [`take_out`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.take_out) method.
 
-Alternatively, we can [`prune`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.prune) by removing a subtree rooted at a particular node, and returns the value of the root node.
+Alternatively, we can [`prune`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.prune) by removing a subtree rooted at a particular node, and receive the value of the root node of the removed subtree.
 
-If we need the data of all nodes of the removed subtree, we can create an [`into_walk`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_walk) iterator from the node which will both remove the subtree and yield the data of removed nodes in the selected traversal order.
+Alternatively, we can turn a mutable node into an [`into_walk`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_walk) iterator. Similar to *prune*, this will remove the subtree. However, we are flexible on what we do with the removed subtree:
+
+* We can simply discard it. Then, *into_walk* behaves similar to *prune*.
+* We can iterate over the removed nodes in the order of the generic traversal parameter and use the data however we need.
+* Or we can attach the removed subtree at a desired position of another tree by passing it to methods such as [`push_child_tree(subtree)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_child_tree).
 
 ## Opt-in Features
 
 * **std**: This is a no-std crate by default, and hence, "std" feature needs to be included when necessary.
 * **serde**: Tree implements `Serialize` and `Deserialize` traits; the "serde" feature needs to be added when required. It uses a linearized representation of the tree as a [`DepthFirstSequence`](https://docs.rs/orx-tree/latest/orx_tree/struct.DepthFirstSequence.html). You may find de-serialization examples in the corresponding [test file](https://github.com/orxfun/orx-tree/blob/main/tests/serde.rs).
 
-# Example
+# Examples
 
 The following example demonstrates the basic usage of the `Tree` by constructing and playing around with mutation and traversal methods.
 
@@ -324,14 +364,14 @@ let bfs: Vec<_> = tree2.root().walk::<Bfs>().copied().collect();
 assert_eq!(bfs, [2, 4, 5, 8]);
 
 // let's move subtree rooted at n7 to its own tree, this time a BinaryTree
-let tree7: DynTree<_> = tree.node_mut(&id7).into_new_tree();
+let tree7: BinaryTree<_> = tree.node_mut(&id7).into_new_tree();
 let bfs: Vec<_> = tree7.root().walk::<Bfs>().copied().collect();
 assert_eq!(bfs, [7, 10, 11]);
 
 // these subtrees are moved into new trees; i.e., removed from the original
 // alternatively, we could've used 'clone_as_tree' to leave the original tree unchanged
-let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-assert_eq!(bfs, [1, 3, 6, 9]);
+let remaining_bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+assert_eq!(remaining_bfs, [1, 3, 6, 9]);
 ```
 
 ## Contributing
