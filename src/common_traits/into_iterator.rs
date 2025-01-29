@@ -1,6 +1,6 @@
 use crate::{aliases::N, pinned_storage::PinnedStorage, MemoryPolicy, Tree, TreeVariant};
 use core::iter::FusedIterator;
-use orx_pinned_vec::PinnedVec;
+use orx_iterable::{Collection, CollectionMut, Iterable};
 
 // owned
 
@@ -102,6 +102,9 @@ where
 
 // ref
 
+type PinnedVecIter<'a, V, P> =
+    <<<P as PinnedStorage>::PinnedVec<V> as Collection>::Iterable<'a> as Iterable>::Iter;
+
 impl<'a, V, M, P> IntoIterator for &'a Tree<V, M, P>
 where
     V: TreeVariant,
@@ -110,8 +113,7 @@ where
 {
     type Item = &'a V::Item;
 
-    type IntoIter =
-        TreeIter<'a, V, <<P as PinnedStorage>::PinnedVec<V> as PinnedVec<N<V>>>::Iter<'a>>;
+    type IntoIter = TreeIter<'a, V, PinnedVecIter<'a, V, P>>;
 
     /// Creates an iterator over references to the data of the nodes of the tree in
     /// a deterministic but an arbitrary order.
@@ -203,6 +205,9 @@ where
 
 // mut
 
+type PinnedVecIterMut<'a, V, P> =
+    <<P as PinnedStorage>::PinnedVec<V> as CollectionMut>::IterMut<'a>;
+
 impl<'a, V, M, P> IntoIterator for &'a mut Tree<V, M, P>
 where
     V: TreeVariant,
@@ -211,8 +216,7 @@ where
 {
     type Item = &'a mut V::Item;
 
-    type IntoIter =
-        TreeIterMut<'a, V, <<P as PinnedStorage>::PinnedVec<V> as PinnedVec<N<V>>>::IterMut<'a>>;
+    type IntoIter = TreeIterMut<'a, V, PinnedVecIterMut<'a, V, P>>;
 
     /// Creates a mutable iterator over references to the data of the nodes of the tree in
     /// a deterministic but an arbitrary order.
