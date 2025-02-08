@@ -1,6 +1,7 @@
 # orx-tree
 
 [![orx-tree crate](https://img.shields.io/crates/v/orx-tree.svg)](https://crates.io/crates/orx-tree)
+[![orx-tree crate](https://img.shields.io/crates/d/orx-tree.svg)](https://crates.io/crates/orx-tree)
 [![orx-tree documentation](https://docs.rs/orx-tree/badge.svg)](https://docs.rs/orx-tree)
 
 A beautiful tree 🌳 with convenient and efficient growth, mutation and traversal features.
@@ -380,4 +381,4 @@ Contributions are welcome! If you notice an error, have a question or think some
 
 ## License
 
-This library is licensed under MIT license. See LICENSE for details.
+Dual-licensed under [Apache 2.0](LICENSE-APACHE) or [MIT](LICENSE-MIT).
