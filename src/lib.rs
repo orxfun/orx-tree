@@ -29,6 +29,9 @@ pub mod memory;
 /// Module defining the choice over the pinned storage of the tree.
 pub mod pinned_storage;
 
+#[cfg(feature = "parallel")]
+mod parallelization;
+
 mod aliases;
 mod common_traits;
 mod dary;
