@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         toolchain: ["stable"]
+        features: ["", "--features serde"]
 
     steps:
     - uses: actions/checkout@v4
@@ -35,24 +36,24 @@ jobs:
       run: cargo install cargo-no-std-check
       
     - name: Build
-      run: cargo build --features serde --verbose
+      run: cargo build --verbose ${{ matrix.features }}
     - name: Build-32bit
-      run: cargo build --features serde --verbose --target i686-unknown-linux-musl
+      run: cargo build --verbose --target i686-unknown-linux-musl ${{ matrix.features }}
     - name: Build-wasm
-      run: cargo build --features serde --verbose --target wasm32v1-none
+      run: cargo build --verbose --target wasm32v1-none ${{ matrix.features }}
 
     - name: Test
-      run: cargo test --features serde --verbose
+      run: cargo test --verbose ${{ matrix.features }}
     - name: Test-32bit
-      run: cargo test --features serde --verbose --target i686-unknown-linux-musl
+      run: cargo test --verbose --target i686-unknown-linux-musl ${{ matrix.features }}
     - name: Check-wasm
-      run: cargo check --features serde --verbose --target wasm32v1-none
+      run: cargo check --verbose --target wasm32v1-none ${{ matrix.features }}
 
     - name: Clippy
-      run: cargo clippy --features serde -- -D warnings --verbose
+      run: cargo clippy -- -D warnings --verbose ${{ matrix.features }}
 
     - name: Miri
-      run: cargo +nightly miri test --features serde --verbose
+      run: cargo +nightly miri test --verbose ${{ matrix.features }}
 
     - name: NoStd
-      run: cargo +nightly no-std-check --features serde
+      run: cargo +nightly no-std-check ${{ matrix.features }}
