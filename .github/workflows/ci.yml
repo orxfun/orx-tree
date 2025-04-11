@@ -50,7 +50,7 @@ jobs:
       run: cargo check --verbose --target wasm32v1-none ${{ matrix.features }}
 
     - name: Clippy
-      run: cargo clippy -- -D warnings --verbose ${{ matrix.features }}
+      run: cargo clippy ${{ matrix.features }} -- -D warnings --verbose
 
     - name: Miri
       run: cargo +nightly miri test --verbose ${{ matrix.features }}
