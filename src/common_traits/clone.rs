@@ -1,4 +1,4 @@
-use crate::{memory::MemoryPolicy, pinned_storage::PinnedStorage, NodeRef, Tree, TreeVariant};
+use crate::{NodeRef, Tree, TreeVariant, memory::MemoryPolicy, pinned_storage::PinnedStorage};
 
 impl<V, M, P> Clone for Tree<V, M, P>
 where

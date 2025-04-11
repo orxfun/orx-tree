@@ -1,6 +1,6 @@
 use orx_selfref_col::{
-    references::iter::ArrayLeftMostPtrIter, MemoryReclaimer, NodePtr, Refs, RefsArrayLeftMost,
-    RefsSingle, RefsVec, Variant,
+    MemoryReclaimer, NodePtr, Refs, RefsArrayLeftMost, RefsSingle, RefsVec, Variant,
+    references::iter::ArrayLeftMostPtrIter,
 };
 
 /// Variant of a tree.

@@ -1,7 +1,7 @@
 use super::states::State;
+use crate::TreeVariant;
 use crate::traversal::enumeration::Enumeration;
 use crate::traversal::enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val};
-use crate::TreeVariant;
 
 pub trait PostOrderEnumeration: Enumeration {
     fn create_post_item<D, V>(node_value: D, depth: usize, states: &[State<V>]) -> Self::Item<D>

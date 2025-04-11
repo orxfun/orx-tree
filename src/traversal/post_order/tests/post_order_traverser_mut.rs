@@ -1,11 +1,11 @@
 use crate::{
+    DynTree,
     traversal::{
+        Traversal, Traverser,
         over::{OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
         post_order::traverser::PostOrder,
         traverser_core::TraverserCore,
-        Traversal, Traverser,
     },
-    DynTree,
 };
 use alloc::vec::Vec;
 
@@ -132,7 +132,9 @@ fn post_order_iter_mut_depth_sibling() {
         let iter = traverser.iter(&root);
         assert_eq!(
             iter.map(|x| *x.2).collect::<Vec<_>>(),
-            [30008, 20004, 20105, 10002, 30009, 20006, 30010, 30111, 20107, 10103, 1]
+            [
+                30008, 20004, 20105, 10002, 30009, 20006, 30010, 30111, 20107, 10103, 1
+            ]
         );
     }
 

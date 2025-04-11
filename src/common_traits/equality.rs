@@ -1,6 +1,6 @@
 use crate::{
-    memory::MemoryPolicy, node_ref::NodeRefCore, pinned_storage::PinnedStorage, Node, NodeMut,
-    TreeVariant,
+    Node, NodeMut, TreeVariant, memory::MemoryPolicy, node_ref::NodeRefCore,
+    pinned_storage::PinnedStorage,
 };
 
 impl<V, M, P> PartialEq for Node<'_, V, M, P>

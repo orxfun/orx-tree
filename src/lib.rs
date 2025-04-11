@@ -45,11 +45,11 @@ mod tree_variant;
 
 pub use common_traits::{DepthFirstSequence, DepthFirstSequenceError};
 pub use dary::{Binary, BinaryNode, BinaryTree, Dary, DaryNode, DaryTree};
+pub use r#dyn::{Dyn, DynNode, DynTree};
 pub use memory::{Auto, AutoWithThreshold, Lazy, MemoryPolicy};
 pub use node::Node;
 pub use node_mut::{NodeMut, NodeMutDown, NodeMutOrientation, NodeMutUpAndDown, Side};
 pub use node_ref::NodeRef;
-pub use r#dyn::{Dyn, DynNode, DynTree};
 pub use subtrees::SubTree;
 pub use traversal::{Bfs, Dfs, PostOrder, Traversal, Traverser};
 pub use tree::Tree;

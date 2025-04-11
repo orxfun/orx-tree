@@ -1,7 +1,9 @@
 use crate::{
+    Dyn, DynTree, NodeRef,
     memory::Auto,
     pinned_storage::SplitRecursive,
     traversal::{
+        Traversal, Traverser,
         enumerations::Val,
         node_item::NodeItem,
         over::{
@@ -10,9 +12,7 @@ use crate::{
         },
         post_order::{post_enumeration::PostOrderEnumeration, traverser::PostOrder},
         traverser_core::TraverserCore,
-        Traversal, Traverser,
     },
-    Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
 use orx_selfref_col::Variant;

@@ -1,10 +1,10 @@
+use super::DepthFirstEnumeration;
 use super::iter_ptr::DfsIterPtr;
 use super::stack::Item;
-use super::DepthFirstEnumeration;
+use crate::TreeVariant;
 use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
-use crate::TreeVariant;
 use alloc::vec::Vec;
 use orx_self_or::SoM;
 use orx_selfref_col::{NodePtr, Refs};

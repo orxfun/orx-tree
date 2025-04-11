@@ -1,18 +1,18 @@
 use super::{
-    into_iter::PostOrderIterInto, iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr,
-    iter_ref::PostOrderIterRef, states::State, PostOrder,
+    PostOrder, into_iter::PostOrderIterInto, iter_mut::PostOrderIterMut,
+    iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef, states::State,
 };
 use crate::{
+    MemoryPolicy, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
+        Over, OverMut,
         enumeration::Enumeration,
         over::OverItem,
         over_mut::{OverItemInto, OverItemMut},
         traverser_core::TraverserCore,
-        Over, OverMut,
     },
-    MemoryPolicy, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
 };
 use alloc::vec::Vec;
 use orx_self_or::SoM;

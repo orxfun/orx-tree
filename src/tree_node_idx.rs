@@ -1,6 +1,6 @@
 use crate::{
-    subtrees_within::{ClonedSubTreeWithin, CopiedSubTreeWithin, MovedSubTreeWithin},
     TreeVariant,
+    subtrees_within::{ClonedSubTreeWithin, CopiedSubTreeWithin, MovedSubTreeWithin},
 };
 use core::fmt::Debug;
 

@@ -1,4 +1,5 @@
 use crate::{
+    Bfs, DynTree, NodeRef,
     memory::Auto,
     node_ref::NodeRefCore,
     pinned_storage::SplitRecursive,
@@ -6,7 +7,6 @@ use crate::{
         depth_first::{into_iter::DfsIterInto, iter_ptr::DfsIterPtr},
         enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
     },
-    Bfs, DynTree, NodeRef,
 };
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;

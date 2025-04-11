@@ -1,5 +1,5 @@
 use super::{post_enumeration::PostOrderEnumeration, states::State};
-use crate::{traversal::enumeration::Enumeration, tree_variant::RefsChildren, TreeVariant};
+use crate::{TreeVariant, traversal::enumeration::Enumeration, tree_variant::RefsChildren};
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;

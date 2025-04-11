@@ -1,4 +1,5 @@
 use crate::{
+    Dyn, DynTree,
     memory::Auto,
     node_ref::NodeRefCore,
     pinned_storage::SplitRecursive,
@@ -6,7 +7,6 @@ use crate::{
         depth_first::{iter_mut::DfsIterMut, iter_ptr::DfsIterPtr, iter_ref::DfsIterRef},
         enumerations::{DepthSiblingIdxVal, DepthVal, SiblingIdxVal, Val},
     },
-    Dyn, DynTree,
 };
 use alloc::vec::Vec;
 
@@ -150,6 +150,8 @@ fn dfs_iter_mut_depth_sibling() {
     let iter = DfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.copied().collect::<Vec<_>>(),
-        [1, 10002, 20004, 30008, 20105, 10103, 20006, 30009, 20107, 30010, 30111]
+        [
+            1, 10002, 20004, 30008, 20105, 10103, 20006, 30009, 20107, 30010, 30111
+        ]
     );
 }

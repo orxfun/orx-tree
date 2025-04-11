@@ -1,4 +1,4 @@
-use crate::{aliases::N, TreeVariant};
+use crate::{TreeVariant, aliases::N};
 use orx_split_vec::{PinnedVec, Recursive, SplitVec};
 
 /// Trait defining the underlying pinned vector storage of the tree.

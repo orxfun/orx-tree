@@ -1,6 +1,6 @@
 use crate::{
-    pinned_storage::PinnedStorage, traversal::OverDepthSiblingIdxNode, Dfs, MemoryPolicy, Node,
-    NodeMut, NodeRef, Traversal, Traverser, Tree, TreeVariant,
+    Dfs, MemoryPolicy, Node, NodeMut, NodeRef, Traversal, Traverser, Tree, TreeVariant,
+    pinned_storage::PinnedStorage, traversal::OverDepthSiblingIdxNode,
 };
 use alloc::string::ToString;
 use alloc::vec::Vec;

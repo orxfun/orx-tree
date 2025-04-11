@@ -1,8 +1,8 @@
 use super::subtree_within::sealed::SubTreeWithinCore;
 use crate::{
-    iter::AncestorsIterPtr, node_ref::NodeRefCore, pinned_storage::PinnedStorage,
-    tree_node_idx::INVALID_IDX_ERROR, tree_variant::RefsChildren, MemoryPolicy, NodeIdx, NodeMut,
-    NodeMutOrientation, TreeVariant,
+    MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant, iter::AncestorsIterPtr,
+    node_ref::NodeRefCore, pinned_storage::PinnedStorage, tree_node_idx::INVALID_IDX_ERROR,
+    tree_variant::RefsChildren,
 };
 use orx_selfref_col::Refs;
 
@@ -33,8 +33,10 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
             .col()
             .try_get_ptr(&self.idx.0)
             .expect(INVALID_IDX_ERROR);
-        assert!(AncestorsIterPtr::new(root_ptr.clone(), ptr_parent.clone()).all(|x| x != ptr_child),
-            "Node to be moved as a child of this node (with the given child_idx) is an ancestor of this tree. Cannot perform the move.");
+        assert!(
+            AncestorsIterPtr::new(root_ptr.clone(), ptr_parent.clone()).all(|x| x != ptr_child),
+            "Node to be moved as a child of this node (with the given child_idx) is an ancestor of this tree. Cannot perform the move."
+        );
 
         let node_child = unsafe { &mut *ptr_child.ptr_mut() };
 

@@ -1,5 +1,5 @@
 use super::Dyn;
-use crate::{memory::Auto, pinned_storage::SplitRecursive, Node, Tree};
+use crate::{Node, Tree, memory::Auto, pinned_storage::SplitRecursive};
 
 /// A dynamic tree where each of the nodes might have any number of child nodes.
 ///

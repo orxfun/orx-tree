@@ -1,10 +1,10 @@
 use crate::{
+    NodeMut, TreeVariant,
     aliases::{Col, N},
     memory::MemoryPolicy,
     node_mut::NodeMutDown,
     pinned_storage::PinnedStorage,
     tree_variant::RefsChildren,
-    NodeMut, TreeVariant,
 };
 use orx_selfref_col::NodePtr;
 

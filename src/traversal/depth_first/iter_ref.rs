@@ -1,11 +1,11 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
 use super::iter_ptr::DfsIterPtr;
 use super::stack::Item;
+use crate::TreeVariant;
 use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item::NodeItem;
-use crate::TreeVariant;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;

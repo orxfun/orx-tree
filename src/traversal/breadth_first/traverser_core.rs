@@ -1,18 +1,18 @@
 use super::{
-    into_iter::BfsIterInto, iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, iter_ref::BfsIterRef,
-    queue::Item, Bfs,
+    Bfs, into_iter::BfsIterInto, iter_mut::BfsIterMut, iter_ptr::BfsIterPtr, iter_ref::BfsIterRef,
+    queue::Item,
 };
 use crate::{
+    MemoryPolicy, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
     traversal::{
+        Over, OverMut,
         enumeration::Enumeration,
         over::OverItem,
         over_mut::{OverItemInto, OverItemMut},
         traverser_core::TraverserCore,
-        Over, OverMut,
     },
-    MemoryPolicy, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
 };
 use alloc::collections::VecDeque;
 use orx_self_or::SoM;

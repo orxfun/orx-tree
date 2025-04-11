@@ -1,5 +1,5 @@
 use super::{node_item::NodeItem, node_item_mut::NodeItemMut};
-use crate::{aliases::Col, memory::MemoryPolicy, pinned_storage::PinnedStorage, TreeVariant};
+use crate::{TreeVariant, aliases::Col, memory::MemoryPolicy, pinned_storage::PinnedStorage};
 use orx_selfref_col::NodePtr;
 
 pub trait Enumeration: Clone {

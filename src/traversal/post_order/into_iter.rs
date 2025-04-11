@@ -1,10 +1,10 @@
 use super::iter_ptr::PostOrderIterPtr;
 use super::post_enumeration::PostOrderEnumeration;
 use super::states::State;
+use crate::TreeVariant;
 use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
-use crate::TreeVariant;
 use alloc::vec::Vec;
 use orx_self_or::SoM;
 use orx_selfref_col::{NodePtr, Refs};

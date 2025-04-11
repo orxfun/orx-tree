@@ -1,11 +1,11 @@
 use super::iter_ptr::PostOrderIterPtr;
 use super::states::State;
 use super::{iter_ptr::Item, post_enumeration::PostOrderEnumeration};
+use crate::TreeVariant;
 use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item_mut::NodeItemMut;
-use crate::TreeVariant;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;

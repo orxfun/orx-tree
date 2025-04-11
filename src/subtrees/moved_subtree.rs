@@ -1,9 +1,9 @@
 use super::subtree::sealed::SubTreeCore;
 use crate::{
+    Dfs, MemoryPolicy, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
     node_ref::NodeRefCore,
     pinned_storage::PinnedStorage,
-    traversal::{traverser_core::TraverserCore, OverDepthData},
-    Dfs, MemoryPolicy, NodeMut, NodeMutOrientation, NodeRef, TreeVariant,
+    traversal::{OverDepthData, traverser_core::TraverserCore},
 };
 use orx_selfref_col::NodePtr;
 

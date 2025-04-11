@@ -1,6 +1,6 @@
 use crate::{
-    memory::MemoryPolicy, pinned_storage::PinnedStorage, traversal::traverser_core::TraverserCore,
-    Node, NodeMut, NodeRef, Traversal, Traverser, Tree, TreeVariant,
+    Node, NodeMut, NodeRef, Traversal, Traverser, Tree, TreeVariant, memory::MemoryPolicy,
+    pinned_storage::PinnedStorage, traversal::traverser_core::TraverserCore,
 };
 use core::fmt::Debug;
 

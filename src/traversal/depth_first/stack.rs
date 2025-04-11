@@ -1,4 +1,4 @@
-use crate::{traversal::enumeration::Enumeration, Dyn, TreeVariant};
+use crate::{Dyn, TreeVariant, traversal::enumeration::Enumeration};
 use alloc::vec::Vec;
 use orx_selfref_col::NodePtr;
 
