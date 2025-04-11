@@ -1,4 +1,5 @@
 use crate::{
+    NodeIdx, NodeRef, SubTree, Traverser, Tree, TreeVariant,
     aliases::{Col, N},
     iter::ChildrenMutIter,
     memory::{Auto, MemoryPolicy},
@@ -7,14 +8,13 @@ use crate::{
     subtrees::{MovedSubTree, SubTreeCore},
     subtrees_within::SubTreeWithin,
     traversal::{
+        OverData, OverMut,
         enumerations::Val,
         over_mut::{OverItemInto, OverItemMut},
         post_order::iter_ptr::PostOrderIterPtr,
-        OverData, OverMut,
     },
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
-    NodeIdx, NodeRef, SubTree, Traverser, Tree, TreeVariant,
 };
 use core::{fmt::Debug, marker::PhantomData};
 use orx_selfref_col::{NodePtr, Refs};
@@ -1627,7 +1627,10 @@ where
     /// assert_eq!(bfs, [1, 4, 5, 3, 8, 6, 10, 11, 9]);
     /// ```
     pub fn take_out(self) -> V::Item {
-        assert!(!self.is_root() || self.num_children() == 1, "If taken out node is the root, it must have only one child which will be the new root.");
+        assert!(
+            !self.is_root() || self.num_children() == 1,
+            "If taken out node is the root, it must have only one child which will be the new root."
+        );
 
         let parent_ptr = self.parent_ptr();
         let sibling_idx = self.sibling_idx();
@@ -1968,8 +1971,8 @@ where
     pub fn children_mut(
         &mut self,
     ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>>
-           + DoubleEndedIterator
-           + use<'_, 'a, V, M, P, MO> {
+    + DoubleEndedIterator
+    + use<'_, 'a, V, M, P, MO> {
         ChildrenMutIter::new(self.col, self.node_ptr.ptr())
     }
 

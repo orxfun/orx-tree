@@ -1,18 +1,18 @@
 use crate::{
+    Dfs, Node, NodeIdx, Traverser, Tree, TreeVariant,
     aliases::{Col, N},
     iter::AncestorsIterPtr,
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     subtrees::{ClonedSubTree, CopiedSubTree},
     traversal::{
+        Over, OverData,
         enumeration::Enumeration,
         enumerations::Val,
         over::{OverDepthPtr, OverItem},
         traverser_core::TraverserCore,
-        Over, OverData,
     },
     tree_variant::RefsChildren,
-    Dfs, Node, NodeIdx, Traverser, Tree, TreeVariant,
 };
 use orx_selfref_col::{NodePtr, Refs};
 

@@ -1,4 +1,4 @@
-use crate::{pinned_storage::PinnedStorage, Dfs, MemoryPolicy, NodeRef, Tree, TreeVariant};
+use crate::{Dfs, MemoryPolicy, NodeRef, Tree, TreeVariant, pinned_storage::PinnedStorage};
 
 impl<V1, M1, P1, V2, M2, P2> PartialEq<Tree<V1, M1, P1>> for Tree<V2, M2, P2>
 where

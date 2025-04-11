@@ -1,8 +1,8 @@
 use super::subtree::sealed::SubTreeCore;
 use crate::{
+    Dfs, MemoryPolicy, NodeRef, TreeVariant,
     pinned_storage::PinnedStorage,
     traversal::{over::OverDepthPtr, traverser_core::TraverserCore},
-    Dfs, MemoryPolicy, NodeRef, TreeVariant,
 };
 use core::marker::PhantomData;
 use orx_selfref_col::NodePtr;

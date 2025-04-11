@@ -1,4 +1,5 @@
 use crate::{
+    Dyn, DynTree, NodeRef,
     memory::Auto,
     node_ref::NodeRefCore,
     pinned_storage::SplitRecursive,
@@ -8,7 +9,6 @@ use crate::{
         node_item::NodeItem,
         over::{Over, OverData, OverNode, OverPtr},
     },
-    Dyn, DynTree, NodeRef,
 };
 use alloc::vec::Vec;
 use orx_selfref_col::{NodePtr, Variant};

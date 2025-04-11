@@ -1,11 +1,11 @@
 use super::bfs_enumeration::BreadthFirstEnumeration;
 use super::iter_ptr::BfsIterPtr;
 use super::queue::Item;
+use crate::TreeVariant;
 use crate::aliases::Col;
 use crate::memory::MemoryPolicy;
 use crate::pinned_storage::PinnedStorage;
 use crate::traversal::node_item::NodeItem;
-use crate::TreeVariant;
 use alloc::collections::VecDeque;
 use core::marker::PhantomData;
 use orx_self_or::SoM;

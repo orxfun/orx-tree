@@ -1,7 +1,7 @@
 use super::bfs_enumeration::BreadthFirstEnumeration;
 use super::queue::Item;
-use crate::tree_variant::RefsChildren;
 use crate::TreeVariant;
+use crate::tree_variant::RefsChildren;
 use alloc::collections::VecDeque;
 use core::marker::PhantomData;
 use orx_self_or::SoM;

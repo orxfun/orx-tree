@@ -1,7 +1,7 @@
+use crate::TreeVariant;
 use crate::aliases::Col;
 use crate::memory::{Auto, MemoryPolicy};
 use crate::pinned_storage::{PinnedStorage, SplitRecursive};
-use crate::TreeVariant;
 use orx_selfref_col::NodePtr;
 
 pub trait NodeItemMut<'a, V, M = Auto, P = SplitRecursive>

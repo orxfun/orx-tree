@@ -1,5 +1,5 @@
 use super::Dary;
-use crate::{memory::Auto, pinned_storage::SplitRecursive, Node, Tree};
+use crate::{Node, Tree, memory::Auto, pinned_storage::SplitRecursive};
 
 /// A binary tree where each of the nodes might have at most 2 children.
 pub type Binary<T> = Dary<2, T>;

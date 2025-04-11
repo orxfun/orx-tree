@@ -4,9 +4,9 @@ use super::{
     over::{Over, OverData, OverDepthData, OverDepthSiblingIdxData, OverSiblingIdxData},
 };
 use crate::{
+    TreeVariant,
     memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
-    TreeVariant,
 };
 use orx_selfref_col::Variant;
 

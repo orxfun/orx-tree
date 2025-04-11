@@ -1,7 +1,7 @@
 use super::dfs_enumeration::DepthFirstEnumeration;
 use super::stack::Item;
-use crate::tree_variant::RefsChildren;
 use crate::TreeVariant;
+use crate::tree_variant::RefsChildren;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use orx_self_or::SoM;

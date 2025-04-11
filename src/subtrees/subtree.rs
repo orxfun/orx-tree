@@ -3,8 +3,8 @@ use crate::TreeVariant;
 pub(crate) mod sealed {
 
     use crate::{
-        pinned_storage::PinnedStorage, DepthFirstSequence, MemoryPolicy, NodeIdx, NodeMut,
-        NodeMutOrientation, Tree, TreeVariant,
+        DepthFirstSequence, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, Tree, TreeVariant,
+        pinned_storage::PinnedStorage,
     };
     use orx_selfref_col::NodePtr;
 

@@ -1,4 +1,4 @@
-use crate::{aliases::N, pinned_storage::PinnedStorage, MemoryPolicy, Tree, TreeVariant};
+use crate::{MemoryPolicy, Tree, TreeVariant, aliases::N, pinned_storage::PinnedStorage};
 use core::iter::FusedIterator;
 use orx_iterable::{Collection, CollectionMut, Iterable};
 

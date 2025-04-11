@@ -1,7 +1,7 @@
 use super::states::States;
 use crate::traversal::{
-    over::{Over, OverData},
     Traverser,
+    over::{Over, OverData},
 };
 use core::marker::PhantomData;
 

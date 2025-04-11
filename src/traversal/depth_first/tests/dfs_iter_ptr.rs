@@ -1,7 +1,7 @@
 use crate::{
+    Dyn, DynTree, NodeRef, TreeVariant,
     node_ref::NodeRefCore,
     traversal::{depth_first::iter_ptr::DfsIterPtr, enumerations::Val},
-    Dyn, DynTree, NodeRef, TreeVariant,
 };
 use alloc::vec::Vec;
 use orx_selfref_col::NodePtr;

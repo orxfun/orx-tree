@@ -1,9 +1,9 @@
 use crate::{
+    TreeVariant,
     aliases::Col,
     memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
-    TreeVariant,
 };
 use orx_selfref_col::NodePtr;
 

@@ -1,8 +1,8 @@
 use super::subtree_within::sealed::SubTreeWithinCore;
 use crate::{
+    Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant,
     pinned_storage::PinnedStorage,
     traversal::{over::OverDepthPtr, traverser_core::TraverserCore},
-    Dfs, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant,
 };
 
 pub struct ClonedSubTreeWithin<V: TreeVariant>

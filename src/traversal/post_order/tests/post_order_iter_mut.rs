@@ -1,4 +1,5 @@
 use crate::{
+    Dyn, DynTree,
     memory::Auto,
     node_ref::NodeRefCore,
     pinned_storage::SplitRecursive,
@@ -8,7 +9,6 @@ use crate::{
             iter_mut::PostOrderIterMut, iter_ptr::PostOrderIterPtr, iter_ref::PostOrderIterRef,
         },
     },
-    Dyn, DynTree,
 };
 use alloc::vec::Vec;
 
@@ -161,6 +161,8 @@ fn post_order_iter_mut_depth_sibling() {
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
         iter.copied().collect::<Vec<_>>(),
-        [30008, 20004, 20105, 10002, 30009, 20006, 30010, 30111, 20107, 10103, 1]
+        [
+            30008, 20004, 20105, 10002, 30009, 20006, 30010, 30111, 20107, 10103, 1
+        ]
     );
 }

@@ -1,4 +1,4 @@
-use crate::{pinned_storage::PinnedStorage, Tree, TreeVariant};
+use crate::{Tree, TreeVariant, pinned_storage::PinnedStorage};
 use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclaimer, Utilization};
 
 /// Trees use a pinned vector ([`PinnedVec`]) as its underlying storage.

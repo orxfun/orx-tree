@@ -2,8 +2,8 @@ use crate::TreeVariant;
 
 pub(crate) mod sealed {
     use crate::{
-        pinned_storage::PinnedStorage, MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation,
-        TreeVariant,
+        MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant,
+        pinned_storage::PinnedStorage,
     };
 
     pub trait SubTreeWithinCore<V: TreeVariant>: Sized {

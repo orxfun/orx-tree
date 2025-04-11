@@ -1,11 +1,11 @@
 use crate::{
+    Node, NodeIdx, NodeMut, NodeSwapError, TreeVariant,
     aliases::Col,
     iter::AncestorsIterPtr,
     memory::{Auto, MemoryPolicy},
     pinned_storage::{PinnedStorage, SplitRecursive},
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
-    Node, NodeIdx, NodeMut, NodeSwapError, TreeVariant,
 };
 use orx_selfref_col::{NodeIdxError, NodePtr, RefsSingle};
 

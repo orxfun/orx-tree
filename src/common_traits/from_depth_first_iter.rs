@@ -1,4 +1,4 @@
-use crate::{pinned_storage::PinnedStorage, MemoryPolicy, Tree, TreeVariant};
+use crate::{MemoryPolicy, Tree, TreeVariant, pinned_storage::PinnedStorage};
 
 /// A depth first sequence is a representation of a tree in a linear storage of (depth, value) tuples.
 /// This is useful in collecting trees from iterators, (de)-serializing trees or converting its variant
