@@ -63,7 +63,6 @@ fn implementation2() {
         new_children.push(value);
     }
 
-    let mut node = tree.node_mut(&node_idx);
     for child in new_children { /* use children and node here */ }
 }
 
