@@ -101,35 +101,24 @@ fn execute<'a>(
 ) -> (NodeMut<'a, Dyn<InstructionNode>>, f32) {
     let num_children = node.num_children();
 
+    let mut children_sum = 0.0;
+    for i in 0..num_children {
+        let child = node.into_child_mut(i).unwrap();
+        let (child, child_value) = execute(inputs, child);
+        children_sum += child_value;
+        node = child.into_parent_mut().unwrap();
+    }
+
     let new_value = match node.data().instruction {
         Instruction::Input(i) => inputs[i],
-        Instruction::Add => {
-            let mut value = 0.0;
-            for i in 0..num_children {
-                let child = node.into_child_mut(i).unwrap();
-                let (child, child_value) = execute(inputs, child);
-                value += child_value;
-                node = child.into_parent_mut().unwrap();
-            }
-            value
-        }
-        Instruction::AddI { val } => {
-            let mut value = val;
-            for i in 0..num_children {
-                let child = node.into_child_mut(i).unwrap();
-                let (child, child_value) = execute(inputs, child);
-                value += child_value;
-                node = child.into_parent_mut().unwrap();
-            }
-            value
-        }
+        Instruction::Add => children_sum,
+        Instruction::AddI { val } => val + children_sum,
     };
 
     (*node.data_mut()).value = new_value;
 
     (node, new_value)
 }
-
 fn impl_over_children_idx() {
     let inputs = [10.0, 20.0];
 
