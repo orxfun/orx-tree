@@ -1,69 +1,161 @@
 use orx_tree::*;
+use std::fmt::Display;
 
-struct Inputs {/* placeholder: useful immutable inputs */}
+const INPUTS_COUNT: usize = 2;
 
-/// Returns the tree below and index to node 3.
-///
-/// ```
-///       1
-///     ╱ ╲
-///    ╱   ╲
-///   2     3
-///  ╱ ╲   ╱ ╲
-/// 4   5 6   7
-/// |     |  ╱ ╲
-/// 8     9 10  11
-/// ```
-fn init_tree() -> (Tree<Dyn<u64>>, NodeIdx<Dyn<u64>>) {
-    let mut tree = DynTree::new(1u64);
-
-    let mut root = tree.root_mut();
-    let [id2, id3] = root.push_children([2, 3]);
-    let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    let _id8 = tree.node_mut(&id4).push_child(8);
-    let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    let _id9 = tree.node_mut(&id6).push_child(9);
-    tree.node_mut(&id7).push_children([10, 11]);
-
-    (tree, id3)
+#[derive(Debug)]
+enum Instruction {
+    Input(usize),
+    Add,
+    AddI { val: f32 },
 }
 
-/// Placeholder: counts the number of all children as an example
-fn execute_rec(_inputs: &Inputs, node: &Node<'_, Dyn<u64>>) -> u64 {
-    node.walk::<Bfs>().count() as u64 - 1
+impl Display for Instruction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Input(x) => write!(f, "Input({})", x),
+            Self::Add => write!(f, "Add"),
+            Self::AddI { val } => write!(f, "AddI({})", val),
+        }
+    }
 }
 
-fn implementation1() {
-    let inputs = Inputs {};
-    let (mut tree, node_idx) = init_tree();
+#[derive(Debug)]
+struct InstructionNode {
+    instruction: Instruction,
+    value: f32,
+}
 
-    let node = tree.node(&node_idx);
-    let children_ids = node.children().map(|child| child.idx()).collect::<Vec<_>>();
+impl InstructionNode {
+    fn new(instruction: Instruction, value: f32) -> Self {
+        Self { instruction, value }
+    }
+}
 
-    let mut new_children = vec![];
-    for node_id in children_ids {
-        let node = tree.node(&node_id);
-        let value = execute_rec(&inputs, &node);
-        new_children.push(value);
+impl Display for InstructionNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.instruction {
+            Instruction::Input(x) => write!(f, "Input({}) => {}", x, self.value),
+            Instruction::Add => write!(f, "Add => {}", self.value),
+            Instruction::AddI { val } => write!(f, "AddI({}) => {}", val, self.value),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct MyTree {
+    tree: DynTree<InstructionNode>,
+}
+
+impl MyTree {
+    fn example() -> Self {
+        let mut tree = DynTree::new(InstructionNode::new(Instruction::AddI { val: 100.0 }, 0.0));
+
+        let mut n0 = tree.root_mut();
+        let [n1, n2] = n0.push_children([
+            InstructionNode::new(Instruction::Input(1), 0.0),
+            InstructionNode::new(Instruction::AddI { val: 2.0 }, 0.0),
+        ]);
+        let _n3 = tree
+            .node_mut(&n1)
+            .push_child(InstructionNode::new(Instruction::Input(0), 0.0));
+        let [_n4, _n5] = tree.node_mut(&n2).push_children([
+            InstructionNode::new(Instruction::Add, 0.0),
+            InstructionNode::new(Instruction::AddI { val: 5.0 }, 0.0),
+        ]);
+
+        Self { tree }
     }
 
-    let mut node = tree.node_mut(&node_idx);
-    for child in new_children { /* use children and node here */ }
-}
+    fn execute_rec(
+        &mut self,
+        inputs: &[f32; INPUTS_COUNT],
+        node_idx: NodeIdx<Dyn<InstructionNode>>,
+    ) -> f32 {
+        let node = self.tree.node(&node_idx);
 
-fn implementation2() {
-    let inputs = Inputs {};
-    let (mut tree, node_idx) = init_tree();
+        let children_ids = node.children().map(|child| child.idx()).collect::<Vec<_>>();
+        let mut children = vec![];
 
-    let node = tree.node_mut(&node_idx);
+        for node in children_ids {
+            let value = self.execute_rec(inputs, node);
+            children.push(value);
+        }
 
-    let mut new_children = vec![];
-    for child in node.children() {
-        let value = execute_rec(&inputs, &child);
-        new_children.push(value);
+        let mut node = self.tree.node_mut(&node_idx);
+
+        let new_value = match node.data().instruction {
+            Instruction::Input(i) => inputs[i],
+            Instruction::Add => children.into_iter().sum(),
+            Instruction::AddI { val } => children.into_iter().sum::<f32>() + val,
+        };
+        (*node.data_mut()).value = new_value;
+
+        new_value
     }
-
-    for child in new_children { /* use children and node here */ }
 }
 
-fn main() {}
+fn execute<'a>(
+    inputs: &[f32; INPUTS_COUNT],
+    mut node: NodeMut<'a, Dyn<InstructionNode>>,
+) -> (NodeMut<'a, Dyn<InstructionNode>>, f32) {
+    let num_children = node.num_children();
+
+    let new_value = match node.data().instruction {
+        Instruction::Input(i) => inputs[i],
+        Instruction::Add => {
+            let mut value = 0.0;
+            for i in 0..num_children {
+                let child = node.into_child_mut(i).unwrap();
+                let (child, child_value) = execute(inputs, child);
+                value += child_value;
+                node = child.into_parent_mut().unwrap();
+            }
+            value
+        }
+        Instruction::AddI { val } => {
+            let mut value = val;
+            for i in 0..num_children {
+                let child = node.into_child_mut(i).unwrap();
+                let (child, child_value) = execute(inputs, child);
+                value += child_value;
+                node = child.into_parent_mut().unwrap();
+            }
+            value
+        }
+    };
+
+    (*node.data_mut()).value = new_value;
+
+    (node, new_value)
+}
+
+fn impl_over_children_idx() {
+    let inputs = [10.0, 20.0];
+
+    let mut tree = MyTree::example();
+    let node_idx = tree.tree.root().idx();
+
+    println!("\n\n# IMPL OVER CHILDREN INDICES");
+    println!("\ninputs = {:?}\n", &inputs);
+    println!("Before execute:\n{}\n", &tree.tree);
+    tree.execute_rec(&inputs, node_idx);
+    println!("After execute:\n{}\n", &tree.tree);
+}
+
+fn impl_over_children_mut() {
+    let inputs = [10.0, 20.0];
+
+    let mut tree = MyTree::example();
+
+    println!("\n\n# IMPL WITH INTO_CHILD_MUT & INTO_PARENT_MUT");
+    println!("\ninputs = {:?}\n", &inputs);
+    println!("Before execute:\n{}\n", &tree.tree);
+    execute(&inputs, tree.tree.root_mut());
+    println!("After execute:\n{}\n", &tree.tree);
+}
+
+fn main() {
+    impl_over_children_idx();
+    impl_over_children_mut();
+}
