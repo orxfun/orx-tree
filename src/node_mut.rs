@@ -1,5 +1,5 @@
 use crate::{
-    NodeIdx, NodeRef, SubTree, Traverser, Tree, TreeVariant,
+    NodeIdx, NodeRef, PostOrder, SubTree, Traverser, Tree, TreeVariant,
     aliases::{Col, N},
     iter::ChildrenMutIter,
     memory::{Auto, MemoryPolicy},
@@ -10,12 +10,15 @@ use crate::{
     traversal::{
         OverData, OverMut,
         enumerations::Val,
+        over::OverPtr,
         over_mut::{OverItemInto, OverItemMut},
         post_order::iter_ptr::PostOrderIterPtr,
+        traverser_core::TraverserCore,
     },
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
 };
+use alloc::vec::Vec;
 use core::{fmt::Debug, marker::PhantomData};
 use orx_selfref_col::{NodePtr, Refs};
 
@@ -2453,6 +2456,169 @@ where
         T: Traverser<O>,
     {
         traverser.into_iter(self)
+    }
+
+    // recursive
+
+    /// Recursively sets the data of all nodes belonging to the subtree rooted at this node using the `compute_data`
+    /// function.
+    ///
+    /// The `compute_data` function takes two arguments:
+    ///
+    /// * current value (data) of this node, and
+    /// * slice of values of children of this node that are computed recursively using `compute_data` (*).
+    ///
+    /// Then, `compute_data` function reduces this node's current value and new values of its children to the new
+    /// value of this node.
+    ///
+    /// The method is named *recursive* (*) due to the fact that,
+    ///
+    /// * before computing the value of this node (or any of its descendants);
+    /// * values of all its children are computed and set using the `compute_data` function.
+    ///
+    /// *Note that this method does not actually make recursive method calls. Instead, it internally uses the [`PostOrder`]
+    /// traverser which ensures that all required values are computed before they are used for another computation. This
+    /// is a guard against potential stack overflow issues that could be observed in sufficiently large trees.*
+    ///
+    /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// # Examples
+    ///
+    /// In the following example, we set the value of every node to the sum of values of all its descendants.
+    ///
+    /// While building the tree, we set only the values of the leaves.
+    /// We initially set values of all other nodes to zero as a placeholder.
+    /// Then, we call `recursive_set` to compute them.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let mut tree = DynTree::<_>::new(0);
+    /// let [id1, id2] = tree.root_mut().push_children([0, 0]);
+    /// tree.node_mut(&id1).push_children([1, 3]);
+    /// tree.node_mut(&id2).push_children([7, 2, 4]);
+    /// //      0
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   0     0
+    /// //  ╱ ╲   ╱|╲
+    /// // 1   3 7 2 4
+    ///
+    /// tree.root_mut()
+    ///     .recursive_set(
+    ///         |current_value, children_values| match children_values.is_empty() {
+    ///             true => *current_value, // is a leaf
+    ///             false => children_values.iter().copied().sum(),
+    ///         },
+    ///     );
+    /// //      17
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   4    13
+    /// //  ╱ ╲   ╱|╲
+    /// // 1   3 7 2 4
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [17, 4, 13, 1, 3, 7, 2, 4]);
+    /// ```
+    ///
+    /// The following is a similar example where leaf nodes represent deterministic outcomes of
+    /// a process.
+    /// The root represents the current state.
+    /// The remaining nodes represent intermediate states that we can reach from its parent with
+    /// the given `probability`.
+    /// Our task is to compute `expected_value` of each state.
+    ///
+    /// Since we know the value of the leaves with certainty, we set them while constructing the
+    /// tree. Then, we call `recursive_set` to compute the expected value of every other node.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// #[derive(Clone)]
+    /// struct State {
+    ///     /// Probability of reaching this state from its parent.
+    ///     probability: f64,
+    ///     /// Expected value of the state; i.e., average of values of all leaves weighted by
+    ///     /// the probability of being reached from this state.
+    ///     expected_value: f64,
+    /// }
+    ///
+    /// fn state(probability: f64, expected_value: f64) -> State {
+    ///     State {
+    ///         probability,
+    ///         expected_value,
+    ///     }
+    /// }
+    ///
+    /// //         (1.0, ???)
+    /// //         ╱         ╲
+    /// //        ╱           ╲
+    /// //       ╱             ╲
+    /// //      ╱               ╲
+    /// //  (.3, ???)        (.7, ???)
+    /// //   ╱     ╲          |    ╲
+    /// //  ╱       ╲         |     ╲
+    /// // (.2, 9) (.8, 2) (.9, 5) (.1, 4)
+    ///
+    /// let mut tree = DynTree::<_>::new(state(1.0, 0.0));
+    ///
+    /// let [id1, id2] = tree
+    ///     .root_mut()
+    ///     .push_children([state(0.3, 0.0), state(0.7, 0.0)]);
+    /// tree.node_mut(&id1)
+    ///     .push_children([state(0.2, 9.0), state(0.8, 2.0)]);
+    /// tree.node_mut(&id2)
+    ///     .push_children([state(0.9, 5.0), state(0.1, 4.0)]);
+    ///
+    /// tree.root_mut()
+    ///     .recursive_set(
+    ///         |current_value, children_values| match children_values.is_empty() {
+    ///             true => current_value.clone(), // is a leaf, we know expected value
+    ///             false => {
+    ///                 let expected_value = children_values
+    ///                     .iter()
+    ///                     .fold(0.0, |a, x| a + x.probability * x.expected_value);
+    ///                 state(current_value.probability, expected_value)
+    ///             }
+    ///         },
+    ///     );
+    /// //         (1.0, 4.45)
+    /// //         ╱         ╲
+    /// //        ╱           ╲
+    /// //       ╱             ╲
+    /// //      ╱               ╲
+    /// //   (.3, 3.4)      (.7, 4.9)
+    /// //   ╱     ╲          |    ╲
+    /// //  ╱       ╲         |     ╲
+    /// // (.2, 9) (.8, 2) (.9, 5) (.1, 4)
+    ///
+    /// let equals = |a: f64, b: f64| (a - b).abs() < 1e-5;
+    ///
+    /// assert!(equals(tree.root().data().expected_value, 4.45));
+    /// assert!(equals(tree.node(&id1).data().expected_value, 3.40));
+    /// assert!(equals(tree.node(&id2).data().expected_value, 4.90));
+    /// ```
+    pub fn recursive_set(&mut self, compute_data: impl Fn(&V::Item, &[&V::Item]) -> V::Item) {
+        let mut iter = PostOrder::<OverPtr>::iter_ptr_with_owned_storage(self.node_ptr.clone());
+        let mut children_data = Vec::<&V::Item>::new();
+
+        while let Some(ptr) = iter.next() {
+            let x: NodePtr<_> = ptr;
+            let node = unsafe { &mut *x.ptr_mut() };
+            let node_data = node.data().expect("is not closed");
+
+            for child_ptr in node.next().children_ptr() {
+                let data = unsafe { &*child_ptr.ptr() }.data().expect("is not closed");
+                children_data.push(data);
+            }
+
+            let new_data = compute_data(node_data, &children_data);
+
+            *node.data_mut().expect("is not closed") = new_data;
+
+            children_data.clear();
+        }
     }
 
     // subtree
