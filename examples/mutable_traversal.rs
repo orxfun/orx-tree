@@ -67,11 +67,7 @@ impl MyTree {
         Self { tree }
     }
 
-    fn execute_rec(
-        &mut self,
-        inputs: &[f32; INPUTS_COUNT],
-        node_idx: NodeIdx<Dyn<InstructionNode>>,
-    ) -> f32 {
+    fn execute_rec(&mut self, inputs: &[f32], node_idx: NodeIdx<Dyn<InstructionNode>>) -> f32 {
         let node = self.tree.node(&node_idx);
 
         let children_ids = node.children().map(|child| child.idx()).collect::<Vec<_>>();
@@ -96,7 +92,7 @@ impl MyTree {
 }
 
 fn execute<'a>(
-    inputs: &[f32; INPUTS_COUNT],
+    inputs: &[f32],
     mut node: NodeMut<'a, Dyn<InstructionNode>>,
 ) -> (NodeMut<'a, Dyn<InstructionNode>>, f32) {
     let num_children = node.num_children();
@@ -120,59 +116,43 @@ fn execute<'a>(
     (node, new_value)
 }
 
-fn impl_over_children_idx() {
-    let inputs = [10.0, 20.0];
-
-    let mut tree = MyTree::example();
-    let node_idx = tree.tree.root().idx();
-
-    println!("\n\n# IMPL OVER CHILDREN INDICES");
-    println!("\ninputs = {:?}\n", &inputs);
-    println!("Before execute:\n{}\n", &tree.tree);
-    tree.execute_rec(&inputs, node_idx);
-    println!("After execute:\n{}\n", &tree.tree);
-}
-
-fn impl_over_children_mut() {
+fn test_implementation(method: &str, f: impl FnOnce(&[f32], &mut MyTree)) {
     let inputs = [10.0, 20.0];
 
     let mut tree = MyTree::example();
 
-    println!("\n\n# IMPL WITH INTO_CHILD_MUT & INTO_PARENT_MUT");
+    println!("\n\n# {}", method);
     println!("\ninputs = {:?}\n", &inputs);
     println!("Before execute:\n{}\n", &tree.tree);
-    execute(&inputs, tree.tree.root_mut());
-    println!("After execute:\n{}\n", &tree.tree);
-}
-
-fn impl_recursive_set() {
-    let inputs = [10.0, 20.0];
-
-    let mut tree = MyTree::example();
-
-    println!("\n\n# IMPL WITH RECURSIVE_SET");
-    println!("\ninputs = {:?}\n", &inputs);
-    println!("Before execute:\n{}\n", &tree.tree);
-
-    tree.tree
-        .root_mut()
-        .recursive_set(|node_data, children_data| {
-            let instruction = node_data.instruction;
-            let children_sum: f32 = children_data.iter().map(|x| x.value).sum();
-            let value = match node_data.instruction {
-                Instruction::Input(i) => inputs[i],
-                Instruction::Add => children_sum,
-                Instruction::AddI { val } => val + children_sum,
-            };
-
-            InstructionNode { instruction, value }
-        });
-
+    f(&inputs, &mut tree);
     println!("After execute:\n{}\n", &tree.tree);
 }
 
 fn main() {
-    impl_over_children_idx();
-    impl_over_children_mut();
-    impl_recursive_set();
+    test_implementation("IMPL OVER CHILDREN INDICES", |inputs, tree| {
+        tree.execute_rec(inputs, tree.tree.root().idx());
+    });
+
+    test_implementation(
+        "IMPL WITH INTO_CHILD_MUT & INTO_PARENT_MUT",
+        |inputs, tree| {
+            execute(&inputs, tree.tree.root_mut());
+        },
+    );
+
+    test_implementation("IMPL recursive_set", |inputs, tree| {
+        tree.tree
+            .root_mut()
+            .recursive_set(|node_data, children_data| {
+                let instruction = node_data.instruction;
+                let children_sum: f32 = children_data.iter().map(|x| x.value).sum();
+                let value = match node_data.instruction {
+                    Instruction::Input(i) => inputs[i],
+                    Instruction::Add => children_sum,
+                    Instruction::AddI { val } => val + children_sum,
+                };
+
+                InstructionNode { instruction, value }
+            });
+    });
 }
