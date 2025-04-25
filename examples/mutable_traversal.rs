@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 const INPUTS_COUNT: usize = 2;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Instruction {
     Input(usize),
     Add,
@@ -145,7 +145,34 @@ fn impl_over_children_mut() {
     println!("After execute:\n{}\n", &tree.tree);
 }
 
+fn impl_recursive_set() {
+    let inputs = [10.0, 20.0];
+
+    let mut tree = MyTree::example();
+
+    println!("\n\n# IMPL WITH RECURSIVE_SET");
+    println!("\ninputs = {:?}\n", &inputs);
+    println!("Before execute:\n{}\n", &tree.tree);
+
+    tree.tree
+        .root_mut()
+        .recursive_set(|node_data, children_data| {
+            let instruction = node_data.instruction;
+            let children_sum: f32 = children_data.iter().map(|x| x.value).sum();
+            let value = match node_data.instruction {
+                Instruction::Input(i) => inputs[i],
+                Instruction::Add => children_sum,
+                Instruction::AddI { val } => val + children_sum,
+            };
+
+            InstructionNode { instruction, value }
+        });
+
+    println!("After execute:\n{}\n", &tree.tree);
+}
+
 fn main() {
     impl_over_children_idx();
     impl_over_children_mut();
+    impl_recursive_set();
 }

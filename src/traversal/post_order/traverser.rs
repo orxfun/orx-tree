@@ -13,6 +13,7 @@ use core::marker::PhantomData;
 /// # Construction
 ///
 /// A post order traverser can be created,
+///
 /// * either by using Default trait and providing its two generic type parameters
 ///   * `PostOrder::<_, OverData>::default()` or `PostOrder::<_, OverDepthSiblingIdxData>::default()`, or
 ///   * `PostOrder::<Dyn<u64>, OverData>::default()` or `PostOrder::<Dary<2, String>, OverDepthSiblingIdxData>::default()`
