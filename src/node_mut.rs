@@ -2463,22 +2463,24 @@ where
     /// Recursively sets the data of all nodes belonging to the subtree rooted at this node using the `compute_data`
     /// function.
     ///
+    /// Alternatively, sets values of all nodes when the value of a node is defined as a function of its prior value
+    /// and values of its children (hence, it recursively depends on values of all descendants).
+    ///
     /// The `compute_data` function takes two arguments:
     ///
     /// * current value (data) of this node, and
-    /// * slice of values of children of this node that are computed recursively using `compute_data` (*).
+    /// * slice of values of children of this node that are computed recursively using `compute_data` (*);
     ///
-    /// Then, `compute_data` function reduces this node's current value and new values of its children to the new
-    /// value of this node.
+    /// and then, computes the new value of this node.
     ///
     /// The method is named *recursive* (*) due to the fact that,
     ///
-    /// * before computing the value of this node (or any of its descendants);
-    /// * values of all its children are computed and set using the `compute_data` function.
+    /// * before computing the value of this node;
+    /// * values of all of its children are also computed and set using the `compute_data` function.
     ///
-    /// *Note that this method does not actually make recursive method calls. Instead, it internally uses the [`PostOrder`]
+    /// *Note that this method does **not** actually make recursive method calls. Instead, it internally uses the [`PostOrder`]
     /// traverser which ensures that all required values are computed before they are used for another computation. This
-    /// is a guard against potential stack overflow issues that could be observed in sufficiently large trees.*
+    /// is a guard against potential stack overflow issues, and hence, can be used for trees of arbitrary depth.*
     ///
     /// [`PostOrder`]: crate::PostOrder
     ///
@@ -2605,8 +2607,7 @@ where
         let mut children_data = Vec::<&V::Item>::new();
 
         for ptr in iter {
-            let x: NodePtr<_> = ptr;
-            let node = unsafe { &mut *x.ptr_mut() };
+            let node = unsafe { &mut *ptr.ptr_mut() };
             let node_data = node.data().expect("is not closed");
 
             for child_ptr in node.next().children_ptr() {
