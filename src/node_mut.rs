@@ -2463,8 +2463,10 @@ where
     /// Recursively sets the data of all nodes belonging to the subtree rooted at this node using the `compute_data`
     /// function.
     ///
-    /// Alternatively, sets values of all nodes when the value of a node is defined as a function of its prior value
-    /// and values of its children (hence, it recursively depends on values of all descendants).
+    /// This method provides an expressive way to update the values of a tree where value of a node is a function of
+    /// its prior value and values of its children. Since the values of its children subsequently depend on their own
+    /// children, it immediately follows that the value of the node depends on values of all of its descendants that
+    /// must be computed to be able to compute the node's value.
     ///
     /// The `compute_data` function takes two arguments:
     ///
