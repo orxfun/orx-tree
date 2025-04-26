@@ -2599,11 +2599,12 @@ where
     /// assert!(equals(tree.node(&id1).data().expected_value, 3.40));
     /// assert!(equals(tree.node(&id2).data().expected_value, 4.90));
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     pub fn recursive_set(&mut self, compute_data: impl Fn(&V::Item, &[&V::Item]) -> V::Item) {
-        let mut iter = PostOrder::<OverPtr>::iter_ptr_with_owned_storage(self.node_ptr.clone());
+        let iter = PostOrder::<OverPtr>::iter_ptr_with_owned_storage(self.node_ptr.clone());
         let mut children_data = Vec::<&V::Item>::new();
 
-        while let Some(ptr) = iter.next() {
+        for ptr in iter {
             let x: NodePtr<_> = ptr;
             let node = unsafe { &mut *x.ptr_mut() };
             let node_data = node.data().expect("is not closed");
