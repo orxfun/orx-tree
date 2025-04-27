@@ -1,5 +1,7 @@
 // # EXAMPLE DEFINITION
 //
+// cargo run --example mutable_recursive_traversal
+//
 // This example demonstrates a use case where value of a node is defined
 // as a function of the values of its children. Since the value of a child
 // of the node also depends on values of its own children, it follows that

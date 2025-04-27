@@ -375,6 +375,10 @@ let remaining_bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
 assert_eq!(remaining_bfs, [1, 3, 6, 9]);
 ```
 
+### More Examples
+
+* [mutable_recursive_traversal](https://github.com/orxfun/orx-tree/blob/main/examples/mutable_recursive_traversal.rs) demonstrates different approaches to achieve a recursive mutation of all nodes in the tree.
+
 ## Contributing
 
 Contributions are welcome! If you notice an error, have a question or think something could be added or improved, please open an [issue](https://github.com/orxfun/orx-tree/issues/new) or create a PR.
