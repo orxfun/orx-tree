@@ -1,6 +1,6 @@
 [package]
 name = "orx-tree"
-version = "1.4.0"
+version = "1.5.0"
 edition = "2024"
 authors = ["orxfun <orx.ugur.arikan@gmail.com>"]
 description = "A beautiful tree 🌳 with convenient and efficient growth, mutation and traversal features."
