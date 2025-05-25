@@ -21,6 +21,7 @@ orx-concurrent-iter = { version = "2.1.0", default-features = false }
 orx-parallel = { version = "2.1.0", default-features = false, optional = true }
 
 [dev-dependencies]
+clap = { version = "4.5.38", features = ["derive"] }
 criterion = "0.5.1"
 rayon = { version = "1.10.0" }
 serde_json = { version = "1.0.140", default-features = false, features = [
