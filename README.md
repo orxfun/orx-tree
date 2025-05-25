@@ -8,6 +8,8 @@ A beautiful tree 🌳 with convenient and efficient growth, mutation and travers
 
 ## Features
 
+> **no-std**: This crate supports **no-std**; however, *std* is added due to the default [**orx-parallel**](https://crates.io/crates/orx-parallel) feature. Please include with **no-default-features** for no-std use cases: `cargo add orx-tree --no-default-features`.
+
 ### Generic Variants
 
 [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) is generic over variants that define the way the children are stored:
