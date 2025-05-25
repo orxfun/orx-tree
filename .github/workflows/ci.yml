@@ -48,7 +48,7 @@ jobs:
     - name: Test-32bit
       run: cargo test --no-default-features --verbose --target i686-unknown-linux-musl ${{ matrix.features }}
     - name: Check-wasm
-      run: cargo check --no-default-features --verbose --target wasm32v1-none ${{ matrix.features }}
+      run: cargo check --no-default-features --verbose --target wasm32v1-none ${{ matrix.no_std_features }}
 
     - name: Clippy
       run: cargo clippy --no-default-features ${{ matrix.features }} -- -D warnings --verbose
