@@ -952,7 +952,8 @@ where
 
     /// Creates a parallel iterator over references to the elements of the tree in **arbitrary order**.
     ///
-    /// Note that `par` is parallel counterpart of [`iter`].
+    /// Note that `par` is parallel counterpart of `iter`.
+    ///
     /// In order to iterate over data in a particular order, please use traversers with [`walk`], [`walk_mut`]
     /// or [`into_walk`] methods.
     ///
@@ -963,7 +964,6 @@ where
     /// Requires **orx-parallel** feature.
     ///
     /// [`ParIter`]: orx_parallel::ParIter
-    /// [`iter`]: crate::Tree::iter
     /// [`walk`]: crate::NodeRef::walk
     /// [`walk_mut`]: crate::NodeMut::walk_mut
     /// [`into_walk`]: crate::NodeMut::into_walk
@@ -1030,7 +1030,8 @@ where
 
     /// Consumes the tree and creates a parallel iterator over owned elements of the tree in **arbitrary order**.
     ///
-    /// Note that `into_par` is parallel counterpart of [`into_iter`].
+    /// Note that `into_par` is parallel counterpart of `into_iter`.
+    ///
     /// In order to iterate over data in a particular order, please use traversers with [`walk`], [`walk_mut`]
     /// or [`into_walk`] methods.
     ///
@@ -1041,7 +1042,6 @@ where
     /// Requires **orx-parallel** feature.
     ///
     /// [`ParIter`]: orx_parallel::ParIter
-    /// [`into_iter`]: crate::Tree::into_iter
     /// [`walk`]: crate::NodeRef::walk
     /// [`walk_mut`]: crate::NodeMut::walk_mut
     /// [`into_walk`]: crate::NodeMut::into_walk
