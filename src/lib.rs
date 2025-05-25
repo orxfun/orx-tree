@@ -62,3 +62,6 @@ pub use orx_selfref_col::NodeIdxError;
 
 // RE-IMPORT
 pub use orx_iterable::{Collection, CollectionMut};
+
+#[cfg(feature = "orx-parallel")]
+pub use orx_parallel::*;
