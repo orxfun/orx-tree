@@ -6,6 +6,7 @@ mod utils;
 
 use clap::Parser;
 use orx_tree::*;
+use rayon::iter::{ParallelBridge, ParallelIterator};
 use utils::timed_collect_all;
 
 #[derive(Parser, Debug)]
@@ -51,7 +52,7 @@ fn build_tree(total_depth: usize) -> DaryTree<4, usize> {
 fn main() {
     let args = Args::parse();
 
-    let expected_output = {
+    let mut expected_output = {
         let tree = build_tree(10);
 
         tree.iter()
@@ -60,11 +61,12 @@ fn main() {
             .filter_map(|x| (x % 2 == 0).then(|| x.to_string()))
             .collect::<Vec<_>>()
     };
+    expected_output.sort();
 
     let computations: Vec<(&str, Box<dyn Fn() -> Vec<String>>)> = vec![
         #[cfg(feature = "orx-parallel")]
         (
-            "Sequential computation over DoublyList",
+            "Sequential computation over Tree",
             Box::new(move || {
                 let tree = build_tree(10);
 
@@ -77,11 +79,25 @@ fn main() {
         ),
         #[cfg(feature = "orx-parallel")]
         (
-            "Parallelized over DoublyList using orx_parallel",
+            "Parallelized over Tree using orx-parallel",
             Box::new(move || {
                 let tree = build_tree(10);
 
                 tree.par() // replace iter (into_iter) with par (into_par) to parallelize !
+                    .filter(|x| *x % 3 != 0)
+                    .map(|x| x + fibonacci(x % 1000))
+                    .filter(|x| x % 2 == 0)
+                    .map(|x| x.to_string())
+                    .collect::<Vec<_>>()
+            }),
+        ),
+        (
+            "Parallelized over Tree using rayon's par-bridge",
+            Box::new(move || {
+                let tree = build_tree(10);
+
+                tree.iter()
+                    .par_bridge()
                     .filter(|x| *x % 3 != 0)
                     .map(|x| x + fibonacci(x % 1000))
                     .filter(|x| x % 2 == 0)

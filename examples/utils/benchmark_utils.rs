@@ -57,10 +57,12 @@ fn timed_collect<F, Out, O>(num_repetitions: usize, expected_output: &[O], fun: 
 where
     F: Fn() -> Out,
     Out: IntoIterator<Item = O>,
-    O: PartialEq + Debug,
+    O: PartialEq + Ord + Debug,
 {
     let result = fun();
-    assert_eq!(result.into_iter().collect::<Vec<_>>(), expected_output);
+    let mut result = result.into_iter().collect::<Vec<_>>();
+    result.sort();
+    assert_eq!(result, expected_output);
 
     // warm up
     for _ in 0..10 {
@@ -83,7 +85,7 @@ pub fn timed_collect_all<Out, O>(
     computations: &[(&str, Box<dyn Fn() -> Out>)],
 ) where
     Out: IntoIterator<Item = O>,
-    O: PartialEq + Debug,
+    O: PartialEq + Ord + Debug,
 {
     println!("\n{} {} {}", "#".repeat(10), benchmark_name, "#".repeat(10));
     for (name, fun) in computations {
