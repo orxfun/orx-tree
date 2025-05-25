@@ -948,6 +948,165 @@ where
         }
     }
 
+    // parallelization
+
+    /// Creates a parallel iterator over references to the elements of the tree in **arbitrary order**.
+    ///
+    /// Note that `par` is parallel counterpart of [`iter`].
+    /// In order to iterate over data in a particular order, please use traversers with [`walk`], [`walk_mut`]
+    /// or [`into_walk`] methods.
+    ///
+    /// Please see [`ParIter`] for details of the parallel computation.
+    /// In brief, computation is defined as chain of iterator transformations and parallelization
+    /// is handled by the underlying parallel executor.
+    ///
+    /// Requires **orx-parallel** feature.
+    ///
+    /// [`ParIter`]: orx_parallel::ParIter
+    /// [`iter`]: crate::Tree::iter
+    /// [`walk`]: crate::NodeRef::walk
+    /// [`walk_mut`]: crate::NodeMut::walk_mut
+    /// [`into_walk`]: crate::NodeMut::into_walk
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let num_children = 4;
+    /// let total_depth = 10;
+    ///
+    /// let mut tree = DynTree::new(0.to_string());
+    /// let mut dfs = Traversal.dfs().over_nodes();
+    ///
+    /// for _ in 0..total_depth {
+    ///     let root = tree.root();
+    ///     let leaves: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
+    ///     for idx in leaves {
+    ///         let count = tree.len();
+    ///         let mut node = tree.node_mut(&idx);
+    ///         for j in 0..num_children {
+    ///             node.push_child((count + j).to_string());
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// let seq_result: usize = tree
+    ///     .iter()
+    ///     .filter_map(|x| x.parse::<usize>().ok())
+    ///     .filter(|x| x % 2 == 0)
+    ///     .sum();
+    ///
+    /// // compute in parallel with default configuration
+    /// let par_result = tree
+    ///     .par() // replace iter() with par()
+    ///     .filter_map(|x| x.parse::<usize>().ok())
+    ///     .filter(|x| x % 2 == 0)
+    ///     .sum();
+    /// assert_eq!(seq_result, par_result);
+    ///
+    /// // configure parallel computation
+    /// let par_result = tree
+    ///     .par()
+    ///     .num_threads(4)
+    ///     .chunk_size(64)
+    ///     .filter_map(|x| x.parse::<usize>().ok())
+    ///     .filter(|x| x % 2 == 0)
+    ///     .sum();
+    /// assert_eq!(seq_result, par_result);
+    /// ```
+    #[cfg(feature = "orx-parallel")]
+    pub fn par(&self) -> impl orx_parallel::ParIter<Item = &V::Item>
+    where
+        V::Item: Send + Sync,
+        for<'a> &'a <P as PinnedStorage>::PinnedVec<V>:
+            orx_concurrent_iter::IntoConcurrentIter<Item = &'a crate::aliases::N<V>>,
+    {
+        use orx_parallel::*;
+
+        let pinned = self.0.nodes();
+        pinned.par().filter_map(|x| x.data())
+    }
+
+    /// Consumes the tree and creates a parallel iterator over owned elements of the tree in **arbitrary order**.
+    ///
+    /// Note that `into_par` is parallel counterpart of [`into_iter`].
+    /// In order to iterate over data in a particular order, please use traversers with [`walk`], [`walk_mut`]
+    /// or [`into_walk`] methods.
+    ///
+    /// Please see [`ParIter`] for details of the parallel computation.
+    /// In brief, computation is defined as chain of iterator transformations and parallelization
+    /// is handled by the underlying parallel executor.
+    ///
+    /// Requires **orx-parallel** feature.
+    ///
+    /// [`ParIter`]: orx_parallel::ParIter
+    /// [`into_iter`]: crate::Tree::into_iter
+    /// [`walk`]: crate::NodeRef::walk
+    /// [`walk_mut`]: crate::NodeMut::walk_mut
+    /// [`into_walk`]: crate::NodeMut::into_walk
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// let num_children = 4;
+    /// let total_depth = 10;
+    ///
+    /// let mut tree = DynTree::new(0.to_string());
+    /// let mut dfs = Traversal.dfs().over_nodes();
+    ///
+    /// for _ in 0..total_depth {
+    ///     let root = tree.root();
+    ///     let leaves: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
+    ///     for idx in leaves {
+    ///         let count = tree.len();
+    ///         let mut node = tree.node_mut(&idx);
+    ///         for j in 0..num_children {
+    ///             node.push_child((count + j).to_string());
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// let seq_result: usize = tree
+    ///     .clone()
+    ///     .into_iter()
+    ///     .filter_map(|x| x.parse::<usize>().ok())
+    ///     .filter(|x| x % 2 == 0)
+    ///     .sum();
+    ///
+    /// // compute in parallel with default configuration
+    /// let par_result = tree
+    ///     .clone()
+    ///     .into_par() // replace into_iter() with into_par()
+    ///     .filter_map(|x| x.parse::<usize>().ok())
+    ///     .filter(|x| x % 2 == 0)
+    ///     .sum();
+    /// assert_eq!(seq_result, par_result);
+    ///
+    /// // configure parallel computation
+    /// let par_result = tree
+    ///     .into_par()
+    ///     .num_threads(4)
+    ///     .chunk_size(64)
+    ///     .filter_map(|x| x.parse::<usize>().ok())
+    ///     .filter(|x| x % 2 == 0)
+    ///     .sum();
+    /// assert_eq!(seq_result, par_result);
+    /// ```
+    #[cfg(feature = "orx-parallel")]
+    pub fn into_par(self) -> impl orx_parallel::ParIter<Item = V::Item>
+    where
+        V::Item: Send + Sync + Clone,
+        <P as PinnedStorage>::PinnedVec<V>:
+            orx_concurrent_iter::IntoConcurrentIter<Item = crate::aliases::N<V>>,
+    {
+        use orx_parallel::*;
+        let (pinned, _, _) = self.0.into_inner().0.into_inner();
+        pinned.into_par().filter_map(|x| x.into_data())
+    }
+
     // helpers
 
     pub(crate) fn new_with_root(root_value: V::Item) -> Self
