@@ -132,7 +132,8 @@ Alternatively, we can turn a mutable node into an [`into_walk`](https://docs.rs/
 
 ## Features
 
-* **orx-parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel). This feature is added as default and requires std; hence, please use `cargo add orx-tree --no-default-features` for no-std use cases.
+* **orx-parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel).
+  * This feature is added as default and requires **std**; hence, please use `cargo add orx-tree --no-default-features` for **no-std** use cases.
   * Currently, parallel iteration over all nodes of the tree in arbitrary order is supported by methods [`par`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.par) and [`into_par`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.into_par).
   * Parallelization of all walks or traversals in particular order are under development.
   * Parallelization examples can be found in [`demo_parallelization`](https://github.com/orxfun/orx-tree/blob/main/examples/demo_parallelization.rs) example.
@@ -140,8 +141,6 @@ Alternatively, we can turn a mutable node into an [`into_walk`](https://docs.rs/
     * `Sequential computation over Tree : 18.96s`
     * `Parallelized over Tree using orx-parallel : 6.02s`
     * `Parallelized over Tree using rayon's par-bridge : 81.10s`
-  
-* **std**: This crate supports no-std; however, "std" feature is included as a default feature. Please use `cargo add orx-tree --no-default-features` for no-std use cases.
 
 * **serde**: Tree implements `Serialize` and `Deserialize` traits; the "serde" feature needs to be added when required. It uses a linearized representation of the tree as a [`DepthFirstSequence`](https://docs.rs/orx-tree/latest/orx_tree/struct.DepthFirstSequence.html). You may find de-serialization examples in the corresponding [test file](https://github.com/orxfun/orx-tree/blob/main/tests/serde.rs).
 

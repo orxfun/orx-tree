@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         toolchain: ["stable"]
-        features: ["--features orx-parallel", "--features std", "--features serde"]
+        features: ["--features orx-parallel", "--features serde"]
         no_std_features: ["--features serde"]
 
     steps:
