@@ -1,9 +1,9 @@
 [package]
 name = "orx-tree"
-version = "1.5.0"
+version = "1.6.0"
 edition = "2024"
 authors = ["orxfun <orx.ugur.arikan@gmail.com>"]
-description = "A beautiful tree 🌳 with convenient and efficient growth, mutation and traversal features."
+description = "A beautiful tree 🌳 with convenient and efficient growth, mutation and traversal features with support for parallel computation."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/orxfun/orx-tree/"
 keywords = ["tree", "data-structures", "traversal", "traverse", "binarytree"]
@@ -13,19 +13,26 @@ categories = ["data-structures", "algorithms", "rust-patterns", "no-std"]
 orx-iterable = { version = "1.3.0", default-features = false }
 orx-pseudo-default = { version = "2.1.0", default-features = false }
 orx-pinned-vec = "3.16.0"
-orx-split-vec = "3.16.0"
-orx-selfref-col = "2.8.0"
 orx-self-or = "1.2.0"
 serde = { version = "1.0.219", optional = true, default-features = false }
-
+orx-split-vec = { version = "3.17.0", default-features = false }
+orx-selfref-col = { version = "2.9.0", default-features = false }
+orx-concurrent-iter = { version = "2.1.0", default-features = false }
+orx-parallel = { version = "2.1.0", default-features = false, optional = true }
 
 [dev-dependencies]
-test-case = { version = "3.3.1", default-features = false }
+clap = { version = "4.5.38", features = ["derive"] }
+criterion = "0.5.1"
+rayon = { version = "1.10.0" }
 serde_json = { version = "1.0.140", default-features = false, features = [
     "std",
 ] }
+test-case = { version = "3.3.1", default-features = false }
 
 [features]
-default = []
-std = []
+default = ["orx-parallel"]
 serde = ["dep:serde"]
+
+[[bench]]
+name = "parallelization_ref"
+harness = false

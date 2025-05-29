@@ -16,7 +16,8 @@ jobs:
     strategy:
       matrix:
         toolchain: ["stable"]
-        features: ["", "--features serde"]
+        features: ["--features orx-parallel", "--features serde"]
+        no_std_features: ["--features serde"]
 
     steps:
     - uses: actions/checkout@v4
@@ -36,24 +37,24 @@ jobs:
       run: cargo install cargo-no-std-check
       
     - name: Build
-      run: cargo build --verbose ${{ matrix.features }}
+      run: cargo build --no-default-features --verbose ${{ matrix.features }}
     - name: Build-32bit
-      run: cargo build --verbose --target i686-unknown-linux-musl ${{ matrix.features }}
+      run: cargo build --no-default-features --verbose --target i686-unknown-linux-musl ${{ matrix.features }}
     - name: Build-wasm
-      run: cargo build --verbose --target wasm32v1-none ${{ matrix.features }}
+      run: cargo build --no-default-features --verbose --target wasm32v1-none ${{ matrix.no_std_features }}
 
     - name: Test
-      run: cargo test --verbose ${{ matrix.features }}
+      run: cargo test --no-default-features --verbose ${{ matrix.features }}
     - name: Test-32bit
-      run: cargo test --verbose --target i686-unknown-linux-musl ${{ matrix.features }}
+      run: cargo test --no-default-features --verbose --target i686-unknown-linux-musl ${{ matrix.features }}
     - name: Check-wasm
-      run: cargo check --verbose --target wasm32v1-none ${{ matrix.features }}
+      run: cargo check --no-default-features --verbose --target wasm32v1-none ${{ matrix.no_std_features }}
 
     - name: Clippy
-      run: cargo clippy ${{ matrix.features }} -- -D warnings --verbose
+      run: cargo clippy --no-default-features ${{ matrix.features }} -- -D warnings --verbose
 
     - name: Miri
-      run: cargo +nightly miri test --verbose ${{ matrix.features }}
+      run: cargo +nightly miri test --lib --bins --tests --no-default-features --verbose ${{ matrix.features }}
 
     - name: NoStd
-      run: cargo +nightly no-std-check ${{ matrix.features }}
+      run: cargo +nightly no-std-check --no-default-features ${{ matrix.no_std_features }}
