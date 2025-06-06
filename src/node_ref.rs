@@ -258,6 +258,85 @@ where
             .map(|ptr| Node::new(self.col(), ptr.clone()))
     }
 
+    /// Creates a **[parallel iterator]** of children nodes of this node.
+    ///
+    /// Please see [`children`] for details, since `children_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    ///
+    /// [`children`]: NodeRef::children
+    /// [parallel iterator]: orx_parallel::ParIter
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    ///
+    /// const N: usize = 8;
+    ///
+    /// fn build_tree(n: usize) -> DaryTree<N, String> {
+    ///     let mut tree = DaryTree::new(0.to_string());
+    ///     let mut dfs = Traversal.dfs().over_nodes();
+    ///     while tree.len() < n {
+    ///         let root = tree.root();
+    ///         let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
+    ///         for idx in x.iter() {
+    ///             let count = tree.len();
+    ///             let mut node = tree.node_mut(idx);
+    ///             for j in 0..N {
+    ///                 node.push_child((count + j).to_string());
+    ///             }
+    ///         }
+    ///     }
+    ///     tree
+    /// }
+    ///
+    /// fn compute_subtree_value(subtree: &DaryNode<N, String>) -> u64 {
+    ///     subtree
+    ///         .walk::<Dfs>()
+    ///         .map(|x| x.parse::<u64>().unwrap())
+    ///         .sum()
+    /// }
+    ///
+    /// let tree = build_tree(64 * 1_024);
+    ///
+    /// let seq_value: u64 = tree
+    ///     .root()
+    ///     .children()
+    ///     .map(|x| compute_subtree_value(&x))
+    ///     .sum();
+    ///
+    /// let par_value: u64 = tree
+    ///     .root()
+    ///     .children_par() // compute 8 subtrees in parallel
+    ///     .map(|x| compute_subtree_value(&x))
+    ///     .sum();
+    ///
+    /// let par_value_4t: u64 = tree
+    ///     .root()
+    ///     .children_par() // compute 8 subtrees in parallel
+    ///     .num_threads(4) // but limited to using 4 threads
+    ///     .map(|x| compute_subtree_value(&x))
+    ///     .sum();
+    ///
+    /// assert_eq!(seq_value, par_value);
+    /// assert_eq!(seq_value, par_value_4t);
+    /// ```
+    #[cfg(feature = "orx-parallel")]
+    fn children_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
+    where
+        V::Item: Send + Sync,
+        Self: Sync,
+    {
+        self.node()
+            .next()
+            .children_ptr_par()
+            .map(|ptr| Node::new(self.col(), ptr.clone()))
+    }
+
     /// Returns the `child-index`-th child of the node; returns None if out of bounds.
     ///
     /// # Examples
@@ -1840,5 +1919,65 @@ where
         Self: Sized,
     {
         CopiedSubTree::new(self)
+    }
+}
+
+#[cfg(test)]
+mod tst {
+    use crate::*;
+    use alloc::string::{String, ToString};
+    use alloc::vec::Vec;
+
+    const N: usize = 8;
+
+    fn build_tree(n: usize) -> DaryTree<N, String> {
+        let mut tree = DaryTree::new(0.to_string());
+        let mut dfs = Traversal.dfs().over_nodes();
+        while tree.len() < n {
+            let root = tree.root();
+            let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
+            for idx in x.iter() {
+                let count = tree.len();
+                let mut node = tree.node_mut(idx);
+                for j in 0..N {
+                    node.push_child((count + j).to_string());
+                }
+            }
+        }
+        tree
+    }
+
+    fn compute_subtree_value(subtree: &DaryNode<N, String>) -> u64 {
+        subtree
+            .walk::<Dfs>()
+            .map(|x| x.parse::<u64>().unwrap())
+            .sum()
+    }
+
+    #[test]
+    fn abc() {
+        let tree = build_tree(64 * 1_024);
+
+        let seq_value: u64 = tree
+            .root()
+            .children()
+            .map(|x| compute_subtree_value(&x))
+            .sum();
+
+        let par_value: u64 = tree
+            .root()
+            .children_par() // compute 8 subtrees in parallel
+            .map(|x| compute_subtree_value(&x))
+            .sum();
+
+        let par_value_4t: u64 = tree
+            .root()
+            .children_par() // compute 8 subtrees in parallel
+            .num_threads(4) // limited to using 4 threads
+            .map(|x| compute_subtree_value(&x))
+            .sum();
+
+        assert_eq!(seq_value, par_value);
+        assert_eq!(seq_value, par_value_4t);
     }
 }
