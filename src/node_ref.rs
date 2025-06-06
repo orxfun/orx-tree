@@ -1541,7 +1541,7 @@ where
             })
     }
 
-    /// Creates a **[parallel iterator]** that yields references to data of all nodes belonging to the subtree rooted at this node.
+    /// Creates a **[parallel iterator]** of references to data of leaves of the subtree rooted at this node.
     ///
     /// Please see [`leaves`] for details, since `leaves_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
@@ -1663,7 +1663,7 @@ where
             })
     }
 
-    /// Creates a **[parallel iterator]** that yields references to data of all nodes belonging to the subtree rooted at this node.
+    /// Creates a **[parallel iterator]** of references to data of leaves of the subtree rooted at this node.
     ///
     /// Please see [`leaves_with`] for details, since `leaves_with_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
