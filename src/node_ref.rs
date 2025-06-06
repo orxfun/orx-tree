@@ -823,6 +823,28 @@ where
         })
     }
 
+    /// Creates a **[parallel iterator]** that yields references to data of all nodes belonging to the subtree rooted at this node.
+    ///
+    /// Please see [`custom_walk`] for details, since `custom_walk_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    ///
+    /// [`custom_walk`]: NodeRef::custom_walk
+    /// [parallel iterator]: orx_parallel::ParIter
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    #[cfg(feature = "orx-parallel")]
+    fn custom_walk_par<F>(&self, next_node: F) -> impl ParIter<Item = &'a V::Item>
+    where
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        V::Item: Send + Sync,
+    {
+        self.custom_walk(next_node)
+            .collect::<alloc::vec::Vec<_>>()
+            .into_par()
+    }
+
     /// Creates an iterator that yields references to data of all nodes belonging to the subtree rooted at this node.
     ///
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
