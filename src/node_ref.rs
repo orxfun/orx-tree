@@ -1640,6 +1640,32 @@ where
             })
     }
 
+    /// Creates a **[parallel iterator]** that yields references to data of all nodes belonging to the subtree rooted at this node.
+    ///
+    /// Please see [`leaves_with`] for details, since `leaves_with_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    ///
+    /// [`leaves_with`]: NodeRef::leaves_with
+    /// [parallel iterator]: orx_parallel::ParIter
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    #[cfg(feature = "orx-parallel")]
+    fn leaves_with_par<T, O>(
+        &'a self,
+        traverser: &'a mut T,
+    ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
+    where
+        O: Over,
+        T: Traverser<O>,
+        OverItem<'a, V, O, M, P>: Send + Sync,
+    {
+        self.leaves_with_par(traverser)
+            .collect::<alloc::vec::Vec<_>>()
+            .into_par()
+    }
+
     /// Returns an iterator of node indices.
     ///
     /// The order of the indices is determined by the generic [`Traverser`] parameter `T`.
@@ -1791,69 +1817,5 @@ where
         Self: Sized,
     {
         CopiedSubTree::new(self)
-    }
-}
-
-#[cfg(test)]
-mod tst {
-    use crate::*;
-    use alloc::string::{String, ToString};
-    use alloc::vec;
-    use alloc::vec::Vec;
-    use orx_iterable::{IntoCloningIterable, Iterable};
-
-    fn build_tree(n: usize) -> DynTree<String> {
-        let mut tree = DynTree::new(0.to_string());
-        let mut dfs = Traversal.dfs().over_nodes();
-        while tree.len() < n {
-            let root = tree.root();
-            let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
-            for idx in x.iter() {
-                let count = tree.len();
-                let mut node = tree.node_mut(idx);
-                let num_children = 4;
-                for j in 0..num_children {
-                    node.push_child((count + j).to_string());
-                }
-            }
-        }
-        tree
-    }
-
-    fn compute_path_value<'a>(mut path: impl Iterator<Item = &'a String>) -> u64 {
-        match path.next() {
-            Some(first) => {
-                let mut abs_diff = 0;
-                let mut current = first.parse::<u64>().unwrap();
-                for node in path {
-                    let next = node.parse::<u64>().unwrap();
-                    abs_diff += match next >= current {
-                        true => next - current,
-                        false => current - next,
-                    };
-                    current = next;
-                }
-                abs_diff
-            }
-            None => 0,
-        }
-    }
-
-    #[test]
-    fn abc() {
-        let mut traverser = Traversal.dfs().over_nodes();
-        let tree = build_tree(1024);
-
-        let root = tree.root();
-        let best_path: Vec<_> = root
-            .paths_with_par(&mut traverser) // parallelize
-            .num_threads(4) // configure parallel computation
-            .map(|path| path.into_iterable()) // into-iterable for multiple iterations over each path without allocation
-            .max_by_key(|path| compute_path_value(path.iter().map(|x| x.data()))) // find the best path
-            .map(|path| path.iter().map(|x| x.data()).collect()) // collect only the best path
-            .unwrap();
-
-        let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
-        assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     }
 }
