@@ -1130,7 +1130,7 @@ where
         let node_ptr = self.node_ptr();
         let node_ptrs: Vec<_> = T::iter_ptr_with_owned_storage(node_ptr.clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
-            .map(|x| NodePtrCon(x))
+            .map(NodePtrCon)
             .collect();
         let node_ptr_con = NodePtrCon(self.node_ptr().clone());
         node_ptrs.into_par().map(move |x| {
@@ -1256,6 +1256,124 @@ where
                     )
                 })
             })
+    }
+
+    /// Creates a **[parallel iterator]** of paths from all leaves of the subtree rooted at this node **upwards** to this node.
+    ///
+    /// Please see [`paths_with`] for details, since `paths_with_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    ///
+    /// [`paths_with`]: NodeRef::paths_with
+    /// [parallel iterator]: orx_parallel::ParIter
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    ///
+    /// # Examples
+    ///
+    /// In the following example, we find the best path with respect to a linear-in-time computation.
+    /// The computation demonstrates the following features:
+    ///
+    /// * We use `paths_with_par` rather than `paths_with` to parallelize the computation of path values.
+    /// * We configure the parallel computation by limiting the number of threads using the `num_threads`
+    ///   method. Note that this is an optional parameter with a default value of [`Auto`].
+    /// * We start computation by converting each `path` iterator into an [`Iterable`] using hte `into_iterable`
+    ///   method. This is a cheap transformation which allows us to iterate over the path multiple times
+    ///   without requiring to allocate and store them in a collection.
+    /// * We select our best path by the `max_by_key` call.
+    /// * Lastly, we collect the best path. Notice that this is the only allocated path.
+    ///
+    /// [`Auto`]: orx_parallel::NumThreads::Auto
+    /// [`Iterable`]: orx_iterable::Iterable
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    /// use orx_iterable::*;
+    ///
+    /// fn build_tree(n: usize) -> DynTree<String> {
+    ///     let mut tree = DynTree::new(0.to_string());
+    ///     let mut dfs = Traversal.dfs().over_nodes();
+    ///     while tree.len() < n {
+    ///         let root = tree.root();
+    ///         let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
+    ///         for idx in x.iter() {
+    ///             let count = tree.len();
+    ///             let mut node = tree.node_mut(idx);
+    ///             let num_children = 4;
+    ///             for j in 0..num_children {
+    ///                 node.push_child((count + j).to_string());
+    ///             }
+    ///         }
+    ///     }
+    ///     tree
+    /// }
+    ///
+    /// fn compute_path_value<'a>(mut path: impl Iterator<Item = &'a String>) -> u64 {
+    ///     match path.next() {
+    ///         Some(first) => {
+    ///             let mut abs_diff = 0;
+    ///             let mut current = first.parse::<u64>().unwrap();
+    ///             for node in path {
+    ///                 let next = node.parse::<u64>().unwrap();
+    ///                 abs_diff += match next >= current {
+    ///                     true => next - current,
+    ///                     false => current - next,
+    ///                 };
+    ///                 current = next;
+    ///             }
+    ///             abs_diff
+    ///         }
+    ///         None => 0,
+    ///     }
+    /// }
+    ///
+    /// let tree = build_tree(1024);
+    /// let mut dfs = Traversal.dfs().over_nodes();
+    ///
+    /// let root = tree.root();
+    /// let best_path: Vec<_> = root
+    ///     .paths_with_par(&mut dfs) // parallelize
+    ///     .num_threads(4) // configure parallel computation
+    ///     .map(|path| path.into_iterable()) // into-iterable for multiple iterations over each path without allocation
+    ///     .max_by_key(|path| compute_path_value(path.iter().map(|x| x.data()))) // find the best path
+    ///     .map(|path| path.iter().map(|x| x.data()).collect()) // collect only the best path
+    ///     .unwrap();
+    ///
+    /// let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
+    /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
+    /// ```
+    fn paths_with_par<T, O>(
+        &'a self,
+        traverser: &'a mut T,
+    ) -> impl ParIter<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone>
+    where
+        O: Over<Enumeration = Val>,
+        T: Traverser<O>,
+        V::Item: Send + Sync,
+        OverItem<'a, V, O, M, P>: Send + Sync,
+        <O as Over>::NodeItem<'a, V, M, P>: Send + Sync,
+        Self: Sync,
+    {
+        use alloc::vec::Vec;
+
+        let node_ptr = self.node_ptr();
+
+        let node_ptrs: Vec<_> =
+            T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
+                .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+                .map(NodePtrCon)
+                .collect();
+        let node_ptr_con = NodePtrCon(self.node_ptr().clone());
+        node_ptrs.into_par().map(move |x| {
+            let iter = AncestorsIterPtr::new(node_ptr_con.clone(), x);
+            iter.map(|ptr: NodePtr<V>| {
+                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
+                    self.col(),
+                    ptr,
+                )
+            })
+        })
     }
 
     /// Clone the subtree rooted at this node as a separate tree.
@@ -1706,15 +1824,16 @@ mod tst {
 
     #[test]
     fn abc() {
+        let mut traverser = Traversal.dfs().over_nodes();
         let tree = build_tree(1024);
 
         let root = tree.root();
         let best_path: Vec<_> = root
-            .paths_par::<Dfs>() // parallelize
+            .paths_with_par(&mut traverser) // parallelize
             .num_threads(4) // configure parallel computation
             .map(|path| path.into_iterable()) // into-iterable for multiple iterations over each path without allocation
-            .max_by_key(|path| compute_path_value(path.iter())) // find the best path
-            .map(|path| path.iter().collect()) // collect only the best path
+            .max_by_key(|path| compute_path_value(path.iter().map(|x| x.data()))) // find the best path
+            .map(|path| path.iter().map(|x| x.data()).collect()) // collect only the best path
             .unwrap();
 
         let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
