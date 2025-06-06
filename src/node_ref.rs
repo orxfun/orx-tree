@@ -1155,6 +1155,9 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     ///
+    /// You may also see [paths_iterator](https://github.com/orxfun/orx-tree/blob/main/benches/paths_iterator.rs) benchmark to
+    /// see an example use case.
+    ///
     /// # Examples
     ///
     /// In the following example, we find the best path with respect to a linear-in-time computation.
