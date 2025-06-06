@@ -543,6 +543,29 @@ where
             .map(|ptr| Node::new(self.col(), ptr))
     }
 
+    /// Creates a **[parallel iterator]** starting from this node moving upwards until the root:
+    ///
+    /// * yields all ancestors of this node including this node,
+    /// * the first element is always this node, and
+    /// * the last element is always the root node of the tree.
+    ///
+    /// Please see [`ancestors`] for details, since `ancestors_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    ///
+    /// [`ancestors`]: NodeRef::ancestors
+    /// [parallel iterator]: orx_parallel::ParIter
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    #[cfg(feature = "orx-parallel")]
+    fn ancestors_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
+    where
+        V::Item: Send + Sync,
+    {
+        self.ancestors().collect::<alloc::vec::Vec<_>>().into_par()
+    }
+
     /// Returns true if this node is an ancestor of the node with the given `idx`;
     /// false otherwise.
     ///
