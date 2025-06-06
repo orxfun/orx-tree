@@ -3,7 +3,6 @@ use crate::{
     aliases::{Col, N},
     iter::AncestorsIterPtr,
     memory::MemoryPolicy,
-    node_ptr_con::NodePtrCon,
     pinned_storage::PinnedStorage,
     subtrees::{ClonedSubTree, CopiedSubTree},
     traversal::{
@@ -621,7 +620,7 @@ where
     /// ```
     fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
-        AncestorsIterPtr::new(NodePtrCon(root_ptr), NodePtrCon(self.node_ptr().clone()))
+        AncestorsIterPtr::new(root_ptr, self.node_ptr().clone())
             .map(|ptr| Node::new(self.col(), ptr))
     }
 
@@ -699,7 +698,7 @@ where
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
         let descendant_ptr = idx.0.node_ptr();
         let ancestor_ptr = self.node_ptr().clone();
-        AncestorsIterPtr::new(NodePtrCon(root_ptr), NodePtrCon(descendant_ptr))
+        AncestorsIterPtr::new(root_ptr, descendant_ptr)
             .skip(1) // a node is not an ancestor of itself
             .any(|ptr| ptr == ancestor_ptr)
     }
@@ -1138,7 +1137,7 @@ where
         T::iter_ptr_with_owned_storage(node_ptr.clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(|x: NodePtr<V>| {
-                let iter = AncestorsIterPtr::new(NodePtrCon(node_ptr.clone()), NodePtrCon(x));
+                let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
                 iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
             })
     }
@@ -1239,11 +1238,9 @@ where
         let node_ptr = self.node_ptr();
         let node_ptrs: alloc::vec::Vec<_> = T::iter_ptr_with_owned_storage(node_ptr.clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
-            .map(NodePtrCon)
             .collect();
-        let node_ptr_con = NodePtrCon(self.node_ptr().clone());
         node_ptrs.into_par().map(move |x| {
-            let iter = AncestorsIterPtr::new(node_ptr_con.clone(), x);
+            let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
             iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
         })
     }
@@ -1356,8 +1353,7 @@ where
             })
             .map(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(&x);
-                let iter =
-                    AncestorsIterPtr::new(NodePtrCon(node_ptr.clone()), NodePtrCon(ptr.clone()));
+                let iter = AncestorsIterPtr::new(node_ptr.clone(), ptr.clone());
                 iter.map(|ptr: NodePtr<V>| {
                     O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
                         self.col(),
@@ -1468,11 +1464,9 @@ where
         let node_ptrs: alloc::vec::Vec<_> =
             T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
                 .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
-                .map(NodePtrCon)
                 .collect();
-        let node_ptr_con = NodePtrCon(self.node_ptr().clone());
         node_ptrs.into_par().map(move |x| {
-            let iter = AncestorsIterPtr::new(node_ptr_con.clone(), x);
+            let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
             iter.map(|ptr: NodePtr<V>| {
                 O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
                     self.col(),
