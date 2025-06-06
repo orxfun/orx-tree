@@ -1769,6 +1769,7 @@ where
     /// let all_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(all_values, [101, 202, 303, 4, 5, 406, 507]);
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     pub fn custom_walk_mut<F>(&mut self, next_node: F) -> impl Iterator<Item = &'a mut V::Item>
     where
         F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
