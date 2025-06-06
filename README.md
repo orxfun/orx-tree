@@ -90,9 +90,13 @@ The tree naturally implements [`Collection`](https://docs.rs/orx-iterable/latest
 
 `Tree` aims to enable flexible and convenient parallel computation. Almost all iterators, traversals or walks mentioned above can be parallelized using the [orx-parallel](https://crates.io/crates/orx-parallel) feature (`cargo add orx-tree --features orx-parallel`).
 
-[`tree.par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.par) and [`tree.into_par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.into_par) return parallel iterators over all nodes of the tree.
+[`tree.par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.par) and [`tree.into_par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.into_par) return parallel iterators over all nodes of the tree. Examples can be found in [`demo_parallelization`](https://github.com/orxfun/orx-tree/blob/main/examples/demo_parallelization.rs) example. Importantly note that the tree defines its own concurrent iterators, and hence, allows for efficient computation, which is often not possible with generic implementations. In order to check the impact in performance, you may use the lightweight benchmark example [`bench_parallelization`](https://github.com/orxfun/orx-linked-list/blob/main/examples/bench_parallelization.rs):
 
-The following methods, on the other hand, return parallel iterators with specific walk strategies. Notice that parallelization is achieved simply by adding **_par** suffix to names of the sequential counterparts.
+* `Sequential computation over Tree : 18.96s`
+* `Parallelized over Tree using orx-parallel : 6.02s`
+* `Parallelized over Tree using rayon's par-bridge : 81.10s`
+
+Furthermore, walks with different traversal strategies and special iterators can be parallelized. The following is a list of methods providing the corresponding parallel iterators. Notice that parallelization is achieved simply by adding **_par** suffix to names of the sequential counterparts.
 
 [`children_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_par) | 
 [`ancestors_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors_par) |
@@ -168,15 +172,7 @@ Alternatively, we can turn a mutable node into an [`into_walk`](https://docs.rs/
 
 ## Features
 
-* **orx-parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel).
-  * This feature is added as default and requires **std**; hence, please use `cargo add orx-tree --no-default-features` for **no-std** use cases.
-  * Currently, parallel iteration over all nodes of the tree in arbitrary order is supported by methods [`par`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.par) and [`into_par`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.into_par).
-  * Parallelization of all walks or traversals in particular order are under development.
-  * Parallelization examples can be found in [`demo_parallelization`](https://github.com/orxfun/orx-tree/blob/main/examples/demo_parallelization.rs) example.
-  * Importantly note that the tree defines its own concurrent iterators, and hence, allows for efficient computation, which is often not possible with generic implementations such as rayon's `par_bridge`. In order to check the impact in performance, you may use the lightweight benchmark example [`bench_parallelization`](https://github.com/orxfun/orx-linked-list/blob/main/examples/bench_parallelization.rs):
-    * `Sequential computation over Tree : 18.96s`
-    * `Parallelized over Tree using orx-parallel : 6.02s`
-    * `Parallelized over Tree using rayon's par-bridge : 81.10s`
+* **orx-parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel). See [parallelization section](#parallelization-support) for details. This feature is added as default and requires **std**. Therefore, please use `cargo add orx-tree --no-default-features` for **no-std** use cases.
 
 * **serde**: Tree implements `Serialize` and `Deserialize` traits; the "serde" feature needs to be added when required. It uses a linearized representation of the tree as a [`DepthFirstSequence`](https://docs.rs/orx-tree/latest/orx_tree/struct.DepthFirstSequence.html). You may find de-serialization examples in the corresponding [test file](https://github.com/orxfun/orx-tree/blob/main/tests/serde.rs).
 
