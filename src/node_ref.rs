@@ -755,6 +755,9 @@ where
     /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
+    /// You may see the [walks](https://github.com/orxfun/orx-tree/blob/main/examples/walks.rs) example that demonstrates
+    /// different ways to walk the tree with traversal variants (`cargo run --example walks`).
+    ///
     /// # See also
     ///
     /// See also [`walk_mut`] and [`into_walk`] for iterators over mutable references and owned (removed) values,
@@ -855,6 +858,9 @@ where
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
     /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// You may see the [walks](https://github.com/orxfun/orx-tree/blob/main/examples/walks.rs) example that demonstrates
+    /// different ways to walk the tree with traversal variants (`cargo run --example walks`).
     ///
     /// As opposed to [`walk`], this method does require internal allocation.
     /// Furthermore, it allows to iterate over nodes rather than data; and to attach node depths or sibling
