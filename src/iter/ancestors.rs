@@ -14,7 +14,7 @@ where
 impl<V: TreeVariant> AncestorsIterPtr<V> {
     pub(crate) fn new(root_ptr: NodePtr<V>, descendant_ptr: NodePtr<V>) -> Self {
         Self {
-            root_ptr: root_ptr,
+            root_ptr,
             current: Some(descendant_ptr),
         }
     }
