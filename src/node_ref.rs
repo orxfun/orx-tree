@@ -2028,20 +2028,3 @@ where
         CopiedSubTree::new(self)
     }
 }
-
-use crate::*;
-fn next_node<'a, T>(node: DynNode<'a, T>) -> Option<DynNode<'a, T>> {
-    let sibling_idx = node.sibling_idx();
-    let is_last_sibling = sibling_idx == node.num_siblings() - 1;
-
-    match is_last_sibling {
-        true => node.get_child(0),
-        false => match node.parent() {
-            Some(parent) => {
-                let child_idx = sibling_idx + 1;
-                parent.get_child(child_idx)
-            }
-            None => None,
-        },
-    }
-}
