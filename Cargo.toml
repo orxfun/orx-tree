@@ -16,7 +16,8 @@ orx-pinned-vec = "3.16.0"
 orx-self-or = "1.2.0"
 serde = { version = "1.0.219", optional = true, default-features = false }
 orx-split-vec = { version = "3.17.0", default-features = false }
-orx-selfref-col = { version = "2.9.0", default-features = false }
+# orx-selfref-col = { version = "2.9.0", default-features = false }
+orx-selfref-col = { path = "../orx-selfref-col", default-features = false }
 orx-concurrent-iter = { version = "2.1.0", default-features = false }
 orx-parallel = { version = "2.1.0", default-features = false, optional = true }
 
@@ -34,5 +35,5 @@ default = ["orx-parallel"]
 serde = ["dep:serde"]
 
 [[bench]]
-name = "parallel_walk"
+name = "walk_iterator"
 harness = false

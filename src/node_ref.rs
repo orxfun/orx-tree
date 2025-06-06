@@ -832,6 +832,9 @@ where
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
     /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
     ///
+    /// You may also see [walk_iterator](https://github.com/orxfun/orx-tree/blob/main/benches/walk_iterator.rs) benchmark to
+    /// see an example use case.
+    ///
     /// [`walk`]: NodeRef::walk
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
