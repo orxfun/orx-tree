@@ -566,11 +566,13 @@ where
         depth
     }
 
-    /// Returns an iterator starting from this node moving upwards until the root:
+    /// Returns an iterator starting from this node's parent moving upwards until the root:
     ///
-    /// * yields all ancestors of this node including this node,
-    /// * the first element is always this node, and
+    /// * yields all ancestors of this node,
+    /// * the first element is always this node's parent, and
     /// * the last element is always the root node of the tree.
+    ///
+    /// It returns an empty iterator if this is the root node.
     ///
     /// # Examples
     ///
@@ -602,25 +604,24 @@ where
     /// tree.node_mut(&id6).push_child(9);
     /// let [id10, _] = tree.node_mut(&id7).push_children([10, 11]);
     ///
-    /// // ancestors iterator over nodes
-    /// // upwards from the node to the root
+    /// // ancestors iterator over nodes upwards to the root
     ///
     /// let root = tree.root();
     /// let mut iter = root.ancestors();
-    /// assert_eq!(iter.next().as_ref(), Some(&root));
     /// assert_eq!(iter.next(), None);
     ///
     /// let n10 = tree.node(&id10);
     /// let ancestors_data: Vec<_> = n10.ancestors().map(|x| *x.data()).collect();
-    /// assert_eq!(ancestors_data, [10, 7, 3, 1]);
+    /// assert_eq!(ancestors_data, [7, 3, 1]);
     ///
     /// let n4 = tree.node(&id4);
     /// let ancestors_data: Vec<_> = n4.ancestors().map(|x| *x.data()).collect();
-    /// assert_eq!(ancestors_data, [4, 2, 1]);
+    /// assert_eq!(ancestors_data, [2, 1]);
     /// ```
     fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
         AncestorsIterPtr::new(root_ptr, self.node_ptr().clone())
+            .skip(1)
             .map(|ptr| Node::new(self.col(), ptr))
     }
 
