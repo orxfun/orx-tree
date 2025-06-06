@@ -738,8 +738,7 @@ where
         Self: Sized,
         V::Item: Send + Sync,
     {
-        let references: alloc::vec::Vec<_> = self.walk::<T>().collect();
-        references.into_par()
+        self.walk::<T>().collect::<alloc::vec::Vec<_>>().into_par()
     }
 
     /// Creates an iterator that traverses all nodes belonging to the subtree rooted at this node.
@@ -917,8 +916,9 @@ where
         't: 'a,
         OverItem<'a, V, O, M, P>: Send + Sync,
     {
-        let references: alloc::vec::Vec<_> = self.walk_with(traverser).collect();
-        references.into_par()
+        self.walk_with(traverser)
+            .collect::<alloc::vec::Vec<_>>()
+            .into_par()
     }
 
     /// Returns an iterator of paths from all leaves of the subtree rooted at
@@ -1125,10 +1125,8 @@ where
         T: Traverser<OverData>,
         V::Item: Send + Sync,
     {
-        use alloc::vec::Vec;
-
         let node_ptr = self.node_ptr();
-        let node_ptrs: Vec<_> = T::iter_ptr_with_owned_storage(node_ptr.clone())
+        let node_ptrs: alloc::vec::Vec<_> = T::iter_ptr_with_owned_storage(node_ptr.clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(NodePtrCon)
             .collect();
@@ -1343,6 +1341,7 @@ where
     /// let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
+    #[cfg(feature = "orx-parallel")]
     fn paths_with_par<T, O>(
         &'a self,
         traverser: &'a mut T,
@@ -1353,11 +1352,9 @@ where
         V::Item: Send + Sync,
         Self: Sync,
     {
-        use alloc::vec::Vec;
-
         let node_ptr = self.node_ptr();
 
-        let node_ptrs: Vec<_> =
+        let node_ptrs: alloc::vec::Vec<_> =
             T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
                 .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
                 .map(NodePtrCon)
@@ -1519,6 +1516,28 @@ where
                     x,
                 )
             })
+    }
+
+    /// Creates a **[parallel iterator]** that yields references to data of all nodes belonging to the subtree rooted at this node.
+    ///
+    /// Please see [`leaves`] for details, since `leaves_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    ///
+    /// [`leaves`]: NodeRef::leaves
+    /// [parallel iterator]: orx_parallel::ParIter
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    #[cfg(feature = "orx-parallel")]
+    fn leaves_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
+    where
+        T: Traverser<OverData>,
+        V::Item: Send + Sync,
+    {
+        self.leaves::<T>()
+            .collect::<alloc::vec::Vec<_>>()
+            .into_par()
     }
 
     /// Returns an iterator of leaves of the subtree rooted at this node.
