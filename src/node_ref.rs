@@ -14,6 +14,8 @@ use crate::{
     },
     tree_variant::RefsChildren,
 };
+#[cfg(feature = "orx-parallel")]
+use orx_parallel::*;
 use orx_selfref_col::{NodePtr, Refs};
 
 pub trait NodeRefCore<'a, V, M, P>
@@ -645,7 +647,7 @@ where
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
-    /// * [`Bfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
     /// # See also
@@ -715,6 +717,72 @@ where
         Self: Sized,
     {
         T::iter_with_owned_storage::<V, M, P>(self)
+    }
+
+    /// Creates a **[parallel iterator]** that yields references to data of all nodes belonging to the subtree rooted at this node.
+    ///
+    /// Please see [`walk`] for details, since `walk_par` is nothing but the parallelized counterpart which is available with
+    /// **orx-parallel** feature.
+    ///
+    /// [`walk`]: NodeRef::walk
+    /// [parallel iterator]: orx_parallel::ParIter
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    /// tree.node_mut(&id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // walk over any subtree rooted at a selected node
+    /// // with different traversals in parallel
+    ///
+    /// let root = tree.root();
+    /// let bfs: Vec<_> = root.walk_par::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    ///
+    /// let n3 = tree.node(&id3);
+    /// let dfs: Vec<_> = n3.walk_par::<Dfs>().copied().collect();
+    /// assert_eq!(dfs, [3, 6, 9, 7, 10, 11]);
+    ///
+    /// let n2 = tree.node(&id2);
+    /// let post_order: Vec<_> = n2.walk_par::<PostOrder>().copied().collect();
+    /// assert_eq!(post_order, [8, 4, 5, 2]);
+    ///
+    /// let sum_odds = tree
+    ///     .node(&id3)
+    ///     .walk_par::<Dfs>()
+    ///     .num_threads(4) // in parallel using at most 4 threads
+    ///     .filter(|x| *x % 2 == 1)
+    ///     .sum();
+    /// assert_eq!(sum_odds, 3 + 9 + 7 + 11);
+    /// ```
+    #[cfg(feature = "orx-parallel")]
+    fn walk_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
+    where
+        T: Traverser<OverData>,
+        Self: Sized,
+        V::Item: Send + Sync,
+    {
+        let references: alloc::vec::Vec<_> = self.walk::<T>().collect();
+        references.into_par()
     }
 
     /// Creates an iterator that traverses all nodes belonging to the subtree rooted at this node.
@@ -867,6 +935,87 @@ where
         't: 'a,
     {
         traverser.iter(self)
+    }
+
+    /// Creates a **[parallel iterator]** that traverses all nodes belonging to the subtree rooted at this node.
+    ///
+    /// Please see [`walk_into`] for details, since `walk_into_par` is nothing but the parallelized counterpart which is
+    ///  available with **orx-parallel** feature.
+    ///
+    /// [`walk_into`]: NodeRef::walk_into
+    /// [parallel iterator]: orx_parallel::ParIter
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.push_children([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push_child(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.push_children([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // reusing the same traverser repeatedly
+    /// let mut po = Traversal.post_order().over_data();
+    ///
+    /// let sum2 = tree.node(&id2).walk_with_par(&mut po).sum();
+    /// assert_eq!(sum2, 8 + 4 + 5 + 2);
+    ///
+    /// let sum3 = tree.node(&id3).walk_with_par(&mut po).sum();
+    /// assert_eq!(sum3, 9 + 6 + 10 + 11 + 7 + 3);
+    ///
+    /// // over nodes
+    /// let mut bfs = Traversal.bfs().over_nodes();
+    /// let num_children: Vec<_> = tree
+    ///     .node(&id3)
+    ///     .walk_with_par(&mut bfs)
+    ///     .map(|x| x.num_children())
+    ///     .collect();
+    /// assert_eq!(num_children, [2, 1, 2, 0, 0, 0]);
+    ///
+    /// // over depth, sibling-idx, data
+    /// let mut dfs = Traversal.dfs().with_depth().with_sibling_idx();
+    /// let n2 = tree.node(&id2);
+    /// let depth_sibling_value: Vec<_> = n2.walk_with_par(&mut dfs).collect();
+    /// assert_eq!(
+    ///     depth_sibling_value,
+    ///     [(0, 0, &2), (1, 0, &4), (2, 0, &8), (1, 1, &5)]
+    /// );
+    /// ```
+    #[cfg(feature = "orx-parallel")]
+    fn walk_with_par<'t, T, O>(
+        &'a self,
+        traverser: &'t mut T,
+    ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
+    where
+        O: Over,
+        T: Traverser<O>,
+        Self: Sized,
+        't: 'a,
+        OverItem<'a, V, O, M, P>: Send + Sync,
+    {
+        let references: alloc::vec::Vec<_> = self.walk_with(traverser).collect();
+        references.into_par()
     }
 
     /// Returns an iterator of paths from all leaves of the subtree rooted at
