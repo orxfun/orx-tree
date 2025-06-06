@@ -1351,8 +1351,6 @@ where
         O: Over<Enumeration = Val>,
         T: Traverser<O>,
         V::Item: Send + Sync,
-        OverItem<'a, V, O, M, P>: Send + Sync,
-        <O as Over>::NodeItem<'a, V, M, P>: Send + Sync,
         Self: Sync,
     {
         use alloc::vec::Vec;
