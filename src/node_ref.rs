@@ -1,7 +1,7 @@
 use crate::{
     Dfs, Node, NodeIdx, Traverser, Tree, TreeVariant,
     aliases::{Col, N},
-    iter::AncestorsIterPtr,
+    iter::{AncestorsIterPtr, CustomWalkIterPtr},
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     subtrees::{ClonedSubTree, CopiedSubTree},
@@ -24,7 +24,7 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
 {
-    fn col(&self) -> &Col<V, M, P>;
+    fn col(&self) -> &'a Col<V, M, P>;
 
     fn node_ptr(&self) -> &NodePtr<V>;
 
@@ -371,7 +371,7 @@ where
     /// assert_eq!(a.get_child(1).unwrap().data(), &'d');
     /// assert_eq!(a.get_child(3), None);
     /// ```
-    fn get_child(&self, child_index: usize) -> Option<Node<V, M, P>> {
+    fn get_child(&self, child_index: usize) -> Option<Node<'a, V, M, P>> {
         self.node()
             .next()
             .get_ptr(child_index)
@@ -414,7 +414,7 @@ where
     /// assert_eq!(a.child(1).data(), &'d');
     /// // let child = a.child(3); // out-of-bounds, panics!
     /// ```
-    fn child(&self, child_index: usize) -> Node<V, M, P> {
+    fn child(&self, child_index: usize) -> Node<'a, V, M, P> {
         self.get_child(child_index)
             .expect("Given child_index is out of bounds; i.e., child_index >= self.num_children()")
     }
@@ -436,7 +436,7 @@ where
     ///     assert_eq!(node.parent().unwrap(), root);
     /// }
     /// ```
-    fn parent(&self) -> Option<Node<V, M, P>> {
+    fn parent(&self) -> Option<Node<'a, V, M, P>> {
         self.node()
             .prev()
             .get()
@@ -747,6 +747,81 @@ where
     }
 
     // traversal
+
+    /// Creates a custom walk starting from this node such that:
+    ///
+    /// * the first element will be this node, say `n1`,
+    /// * the second element will be node `n2 = next_node(n1)`,
+    /// * the third element will be node `n3 = next_node(n2)`,
+    /// * ...
+    ///
+    /// The iteration will terminate as soon as the `next_node` returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// In the following example we create a custom iterator that walks down the tree as follows:
+    ///
+    /// * if the current node is not the last of its siblings, the next node will be its next sibling;
+    /// * if the current node is the last of its siblings and if it has children, the next node will be its first child;
+    /// * otherwise, the iteration will terminate.
+    ///
+    /// This walk strategy is implemented by the `next_node` function, and `custom_walk` is called with this strategy.
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// fn next_node<'a, T>(node: DynNode<'a, T>) -> Option<DynNode<'a, T>> {
+    ///     let sibling_idx = node.sibling_idx();
+    ///     let is_last_sibling = sibling_idx == node.num_siblings() - 1;
+    ///
+    ///     match is_last_sibling {
+    ///         true => node.get_child(0),
+    ///         false => match node.parent() {
+    ///             Some(parent) => {
+    ///                 let child_idx = sibling_idx + 1;
+    ///                 parent.get_child(child_idx)
+    ///             }
+    ///             None => None,
+    ///         },
+    ///     }
+    /// }
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
+    /// tree.node_mut(&id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// let values: Vec<_> = tree.root().custom_walk(next_node).copied().collect();
+    /// assert_eq!(values, [1, 2, 3, 6, 7, 10, 11]);
+    ///
+    /// let values: Vec<_> = tree.node(&id3).custom_walk(next_node).copied().collect();
+    /// assert_eq!(values, [3, 6, 7, 10, 11]);
+    /// ```
+    fn custom_walk<F>(&self, next_node: F) -> impl Iterator<Item = &'a V::Item>
+    where
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+    {
+        let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr().clone()), next_node);
+        iter_ptr.map(|ptr| {
+            let node = unsafe { &*ptr.ptr() };
+            node.data()
+                .expect("node is returned by next_node and is active")
+        })
+    }
 
     /// Creates an iterator that yields references to data of all nodes belonging to the subtree rooted at this node.
     ///
@@ -1929,5 +2004,22 @@ where
         Self: Sized,
     {
         CopiedSubTree::new(self)
+    }
+}
+
+use crate::*;
+fn next_node<'a, T>(node: DynNode<'a, T>) -> Option<DynNode<'a, T>> {
+    let sibling_idx = node.sibling_idx();
+    let is_last_sibling = sibling_idx == node.num_siblings() - 1;
+
+    match is_last_sibling {
+        true => node.get_child(0),
+        false => match node.parent() {
+            Some(parent) => {
+                let child_idx = sibling_idx + 1;
+                parent.get_child(child_idx)
+            }
+            None => None,
+        },
     }
 }
