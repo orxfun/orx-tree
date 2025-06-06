@@ -3,6 +3,7 @@ use crate::{
     aliases::{Col, N},
     iter::AncestorsIterPtr,
     memory::MemoryPolicy,
+    node_ptr_con::NodePtrCon,
     pinned_storage::PinnedStorage,
     subtrees::{ClonedSubTree, CopiedSubTree},
     traversal::{
@@ -538,7 +539,7 @@ where
     /// ```
     fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
-        AncestorsIterPtr::new(root_ptr, self.node_ptr().clone())
+        AncestorsIterPtr::new(NodePtrCon(root_ptr), NodePtrCon(self.node_ptr().clone()))
             .map(|ptr| Node::new(self.col(), ptr))
     }
 
@@ -593,7 +594,7 @@ where
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
         let descendant_ptr = idx.0.node_ptr();
         let ancestor_ptr = self.node_ptr().clone();
-        AncestorsIterPtr::new(root_ptr, descendant_ptr)
+        AncestorsIterPtr::new(NodePtrCon(root_ptr), NodePtrCon(descendant_ptr))
             .skip(1) // a node is not an ancestor of itself
             .any(|ptr| ptr == ancestor_ptr)
     }
@@ -721,59 +722,15 @@ where
 
     /// Creates a **[parallel iterator]** that yields references to data of all nodes belonging to the subtree rooted at this node.
     ///
-    /// Please see [`walk`] for details, since `walk_par` is nothing but the parallelized counterpart which is available with
-    /// **orx-parallel** feature.
+    /// Please see [`walk`] for details, since `walk_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
     ///
     /// [`walk`]: NodeRef::walk
     /// [parallel iterator]: orx_parallel::ParIter
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    ///
-    /// let mut tree = DynTree::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
-    ///
-    /// // walk over any subtree rooted at a selected node
-    /// // with different traversals in parallel
-    ///
-    /// let root = tree.root();
-    /// let bfs: Vec<_> = root.walk_par::<Bfs>().copied().collect();
-    /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-    ///
-    /// let n3 = tree.node(&id3);
-    /// let dfs: Vec<_> = n3.walk_par::<Dfs>().copied().collect();
-    /// assert_eq!(dfs, [3, 6, 9, 7, 10, 11]);
-    ///
-    /// let n2 = tree.node(&id2);
-    /// let post_order: Vec<_> = n2.walk_par::<PostOrder>().copied().collect();
-    /// assert_eq!(post_order, [8, 4, 5, 2]);
-    ///
-    /// let sum_odds = tree
-    ///     .node(&id3)
-    ///     .walk_par::<Dfs>()
-    ///     .num_threads(4) // in parallel using at most 4 threads
-    ///     .filter(|x| *x % 2 == 1)
-    ///     .sum();
-    /// assert_eq!(sum_odds, 3 + 9 + 7 + 11);
-    /// ```
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "orx-parallel")]
     fn walk_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
     where
@@ -939,69 +896,15 @@ where
 
     /// Creates a **[parallel iterator]** that traverses all nodes belonging to the subtree rooted at this node.
     ///
-    /// Please see [`walk_into`] for details, since `walk_into_par` is nothing but the parallelized counterpart which is
-    ///  available with **orx-parallel** feature.
+    /// Please see [`walk_with`] for details, since `walk_with_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
     ///
-    /// [`walk_into`]: NodeRef::walk_into
+    /// [`walk_with`]: NodeRef::walk_with
     /// [parallel iterator]: orx_parallel::ParIter
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    ///
-    /// let mut tree = DynTree::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.push_children([2, 3]);
-    ///
-    /// let mut n2 = tree.node_mut(&id2);
-    /// let [id4, _] = n2.push_children([4, 5]);
-    ///
-    /// tree.node_mut(&id4).push_child(8);
-    ///
-    /// let mut n3 = tree.node_mut(&id3);
-    /// let [id6, id7] = n3.push_children([6, 7]);
-    ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
-    ///
-    /// // reusing the same traverser repeatedly
-    /// let mut po = Traversal.post_order().over_data();
-    ///
-    /// let sum2 = tree.node(&id2).walk_with_par(&mut po).sum();
-    /// assert_eq!(sum2, 8 + 4 + 5 + 2);
-    ///
-    /// let sum3 = tree.node(&id3).walk_with_par(&mut po).sum();
-    /// assert_eq!(sum3, 9 + 6 + 10 + 11 + 7 + 3);
-    ///
-    /// // over nodes
-    /// let mut bfs = Traversal.bfs().over_nodes();
-    /// let num_children: Vec<_> = tree
-    ///     .node(&id3)
-    ///     .walk_with_par(&mut bfs)
-    ///     .map(|x| x.num_children())
-    ///     .collect();
-    /// assert_eq!(num_children, [2, 1, 2, 0, 0, 0]);
-    ///
-    /// // over depth, sibling-idx, data
-    /// let mut dfs = Traversal.dfs().with_depth().with_sibling_idx();
-    /// let n2 = tree.node(&id2);
-    /// let depth_sibling_value: Vec<_> = n2.walk_with_par(&mut dfs).collect();
-    /// assert_eq!(
-    ///     depth_sibling_value,
-    ///     [(0, 0, &2), (1, 0, &4), (2, 0, &8), (1, 1, &5)]
-    /// );
-    /// ```
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "orx-parallel")]
     fn walk_with_par<'t, T, O>(
         &'a self,
@@ -1035,7 +938,14 @@ where
     ///
     /// # Yields
     ///
-    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item>`
+    /// * `Iterator::Item` => `impl Iterator<Item = &'a V::Item> + Clone`
+    ///
+    /// Notice that each path iterator is cloneable; and hence, can cheaply be converted into
+    /// an [`Iterable`] by [`into_iterable`] method. This allows iterating over each path multiple
+    /// times without requiring to allocate and store the path nodes in a collection.
+    ///
+    /// [`Iterable`]: orx_iterable::Iterable
+    /// [`into_iterable`]: orx_iterable::IntoCloningIterable::into_iterable
     ///
     /// # Examples
     ///
@@ -1099,8 +1009,19 @@ where
     ///     .collect();
     ///
     /// assert_eq!(paths, [vec![9, 6, 3], vec![10, 7, 3], vec![11, 7, 3]]);
+    ///
+    /// // Iterable: convert each path into Iterable paths
+    /// let paths = root.paths::<Bfs>().map(|x| x.into_iterable().copied());
+    ///
+    /// // we can iterate over each path multiple times without needing to collect them into a Vec
+    /// let max_label_path: Vec<_> = paths
+    ///     .filter(|path| path.iter().all(|x| x != 7)) // does not contain 7
+    ///     .max_by_key(|path| path.iter().sum::<i32>()) // has maximal sum of node labels
+    ///     .map(|path| path.iter().collect::<Vec<_>>()) // only collect the selected path
+    ///     .unwrap();
+    /// assert_eq!(max_label_path, vec![9, 6, 3, 1]);
     /// ```
-    fn paths<T>(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item>>
+    fn paths<T>(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone>
     where
         T: Traverser<OverData>,
     {
@@ -1108,9 +1029,40 @@ where
         T::iter_ptr_with_owned_storage(node_ptr.clone())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(|x: NodePtr<V>| {
-                let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
+                let iter = AncestorsIterPtr::new(NodePtrCon(node_ptr.clone()), NodePtrCon(x));
                 iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
             })
+    }
+
+    /// Creates a **[parallel iterator]** of paths from all leaves of the subtree rooted at this node **upwards** to this node.
+    ///
+    /// Please see [`paths`] for details, since `paths_par` is the parallelized counterpart.
+    /// * Parallel iterators can be used similar to regular iterators.
+    /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
+    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    ///
+    /// [`paths`]: NodeRef::paths
+    /// [parallel iterator]: orx_parallel::ParIter
+    /// [`num_threads`]: orx_parallel::ParIter::num_threads
+    /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    #[cfg(feature = "orx-parallel")]
+    fn paths_par<T>(&'a self) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone>
+    where
+        T: Traverser<OverData>,
+        V::Item: Send + Sync,
+    {
+        use alloc::vec::Vec;
+
+        let node_ptr = self.node_ptr();
+        let node_ptrs: Vec<_> = T::iter_ptr_with_owned_storage(node_ptr.clone())
+            .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+            .map(|x| NodePtrCon(x))
+            .collect();
+        let node_ptr_con = NodePtrCon(self.node_ptr().clone());
+        node_ptrs.into_par().map(move |x| {
+            let iter = AncestorsIterPtr::new(node_ptr_con.clone(), x);
+            iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
+        })
     }
 
     /// Returns an iterator of paths from all leaves of the subtree rooted at
@@ -1208,7 +1160,7 @@ where
     fn paths_with<T, O>(
         &'a self,
         traverser: &'a mut T,
-    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>>>
+    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone>
     where
         O: Over<Enumeration = Val>,
         T: Traverser<O>,
@@ -1221,7 +1173,8 @@ where
             })
             .map(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(&x);
-                let iter = AncestorsIterPtr::new(node_ptr.clone(), ptr.clone());
+                let iter =
+                    AncestorsIterPtr::new(NodePtrCon(node_ptr.clone()), NodePtrCon(ptr.clone()));
                 iter.map(|ptr: NodePtr<V>| {
                     O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
                         self.col(),
