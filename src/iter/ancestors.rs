@@ -1,4 +1,4 @@
-use crate::TreeVariant;
+use crate::{TreeVariant, node_ptr_con::NodePtrCon};
 use orx_selfref_col::NodePtr;
 
 /// Ancestors iterators which starts from a node and yields nodes bottom-up until the root
@@ -12,10 +12,10 @@ where
 }
 
 impl<V: TreeVariant> AncestorsIterPtr<V> {
-    pub(crate) fn new(root_ptr: NodePtr<V>, descendant_ptr: NodePtr<V>) -> Self {
+    pub(crate) fn new(root_ptr: NodePtrCon<V>, descendant_ptr: NodePtrCon<V>) -> Self {
         Self {
-            root_ptr,
-            current: Some(descendant_ptr),
+            root_ptr: root_ptr.0,
+            current: Some(descendant_ptr.0),
         }
     }
 }
@@ -36,3 +36,7 @@ impl<V: TreeVariant> Iterator for AncestorsIterPtr<V> {
         })
     }
 }
+
+unsafe impl<V: TreeVariant> Send for AncestorsIterPtr<V> {}
+
+unsafe impl<V: TreeVariant> Sync for AncestorsIterPtr<V> {}

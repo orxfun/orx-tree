@@ -3,6 +3,7 @@ use crate::{
     aliases::Col,
     iter::AncestorsIterPtr,
     memory::{Auto, MemoryPolicy},
+    node_ptr_con::NodePtrCon,
     pinned_storage::{PinnedStorage, SplitRecursive},
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
@@ -684,11 +685,13 @@ where
             true => {}
             false => {
                 assert!(
-                    AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).all(|x| x != ptr_q),
+                    AncestorsIterPtr::new(NodePtrCon(ptr_root.clone()), NodePtrCon(ptr_p.clone()))
+                        .all(|x| x != ptr_q),
                     "Node with `second_idx` is an ancestor of the node with `first_idx`; cannot swap nodes."
                 );
                 assert!(
-                    AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).all(|x| x != ptr_p),
+                    AncestorsIterPtr::new(NodePtrCon(ptr_root.clone()), NodePtrCon(ptr_q.clone()))
+                        .all(|x| x != ptr_p),
                     "Node with `first_idx` is an ancestor of the node with `second_idx`; cannot swap nodes."
                 );
                 // # SAFETY: all possible error cases are checked and handled
@@ -807,9 +810,13 @@ where
 
         if ptr_p == ptr_q {
             Ok(())
-        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).any(|x| x == ptr_q) {
+        } else if AncestorsIterPtr::new(NodePtrCon(ptr_root.clone()), NodePtrCon(ptr_p.clone()))
+            .any(|x| x == ptr_q)
+        {
             Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
-        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).any(|x| x == ptr_p) {
+        } else if AncestorsIterPtr::new(NodePtrCon(ptr_root.clone()), NodePtrCon(ptr_q.clone()))
+            .any(|x| x == ptr_p)
+        {
             Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
         } else {
             // # SAFETY: all possible error cases are checked and handled

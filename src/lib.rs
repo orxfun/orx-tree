@@ -36,6 +36,7 @@ mod r#dyn;
 mod errors;
 mod node;
 mod node_mut;
+mod node_ptr_con;
 mod node_ref;
 mod subtrees;
 mod subtrees_within;
