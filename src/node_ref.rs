@@ -1870,7 +1870,7 @@ where
         T: Traverser<O>,
         OverItem<'a, V, O, M, P>: Send + Sync,
     {
-        self.leaves_with_par(traverser)
+        self.leaves_with(traverser)
             .collect::<alloc::vec::Vec<_>>()
             .into_par()
     }
