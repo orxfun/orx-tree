@@ -4,11 +4,11 @@
 [![orx-tree crate](https://img.shields.io/crates/d/orx-tree.svg)](https://crates.io/crates/orx-tree)
 [![orx-tree documentation](https://docs.rs/orx-tree/badge.svg)](https://docs.rs/orx-tree)
 
-A beautiful tree 🌳 with convenient and efficient growth, mutation and traversal features with support for parallel computation.
+A beautiful tree 🌳 with convenient and efficient growth, mutation and parallelizable traversal features.
 
 ## Features
 
-### Generic Variants
+### Tree Variants
 
 [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) is generic over variants that define the way the children are stored:
 
@@ -18,7 +18,7 @@ A beautiful tree 🌳 with convenient and efficient growth, mutation and travers
 
 ### Recursive Nature of Trees
 
-Note that [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) has only few methods which mainly allow access to the root or to any node using node indices. Since every node represents a subtree with itself being the root of, the core tree functionalities are provided as methods of [`NodeRef`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html) and [`NodeMut`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html), which are immutable and mutable nodes, respectively.
+Note that [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) has only few methods which mainly allow access to the root or to any node using node indices. Since every node is the root of a subtree, the core tree functionalities are provided as methods of [`NodeRef`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html) and [`NodeMut`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html), which are immutable and mutable nodes, respectively.
 
 ### Traversals
 
@@ -32,23 +32,33 @@ To illustrate, let `node` be any node of the tree. Then:
 
 We can iterate over the data of the nodes, or over the nodes themselves with access to children, parent, siblings, etc. Further, just like *enumerate* appends the iteration order in a regular iterator, we can append tree-specific values to the iteration elements. Specifically, we can add the depth and/or the sibling position of each yield node. These more specialized traversals can be created conveniently using the [`Traversal`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Traversal.html) builder type.
 
+*You may see the [walks](https://github.com/orxfun/orx-tree/blob/main/examples/walks.rs) example that demonstrates different ways to walk the tree with traversal variants (`cargo run --example walks`).*
 
 ```rust
 use orx_tree::*;
 
+//      1
+//     ╱ ╲
+//    ╱   ╲
+//   2     3
+//  ╱     ╱ ╲
+// 4     5   6
 let mut tree = DynTree::new(1);
-let [id2, _] = tree.root_mut().push_children([2, 3]);
-tree.node_mut(&id2).push_child(4);
+let [id2, id3] = tree.root_mut().push_children([2, 3]);
+let id4 = tree.node_mut(&id2).push_child(4);
+tree.node_mut(&id3).push_children([5, 6]);
 
-// create a re-usable BFS traverser: over nodes, appending depth and sibling-idx
-let mut t = Traversal.bfs().over_nodes().with_depth().with_sibling_idx();
+let root = tree.root();
+assert_eq!(root.walk::<Dfs>().copied().collect::<Vec<_>>(), [1, 2, 4, 3, 5, 6]);
+assert_eq!(root.walk::<Bfs>().copied().collect::<Vec<_>>(), [1, 2, 3, 4, 5, 6]);
+assert_eq!(root.walk::<PostOrder>().copied().collect::<Vec<_>>(), [4, 2, 5, 6, 3, 1]);
 
-let vals: Vec<_> = tree
-    .root()
-    .walk_with(&mut t)
-    .map(|(depth, sibling_idx, node)| (depth, sibling_idx, *node.data()))
-    .collect();
-assert_eq!(vals, [(0, 0, 1), (1, 0, 2), (1, 1, 3), (2, 0, 4)]);
+// create a re-usable BFS traverser, with additional access to depth and sibling-idx
+let mut t = Traversal.bfs().with_depth().with_sibling_idx();
+assert_eq!(
+    root.walk_with(&mut t).collect::<Vec<_>>(),
+     [(0, 0, &1), (1, 0, &2), (1, 1, &3), (2, 0, &4), (2, 0, &5), (2, 1, &6)]
+);
 ```
 
 ### Special Iterators
@@ -59,7 +69,11 @@ In addition to iterators over all nodes of a subtree, we can create specialized 
 * [`node.paths::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.paths) yields all the paths or sequences of nodes connecting the *node* to all of its leaves in the depth-first order.
 * [`node.ancestors()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors) provides an upward iterator from the *node* to the root of the tree.
 
-Alternatively, we can walk the tree freely using methods to step the links in different ways, such as:
+*You may see the [special iterators](https://github.com/orxfun/orx-tree/blob/main/examples/special_iterators.rs) example that demonstrates different ways to walk the tree with traversal variants (`cargo run --example special_iterators`).*
+
+### Manual Iteration
+
+We can also walk the tree freely using methods to traverse the links in different ways, such as:
 
 * [`node.child(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.child), [`node.children()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children), [`node.children_mut()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_mut), [`node.into_child_mut(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_child_mut)
 * [`node.parent()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent), [`node.into_parent_mut()`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_parent_mut), etc.
@@ -198,7 +212,7 @@ assert_eq!(node4.num_children(), 1);
 assert_eq!(node4.get_child(0), Some(tree.node(&id8)));
 
 let ancestors: Vec<_> = node4.ancestors().map(|x| *x.data()).collect();
-assert_eq!(ancestors, [4, 2, 1]);
+assert_eq!(ancestors, [2, 1]);
 
 let new_tree: BinaryTree<_> = node4.clone_as_tree();
 assert_eq!(new_tree.root().data(), &4);
