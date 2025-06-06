@@ -951,6 +951,7 @@ where
     ///
     /// ```
     /// use orx_tree::*;
+    /// use orx_iterable::*;
     ///
     /// //      1
     /// //     ╱ ╲
@@ -1045,6 +1046,79 @@ where
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
+    ///
+    /// # Examples
+    ///
+    /// In the following example, we find the best path with respect to a linear-in-time computation.
+    /// The computation demonstrates the following features:
+    ///
+    /// * We use `paths_par` rather than `paths` to parallelize the computation of path values.
+    /// * We configure the parallel computation by limiting the number of threads using the `num_threads`
+    ///   method. Note that this is an optional parameter with a default value of [`Auto`].
+    /// * We start computation by converting each `path` iterator into an [`Iterable`] using hte `into_iterable`
+    ///   method. This is a cheap transformation which allows us to iterate over the path multiple times
+    ///   without requiring to allocate and store them in a collection.
+    /// * We select our best path by the `max_by_key` call.
+    /// * Lastly, we collect the best path. Notice that this is the only allocated path.
+    ///
+    /// [`Auto`]: orx_parallel::NumThreads::Auto
+    /// [`Iterable`]: orx_iterable::Iterable
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    /// use orx_iterable::*;
+    ///
+    /// fn build_tree(n: usize) -> DynTree<String> {
+    ///     let mut tree = DynTree::new(0.to_string());
+    ///     let mut dfs = Traversal.dfs().over_nodes();
+    ///     while tree.len() < n {
+    ///         let root = tree.root();
+    ///         let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
+    ///         for idx in x.iter() {
+    ///             let count = tree.len();
+    ///             let mut node = tree.node_mut(idx);
+    ///             let num_children = 4;
+    ///             for j in 0..num_children {
+    ///                 node.push_child((count + j).to_string());
+    ///             }
+    ///         }
+    ///     }
+    ///     tree
+    /// }
+    ///
+    /// fn compute_path_value<'a>(mut path: impl Iterator<Item = &'a String>) -> u64 {
+    ///     match path.next() {
+    ///         Some(first) => {
+    ///             let mut abs_diff = 0;
+    ///             let mut current = first.parse::<u64>().unwrap();
+    ///             for node in path {
+    ///                 let next = node.parse::<u64>().unwrap();
+    ///                 abs_diff += match next >= current {
+    ///                     true => next - current,
+    ///                     false => current - next,
+    ///                 };
+    ///                 current = next;
+    ///             }
+    ///             abs_diff
+    ///         }
+    ///         None => 0,
+    ///     }
+    /// }
+    ///
+    /// let tree = build_tree(1024);
+    ///
+    /// let root = tree.root();
+    /// let best_path: Vec<_> = root
+    ///     .paths_par::<Dfs>() // parallelize
+    ///     .num_threads(4) // configure parallel computation
+    ///     .map(|path| path.into_iterable()) // into-iterable for multiple iterations over each path without allocation
+    ///     .max_by_key(|path| compute_path_value(path.iter())) // find the best path
+    ///     .map(|path| path.iter().collect()) // collect only the best path
+    ///     .unwrap();
+    ///
+    /// let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
+    /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
+    /// ```
     #[cfg(feature = "orx-parallel")]
     fn paths_par<T>(&'a self) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone>
     where
@@ -1582,5 +1656,68 @@ where
         Self: Sized,
     {
         CopiedSubTree::new(self)
+    }
+}
+
+#[cfg(test)]
+mod tst {
+    use crate::*;
+    use alloc::string::{String, ToString};
+    use alloc::vec;
+    use alloc::vec::Vec;
+    use orx_iterable::{IntoCloningIterable, Iterable};
+
+    fn build_tree(n: usize) -> DynTree<String> {
+        let mut tree = DynTree::new(0.to_string());
+        let mut dfs = Traversal.dfs().over_nodes();
+        while tree.len() < n {
+            let root = tree.root();
+            let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
+            for idx in x.iter() {
+                let count = tree.len();
+                let mut node = tree.node_mut(idx);
+                let num_children = 4;
+                for j in 0..num_children {
+                    node.push_child((count + j).to_string());
+                }
+            }
+        }
+        tree
+    }
+
+    fn compute_path_value<'a>(mut path: impl Iterator<Item = &'a String>) -> u64 {
+        match path.next() {
+            Some(first) => {
+                let mut abs_diff = 0;
+                let mut current = first.parse::<u64>().unwrap();
+                for node in path {
+                    let next = node.parse::<u64>().unwrap();
+                    abs_diff += match next >= current {
+                        true => next - current,
+                        false => current - next,
+                    };
+                    current = next;
+                }
+                abs_diff
+            }
+            None => 0,
+        }
+    }
+
+    #[test]
+    fn abc() {
+        let tree = build_tree(1024);
+
+        let root = tree.root();
+        let best_path: Vec<_> = root
+            .paths_par::<Dfs>() // parallelize
+            .num_threads(4) // configure parallel computation
+            .map(|path| path.into_iterable()) // into-iterable for multiple iterations over each path without allocation
+            .max_by_key(|path| compute_path_value(path.iter())) // find the best path
+            .map(|path| path.iter().collect()) // collect only the best path
+            .unwrap();
+
+        let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
+        assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     }
 }
