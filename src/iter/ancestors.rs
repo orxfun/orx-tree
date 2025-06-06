@@ -37,6 +37,15 @@ impl<V: TreeVariant> Iterator for AncestorsIterPtr<V> {
     }
 }
 
-unsafe impl<V: TreeVariant> Send for AncestorsIterPtr<V> {}
+impl<V: TreeVariant> Clone for AncestorsIterPtr<V> {
+    fn clone(&self) -> Self {
+        Self {
+            root_ptr: self.root_ptr.clone(),
+            current: self.current.clone(),
+        }
+    }
+}
 
-unsafe impl<V: TreeVariant> Sync for AncestorsIterPtr<V> {}
+unsafe impl<V: TreeVariant> Send for AncestorsIterPtr<V> where V::Item: Send {}
+
+unsafe impl<V: TreeVariant> Sync for AncestorsIterPtr<V> where V::Item: Sync {}
