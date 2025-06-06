@@ -75,7 +75,7 @@ where
     P: PinnedStorage,
 {
     #[inline(always)]
-    fn col(&self) -> &Col<V, M, P> {
+    fn col(&self) -> &'a Col<V, M, P> {
         self.col
     }
 

@@ -71,8 +71,9 @@ where
     MO: NodeMutOrientation,
 {
     #[inline(always)]
-    fn col(&self) -> &Col<V, M, P> {
-        self.col
+    fn col(&self) -> &'a Col<V, M, P> {
+        let x = self.col as *const Col<V, M, P>;
+        unsafe { &*x }
     }
 
     #[inline(always)]
