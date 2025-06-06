@@ -78,13 +78,31 @@ We can also walk the tree freely using methods to traverse the links in differen
 * [`node.child(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.child), [`node.children()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children), [`node.children_mut()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_mut), [`node.into_child_mut(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_child_mut)
 * [`node.parent()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent), [`node.into_parent_mut()`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_parent_mut), etc.
 
-Another way to create a custom iterator is simply calling [`node.custom_walk(next_node)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.custom_walk) where the argument `next_node` is a function with pseudo-signature `Fn(Node) -> Option<Node>` and defines the traversal strategy.
+Another way to create a **custom iterator** is simply calling [`node.custom_walk(next_node)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.custom_walk) where the argument `next_node` is a function with pseudo-signature `Fn(Node) -> Option<Node>` and defines the traversal strategy.
 
 *You may see the [manual iteration](https://github.com/orxfun/orx-tree/blob/main/examples/manual_iteration.rs) example that demonstrates different ways to walk the tree with traversal variants (`cargo run --example manual_iteration`).*
 
 ### Arbitrary Order Iterators
 
 The tree naturally implements [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing iterators via `iter` and `iter_mut` methods. Since the tree is not a linear data structure, these iterators yield elements in an arbitrary (but deterministic) order, which is useful in certain situations such as updating the values of the tree using a transformation or applying reductions.
+
+### Parallelization Support
+
+`Tree` aims to enable flexible and convenient parallel computation. Almost all iterators, traversals or walks mentioned above can be parallelized using the [orx-parallel](https://crates.io/crates/orx-parallel) feature (`cargo add orx-tree --features orx-parallel`).
+
+[`tree.par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.par) and [`tree.into_par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.into_par) return parallel iterators over all nodes of the tree.
+
+The following methods, on the other hand, return parallel iterators with specific walk strategies. Notice that parallelization is achieved simply by adding **_par** suffix to names of the sequential counterparts.
+
+[`children_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_par) | 
+[`ancestors_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors_par) |
+[`custom_walk_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.custom_walk_par) |
+[`walk_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.walk_par) |
+[`walk_into_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.walk_into_par) |
+[`paths_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.paths_par) |
+[`paths_with_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.paths_with_par) |
+[`leaves_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves_par) |
+[`leaves_with_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves_with_par) |
 
 ### Constant Time Access to Nodes via Node Indices
 
