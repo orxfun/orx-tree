@@ -4,6 +4,8 @@ use crate::{
 };
 use orx_selfref_col::NodePtr;
 
+/// An iterator which can traverse the tree arbitrarily in any direction where the walk direction
+/// is determined by a custom `next_node` closure with signature `Fn(Node) -> Option(Node)`.
 pub struct CustomWalkIterPtr<'a, V, M, P, F>
 where
     V: TreeVariant + 'a,
