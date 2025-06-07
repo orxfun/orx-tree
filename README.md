@@ -4,7 +4,7 @@
 [![orx-tree crate](https://img.shields.io/crates/d/orx-tree.svg)](https://crates.io/crates/orx-tree)
 [![orx-tree documentation](https://docs.rs/orx-tree/badge.svg)](https://docs.rs/orx-tree)
 
-A beautiful tree 🌳 with convenient and efficient growth, mutation and parallelizable traversal features.
+A beautiful tree 🌳 with convenient, efficient, parallelizable growth, mutation and features.
 
 ## Tree Variants
 
