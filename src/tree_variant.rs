@@ -1,3 +1,5 @@
+#[cfg(feature = "orx-parallel")]
+use orx_parallel::*;
 use orx_selfref_col::{
     MemoryReclaimer, NodePtr, Refs, RefsArrayLeftMost, RefsSingle, RefsVec, Variant,
     references::iter::ArrayLeftMostPtrIter,
@@ -27,6 +29,12 @@ pub trait RefsChildren<V: Variant> {
     fn num_children(&self) -> usize;
 
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_>;
+
+    #[cfg(feature = "orx-parallel")]
+    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    where
+        V: 'a,
+        V::Item: Send + Sync;
 
     fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>>;
 
@@ -58,6 +66,15 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     #[inline(always)]
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
         self.iter()
+    }
+
+    #[cfg(feature = "orx-parallel")]
+    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    where
+        V: 'a,
+        V::Item: Send + Sync,
+    {
+        self.as_slice().par()
     }
 
     #[inline(always)]
@@ -100,6 +117,18 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     #[inline(always)]
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
         self.iter()
+    }
+
+    #[cfg(feature = "orx-parallel")]
+    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    where
+        V: 'a,
+        V::Item: Send + Sync,
+    {
+        self.as_slice().par().map(|x| {
+            x.as_ref()
+                .expect("all elements of RefsArrayLeftMost::as_slice are of Some variant")
+        })
     }
 
     #[inline(always)]

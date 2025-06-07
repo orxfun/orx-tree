@@ -1,9 +1,9 @@
 [package]
 name = "orx-tree"
-version = "1.6.0"
+version = "1.7.0"
 edition = "2024"
 authors = ["orxfun <orx.ugur.arikan@gmail.com>"]
-description = "A beautiful tree 🌳 with convenient and efficient growth, mutation and traversal features with support for parallel computation."
+description = "A beautiful tree 🌳 with convenient, efficient, parallelizable growth, mutation and features."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/orxfun/orx-tree/"
 keywords = ["tree", "data-structures", "traversal", "traverse", "binarytree"]
@@ -16,7 +16,7 @@ orx-pinned-vec = "3.16.0"
 orx-self-or = "1.2.0"
 serde = { version = "1.0.219", optional = true, default-features = false }
 orx-split-vec = { version = "3.17.0", default-features = false }
-orx-selfref-col = { version = "2.9.0", default-features = false }
+orx-selfref-col = { version = "2.10.0", default-features = false }
 orx-concurrent-iter = { version = "2.1.0", default-features = false }
 orx-parallel = { version = "2.1.0", default-features = false, optional = true }
 
@@ -34,5 +34,5 @@ default = ["orx-parallel"]
 serde = ["dep:serde"]
 
 [[bench]]
-name = "parallelization_ref"
+name = "walk_iterator"
 harness = false

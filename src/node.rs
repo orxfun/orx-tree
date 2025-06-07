@@ -18,6 +18,29 @@ where
     node_ptr: NodePtr<V>,
 }
 
+// SAFETY: Required for enabling `NodeRef::walk_with_par`.
+// Notice that `Node` does not expose any methods other than implementing `NodeRef`,
+// and all node ref methods are thread safe without data race risks.
+unsafe impl<V, M, P> Send for Node<'_, V, M, P>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    V::Item: Send,
+{
+}
+// SAFETY: Required for enabling `NodeRef::walk_with_par`.
+// Notice that `Node` does not expose any methods other than implementing `NodeRef`,
+// and all node ref methods are thread safe without data race risks.
+unsafe impl<V, M, P> Sync for Node<'_, V, M, P>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    V::Item: Sync,
+{
+}
+
 impl<V, M, P> Clone for Node<'_, V, M, P>
 where
     V: TreeVariant,
@@ -52,7 +75,7 @@ where
     P: PinnedStorage,
 {
     #[inline(always)]
-    fn col(&self) -> &Col<V, M, P> {
+    fn col(&self) -> &'a Col<V, M, P> {
         self.col
     }
 

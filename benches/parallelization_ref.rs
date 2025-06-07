@@ -56,6 +56,7 @@ fn tree_bfs(tree: &DynTree<String>) -> i64 {
         .sum()
 }
 
+#[cfg(feature = "orx-parallel")]
 fn tree_par_x(tree: &DynTree<String>) -> i64 {
     tree.par()
         .map(|x| x.parse::<usize>().unwrap())
@@ -107,6 +108,7 @@ fn bench(c: &mut Criterion) {
             },
         );
 
+        #[cfg(feature = "orx-parallel")]
         group.bench_with_input(
             BenchmarkId::new("Tree::par_x() - orx-parallel", n),
             n,

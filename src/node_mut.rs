@@ -1,7 +1,7 @@
 use crate::{
-    NodeIdx, NodeRef, PostOrder, SubTree, Traverser, Tree, TreeVariant,
+    Node, NodeIdx, NodeRef, PostOrder, SubTree, Traverser, Tree, TreeVariant,
     aliases::{Col, N},
-    iter::ChildrenMutIter,
+    iter::{ChildrenMutIter, CustomWalkIterPtr},
     memory::{Auto, MemoryPolicy},
     node_ref::NodeRefCore,
     pinned_storage::{PinnedStorage, SplitRecursive},
@@ -71,8 +71,9 @@ where
     MO: NodeMutOrientation,
 {
     #[inline(always)]
-    fn col(&self) -> &Col<V, M, P> {
-        self.col
+    fn col(&self) -> &'a Col<V, M, P> {
+        let x = self.col as *const Col<V, M, P>;
+        unsafe { &*x }
     }
 
     #[inline(always)]
@@ -1705,6 +1706,82 @@ where
 
     // traversal
 
+    /// Creates a custom mutable walk starting from this node such that:
+    ///
+    /// * the first element will be this node, say `n1`,
+    /// * the second element will be node `n2 = next_node(n1)`,
+    /// * the third element will be node `n3 = next_node(n2)`,
+    /// * ...
+    ///
+    /// The iteration will terminate as soon as the `next_node` returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// In the following example we create a custom iterator that walks down the tree as follows:
+    ///
+    /// * if the current node is not the last of its siblings, the next node will be its next sibling;
+    /// * if the current node is the last of its siblings and if it has children, the next node will be its first child;
+    /// * otherwise, the iteration will terminate.
+    ///
+    /// This walk strategy is implemented by the `next_node` function, and `custom_walk` is called with this strategy.
+    ///
+    /// ```rust
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    ///
+    /// fn next_node<'a, T>(node: DynNode<'a, T>) -> Option<DynNode<'a, T>> {
+    ///     let sibling_idx = node.sibling_idx();
+    ///     let is_last_sibling = sibling_idx == node.num_siblings() - 1;
+    ///
+    ///     match is_last_sibling {
+    ///         true => node.get_child(0),
+    ///         false => match node.parent() {
+    ///             Some(parent) => {
+    ///                 let child_idx = sibling_idx + 1;
+    ///                 parent.get_child(child_idx)
+    ///             }
+    ///             None => None,
+    ///         },
+    ///     }
+    /// }
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    /// tree.node_mut(&id2).push_children([4, 5]);
+    /// tree.node_mut(&id3).push_children([6, 7]);
+    ///
+    /// let mut root = tree.root_mut();
+    /// for (i, x) in root.custom_walk_mut(next_node).enumerate() {
+    ///     *x += (i + 1) * 100;
+    /// }
+    ///
+    /// let values: Vec<_> = tree.root().custom_walk(next_node).copied().collect();
+    /// assert_eq!(values, [101, 202, 303, 406, 507]);
+    ///
+    /// let all_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(all_values, [101, 202, 303, 4, 5, 406, 507]);
+    /// ```
+    #[allow(clippy::missing_panics_doc)]
+    pub fn custom_walk_mut<F>(&mut self, next_node: F) -> impl Iterator<Item = &'a mut V::Item>
+    where
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+    {
+        let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr().clone()), next_node);
+        iter_ptr.map(|ptr| {
+            let node = unsafe { &mut *ptr.ptr_mut() };
+            node.data_mut()
+                .expect("node is returned by next_node and is active")
+        })
+    }
+
     /// Returns the mutable node of the `child-index`-th child of this node;
     /// returns None if the child index is out of bounds.
     ///
@@ -1756,7 +1833,7 @@ where
     /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
     /// ```
-    pub fn get_child_mut(&mut self, child_index: usize) -> Option<NodeMut<V, M, P>> {
+    pub fn get_child_mut(&mut self, child_index: usize) -> Option<NodeMut<'_, V, M, P>> {
         self.node()
             .next()
             .get_ptr(child_index)
@@ -1818,7 +1895,7 @@ where
     /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
     /// ```
-    pub fn child_mut(&mut self, child_index: usize) -> NodeMut<V, M, P> {
+    pub fn child_mut(&mut self, child_index: usize) -> NodeMut<'_, V, M, P> {
         self.get_child_mut(child_index)
             .expect("Given child_index is out of bounds; i.e., child_index >= self.num_children()")
     }
