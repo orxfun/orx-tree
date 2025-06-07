@@ -6,31 +6,31 @@
 
 A beautiful tree 🌳 with convenient and efficient growth, mutation and parallelizable traversal features.
 
-## Features
-
-### Tree Variants
+## Tree Variants
 
 [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) is generic over variants that define the way the children are stored:
 
 * [`DynTree<T>`](https://docs.rs/orx-tree/latest/orx_tree/type.DynTree.html), or equivalently **Tree&lt;Dyn&lt;T&gt;&gt;**, is a tree where each node may contain references to any number of children stored as a vector.
-* [`DaryTree<D, T>`](https://docs.rs/orx-tree/latest/orx_tree/type.DaryTree.html), or equivalently **Tree&lt;DaryTree&lt;D, T&gt;&gt;**, is a tree where each node may contain at most **D** child references stored inlined as an array.
+* [`DaryTree<D, T>`](https://docs.rs/orx-tree/latest/orx_tree/type.DaryTree.html), or equivalently **Tree&lt;Dary&lt;D, T&gt;&gt;**, is a tree where each node may contain at most **D** child references stored inlined as an array.
 * [`BinaryTree<T>`](https://docs.rs/orx-tree/latest/orx_tree/type.BinaryTree.html) is simply a shorthand for **DaryTree&lt;2, T&gt;**.
 
-### Recursive Nature of Trees
+## Recursive Nature of Trees
 
 Note that [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) has only few methods which mainly allow access to the root or to any node using node indices. Since every node is the root of a subtree, the core tree functionalities are provided as methods of [`NodeRef`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html) and [`NodeMut`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html), which are immutable and mutable nodes, respectively.
 
-### Traversals
+## Iterations
 
-We can iterate over all nodes of a subtree in various ways. In other words, we can *walk* the nodes of any subtree using a generic parameter which defines the order of traversal.
+### Walks over the Tree
 
-To illustrate, let `node` be any node of the tree. Then:
+We can visit all nodes of the tree in various ways. The way we *walk*, or the order of visited nodes, is determined by a generic traversal parameter.
 
-* [`node.walk::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Bfs.html) creates an iterator that visits all the nodes belonging to the subtree rooted at the *node* in the breadth-first order.
-* [`node.walk_mut::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Dfs.html) creates a mutable iterator, this time in depth-first (pre-)order.
-* [`node_into_walk::<PostOrder>()`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.PostOrder.html), on the other hand, takes the subtree rooted at the *node* out of the tree and yields the elements in post-order.
+To demonstrate, consider the following methods of a tree node:
 
-We can iterate over the data of the nodes, or over the nodes themselves with access to children, parent, siblings, etc. Further, just like *enumerate* appends the iteration order in a regular iterator, we can append tree-specific values to the iteration elements. Specifically, we can add the depth and/or the sibling position of each yield node. These more specialized traversals can be created conveniently using the [`Traversal`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Traversal.html) builder type.
+* [`walk::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.walk) creates an iterator that visits all the nodes belonging to the subtree rooted at the *node* in the breadth-first order.
+* [`walk_mut::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.walk_mut) creates a mutable iterator, this time in depth-first order.
+* [`into_walk::<PostOrder>()`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_walk), on the other hand, takes the subtree rooted at the *node* out of the tree and yields the elements in post-order.
+
+Walk iterators might yield node values or nodes with access to children, parent, siblings, etc. Further, node depth and/or its position among its siblings might be added. These more specialized traversals can be created conveniently using the [`Traversal`](https://docs.rs/orx-tree/latest/orx_tree/traversal/struct.Traversal.html) builder type.
 
 *You may see the [walks](https://github.com/orxfun/orx-tree/blob/main/examples/walks.rs) example that demonstrates different ways to walk the tree with traversal variants (`cargo run --example walks`).*
 
@@ -61,42 +61,44 @@ assert_eq!(
 );
 ```
 
+### Custom Walk
+
+In addition to common traversal strategies, we can create a **custom iterator** by simply calling [`custom_walk(next_node)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.custom_walk) where the argument `next_node` is a function with signature `Fn(Node) -> Option<Node>` defining the traversal strategy.
+
 ### Special Iterators
 
-In addition to iterators over all nodes of a subtree, we can create specialized iterators as well:
+In addition to walks over subtrees, the following iterators are useful in special use cases.
 
-* [`node.leaves::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves) yields the leaf nodes in the subtree rooted at *node* in breadth-first order.
-* [`node.paths::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.paths) yields all the paths or sequences of nodes connecting the *node* to all of its leaves in the depth-first order.
-* [`node.ancestors()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors) provides an upward iterator from the *node* to the root of the tree.
+* [`leaves::<Bfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves) returns leaf nodes in breadth-first order.
+* [`paths::<Dfs>()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.paths) returns all the paths or sequences of nodes connecting the *node* to all of its leaves in the depth-first order.
+* [`ancestors()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors) provides an upward iterator from the *node* to the root of the tree.
 
-*You may see the [special iterators](https://github.com/orxfun/orx-tree/blob/main/examples/special_iterators.rs) example that demonstrates different ways to walk the tree with traversal variants (`cargo run --example special_iterators`).*
+*You may see the [special iterators](https://github.com/orxfun/orx-tree/blob/main/examples/special_iterators.rs) example.*
 
-### Manual Iteration
+### Manual Traversals
 
-We can also walk the tree freely using methods to traverse the links in different ways, such as:
+Alternatively, we can move on nodes of the tree freely:
 
-* [`node.child(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.child), [`node.children()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children), [`node.children_mut()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_mut), [`node.into_child_mut(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_child_mut)
-* [`node.parent()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent), [`node.into_parent_mut()`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_parent_mut), etc.
+* **↓** [`child(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.child), [`children()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children), [`children_mut()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_mut), [`into_child_mut(child_idx)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_child_mut)
+* **↑** [`parent()`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.parent), [`into_parent_mut()`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.into_parent_mut), etc.
 
-Another way to create a **custom iterator** is simply calling [`node.custom_walk(next_node)`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.custom_walk) where the argument `next_node` is a function with pseudo-signature `Fn(Node) -> Option<Node>` and defines the traversal strategy.
-
-*You may see the [manual iteration](https://github.com/orxfun/orx-tree/blob/main/examples/manual_iteration.rs) example that demonstrates different ways to walk the tree with traversal variants (`cargo run --example manual_iteration`).*
+*You may see [manual iteration](https://github.com/orxfun/orx-tree/blob/main/examples/manual_iteration.rs) and [mutable_recursive_traversal](https://github.com/orxfun/orx-tree/blob/main/examples/mutable_recursive_traversal.rs) examples*
 
 ### Arbitrary Order Iterators
 
-The tree naturally implements [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing iterators via `iter` and `iter_mut` methods. Since the tree is not a linear data structure, these iterators yield elements in an arbitrary (but deterministic) order, which is useful in certain situations such as updating the values of the tree using a transformation or applying reductions.
+The tree naturally implements `IntoIterator`, [`Collection`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.Collection.html) and [`CollectionMut`](https://docs.rs/orx-iterable/latest/orx_iterable/trait.CollectionMut.html) providing iterators via `into_iter`, `iter` and `iter_mut` methods. These iterators yield elements in an arbitrary but deterministic order.
 
-### Parallelization Support
+## Parallelization
 
-`Tree` aims to enable flexible and convenient parallel computation. Almost all iterators, traversals or walks mentioned above can be parallelized using the [orx-parallel](https://crates.io/crates/orx-parallel) feature (`cargo add orx-tree --features orx-parallel`).
+`Tree` aims to enable convenient parallel computation for all iterators, traversals or walks mentioned above using the [orx-parallel](https://crates.io/crates/orx-parallel) feature (see [features](#features) section). Parallel counterparts return a [`ParIter`](https://docs.rs/orx-parallel/latest/orx_parallel/trait.ParIter.html) rather than a sequential `Iterator`.
 
-[`tree.par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.par) and [`tree.into_par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.into_par) return parallel iterators over all nodes of the tree. Examples can be found in [`demo_parallelization`](https://github.com/orxfun/orx-tree/blob/main/examples/demo_parallelization.rs) example. Importantly note that the tree defines its own concurrent iterators, and hence, allows for efficient computation, which is often not possible with generic implementations. In order to check the impact in performance, you may use the lightweight benchmark example [`bench_parallelization`](https://github.com/orxfun/orx-linked-list/blob/main/examples/bench_parallelization.rs):
+[`tree.par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.par) and [`tree.into_par()`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.into_par) return parallel iterators over all nodes of the tree. Examples can be found in [`demo_parallelization`](https://github.com/orxfun/orx-tree/blob/main/examples/demo_parallelization.rs) example. Importantly note that the tree defines its own concurrent iterators, and hence, allows for efficient computation, which is often not possible with generic implementations. In order to check the impact in performance, you may use the lightweight benchmark example [`bench_parallelization`](https://github.com/orxfun/orx-tree/blob/main/examples/bench_parallelization.rs):
 
 * `Sequential computation over Tree : 18.96s`
 * `Parallelized over Tree using orx-parallel : 6.02s`
 * `Parallelized over Tree using rayon's par-bridge : 81.10s`
 
-Furthermore, walks with different traversal strategies and special iterators can be parallelized. The following is a list of methods providing the corresponding parallel iterators. Notice that parallelization is achieved simply by adding **_par** suffix to names of the sequential counterparts.
+Remaining walks and traversals can be parallelized by simply by adding **_par** suffix to names of their sequential counterparts:
 
 [`children_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_par) | 
 [`ancestors_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors_par) |
@@ -108,7 +110,7 @@ Furthermore, walks with different traversal strategies and special iterators can
 [`leaves_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves_par) |
 [`leaves_with_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.leaves_with_par) |
 
-### Constant Time Access to Nodes via Node Indices
+## Constant Time Access to Nodes via Node Indices
 
 A [`NodeIdx`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeIdx.html) for a [`Tree`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html) is similar to `usize` for a slice in that it allows constant time access to the node it is created for.
 
@@ -129,16 +131,15 @@ Here, `idx` does not have a lifetime attached to the `tree`, yet it refers to th
 * `another_tree.node(&idx)` is an out-of-bounds error.
 * `tree.node(&idx)` after removing the node from the tree, say by `tree.node_mut(&idx).prune()` call, is a removed-node error.
 
-
-### Cache Locality
+## Cache Locality
 
 Nodes of the tree are stored in an underlying [`PinnedVec`](https://crates.io/crates/orx-pinned-vec) with pinned element guarantees. This allows for keeping the nodes close to each other improving cache locality while still providing with constant time mutation methods.
 
-### Convenient Mutations
+## Convenient Mutations
 
 The tree aims to make every move on the tree possible, convenient and efficient.
 
-#### Growth & Move Subtrees Around
+### Growth & Move Subtrees Around
 
 The following methods demonstrate downward growth by adding descendants to a node:
 
@@ -158,7 +159,7 @@ Note that all the growth methods return the indices of the created nodes allowin
 
 Additionally, the tree provides methods for special moves such as [`swap_subtrees`](https://docs.rs/orx-tree/latest/orx_tree/struct.Tree.html#method.swap_subtrees) to swap components of the same tree.
 
-#### Removals
+### Removals
 
 We can take out a node from the tree, while connecting its parent to its children via the [`take_out`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.take_out) method.
 
@@ -170,9 +171,9 @@ Alternatively, we can turn a mutable node into an [`into_walk`](https://docs.rs/
 * We can iterate over the removed nodes in the order of the generic traversal parameter and use the data however we need.
 * Or we can attach the removed subtree at a desired position of another tree by passing it to methods such as [`push_child_tree(subtree)`](https://docs.rs/orx-tree/latest/orx_tree/struct.NodeMut.html#method.push_child_tree).
 
-## Features
+# Features
 
-* **orx-parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel). See [parallelization section](#parallelization-support) for details. This feature is added as default and requires **std**. Therefore, please use `cargo add orx-tree --no-default-features` for **no-std** use cases.
+* **orx-parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel). See [parallelization section](#parallelization) for details. This feature is added as default and requires **std**. Therefore, please use `cargo add orx-tree --no-default-features` for **no-std** use cases.
 
 * **serde**: Tree implements `Serialize` and `Deserialize` traits; the "serde" feature needs to be added when required. It uses a linearized representation of the tree as a [`DepthFirstSequence`](https://docs.rs/orx-tree/latest/orx_tree/struct.DepthFirstSequence.html). You may find de-serialization examples in the corresponding [test file](https://github.com/orxfun/orx-tree/blob/main/tests/serde.rs).
 
