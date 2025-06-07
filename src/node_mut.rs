@@ -1833,7 +1833,7 @@ where
     /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
     /// ```
-    pub fn get_child_mut(&mut self, child_index: usize) -> Option<NodeMut<V, M, P>> {
+    pub fn get_child_mut(&mut self, child_index: usize) -> Option<NodeMut<'_, V, M, P>> {
         self.node()
             .next()
             .get_ptr(child_index)
@@ -1895,7 +1895,7 @@ where
     /// let dfs: Vec<_> = root.walk::<Dfs>().copied().collect();
     /// assert_eq!(dfs, [1, 2, 3, 6, 4, 7, 3, 4, 7, 5, 8, 6, 9]);
     /// ```
-    pub fn child_mut(&mut self, child_index: usize) -> NodeMut<V, M, P> {
+    pub fn child_mut(&mut self, child_index: usize) -> NodeMut<'_, V, M, P> {
         self.get_child_mut(child_index)
             .expect("Given child_index is out of bounds; i.e., child_index >= self.num_children()")
     }
