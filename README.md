@@ -4,7 +4,7 @@
 [![orx-tree crate](https://img.shields.io/crates/d/orx-tree.svg)](https://crates.io/crates/orx-tree)
 [![orx-tree documentation](https://docs.rs/orx-tree/badge.svg)](https://docs.rs/orx-tree)
 
-A beautiful tree 🌳 with convenient, efficient, parallelizable growth, mutation and features.
+A beautiful tree 🌳 with convenient, efficient, parallelizable growth, mutation and traversal features.
 
 ## Tree Variants
 
@@ -98,7 +98,7 @@ The tree naturally implements `IntoIterator`, [`Collection`](https://docs.rs/orx
 * `Parallelized over Tree using orx-parallel : 6.02s`
 * `Parallelized over Tree using rayon's par-bridge : 81.10s`
 
-Remaining walks and traversals can be parallelized by simply by adding **_par** suffix to names of their sequential counterparts:
+Remaining walks and traversals can be parallelized simply by adding **_par** suffix to names of their sequential counterparts:
 
 [`children_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.children_par) | 
 [`ancestors_par`](https://docs.rs/orx-tree/latest/orx_tree/trait.NodeRef.html#method.ancestors_par) |
