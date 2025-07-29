@@ -244,7 +244,7 @@ where
                 false => '├',
             };
 
-            write!(f, "{}", first_depth_char)?;
+            write!(f, "{first_depth_char}")?;
             write!(f, "──")?;
 
             writeln!(f, "{}", node.data().to_string().as_str())?;
