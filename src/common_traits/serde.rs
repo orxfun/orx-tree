@@ -105,8 +105,7 @@ where
             let (depth, value): (usize, V::Item) = x;
             if depth != 0 {
                 return err(format!(
-                    "First element of DepthFirstSequence (root of the tree) must have depth 0; however, received a depth of {}. Following is an example valid sequence of (depth, value) pairs: [[0, 0], [1, 1], [2, 3], [3, 6], [1, 2], [2, 4], [2, 5], [3, 7]].",
-                    depth
+                    "First element of DepthFirstSequence (root of the tree) must have depth 0; however, received a depth of {depth}. Following is an example valid sequence of (depth, value) pairs: [[0, 0], [1, 1], [2, 3], [3, 6], [1, 2], [2, 4], [2, 5], [3, 7]].",
                 ));
             }
             tree.push_root(value);
@@ -120,8 +119,7 @@ where
                     true => {
                         if depth > current_depth + 1 {
                             return err(format!(
-                                "Let d1 and d2 be two consecutive depths in the depth-first sequence. Then, (i) d2=d1+1, (ii) d2=d1 or (iii) d2<d1 are valid cases. However, received the invalid case where d2>d1+1 (d1={}, d2={}). Please see DepthFirstSequenceError documentation for details. Following is an example valid sequence of (depth, value) pairs: [[0, 0], [1, 1], [2, 3], [3, 6], [1, 2], [2, 4], [2, 5], [3, 7]].",
-                                current_depth, depth
+                                "Let d1 and d2 be two consecutive depths in the depth-first sequence. Then, (i) d2=d1+1, (ii) d2=d1 or (iii) d2<d1 are valid cases. However, received the invalid case where d2>d1+1 (d1={current_depth}, d2={depth}). Please see DepthFirstSequenceError documentation for details. Following is an example valid sequence of (depth, value) pairs: [[0, 0], [1, 1], [2, 3], [3, 6], [1, 2], [2, 4], [2, 5], [3, 7]].",
                             ));
                         }
                     }
