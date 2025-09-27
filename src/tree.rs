@@ -973,8 +973,8 @@ where
     /// ```
     /// use orx_tree::*;
     ///
-    /// let num_children = 4;
-    /// let total_depth = 10;
+    /// let num_children = 3;
+    /// let total_depth = 8;
     ///
     /// let mut tree = DynTree::new(0.to_string());
     /// let mut dfs = Traversal.dfs().over_nodes();
