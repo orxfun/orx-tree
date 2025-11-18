@@ -125,7 +125,7 @@ fn recursive_traversal_over_nodes<'a>(
         Instruction::AddI { val } => val + children_sum,
     };
 
-    (*node.data_mut()).value = new_value;
+    node.data_mut().value = new_value;
 
     (node, new_value)
 }
@@ -168,7 +168,7 @@ fn recursive_traversal_over_indices(
         Instruction::Add => children.into_iter().sum(),
         Instruction::AddI { val } => children.into_iter().sum::<f32>() + val,
     };
-    (*node.data_mut()).value = new_value;
+    node.data_mut().value = new_value;
 
     new_value
 }
@@ -229,7 +229,7 @@ fn main() {
     );
 
     test_implementation("recursive_traversal_over_nodes", |inputs, instructions| {
-        recursive_traversal_over_nodes(&inputs, instructions.tree.root_mut());
+        recursive_traversal_over_nodes(inputs, instructions.tree.root_mut());
     });
 
     test_implementation("recursive_set", |inputs, instructions| {

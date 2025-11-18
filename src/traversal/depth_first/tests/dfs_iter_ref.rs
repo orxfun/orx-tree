@@ -57,7 +57,7 @@ fn dfs_iter_for<O: Over>() {
     fn data<'a, O: Over>(
         iter: impl Iterator<Item = Item<'a, O>>,
     ) -> Vec<<Dyn<i32> as Variant>::Item> {
-        iter.map(|x| x.node_data().clone()).collect()
+        iter.map(|x| *x.node_data()).collect()
     }
 
     let tree = tree();
