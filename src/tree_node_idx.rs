@@ -284,9 +284,12 @@ impl<V: TreeVariant> NodeIdx<V> {
     }
 }
 
+// Only the pointer is copied, so "V" does not need to be copy itself.
+impl<V: TreeVariant> Copy for NodeIdx<V> {}
+
 impl<V: TreeVariant> Clone for NodeIdx<V> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        *self
     }
 }
 
