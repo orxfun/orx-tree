@@ -48,6 +48,6 @@ where
         });
         parent.append_subtree_as_child(subtree, child_position);
 
-        self.idx.clone()
+        self.idx
     }
 }

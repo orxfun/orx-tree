@@ -248,7 +248,7 @@ impl<V: TreeVariant> NodeIdx<V> {
     /// [`push_child_tree_within`]: crate::NodeMut::push_child_tree_within
     /// [`push_sibling_tree_within`]: crate::NodeMut::push_sibling_tree_within
     pub fn into_subtree_within(&self) -> MovedSubTreeWithin<V> {
-        MovedSubTreeWithin::new(self.clone())
+        MovedSubTreeWithin::new(*self)
     }
 
     /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
@@ -264,7 +264,7 @@ impl<V: TreeVariant> NodeIdx<V> {
     where
         V::Item: Clone,
     {
-        ClonedSubTreeWithin::new(self.clone())
+        ClonedSubTreeWithin::new(*self)
     }
 
     /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
@@ -280,7 +280,7 @@ impl<V: TreeVariant> NodeIdx<V> {
     where
         V::Item: Copy,
     {
-        CopiedSubTreeWithin::new(self.clone())
+        CopiedSubTreeWithin::new(*self)
     }
 }
 
