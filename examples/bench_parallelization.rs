@@ -64,7 +64,7 @@ fn main() {
     };
     expected_output.sort();
 
-    let computations: Vec<(&str, Box<dyn Fn() -> Vec<String>>)> = vec![
+    let computations: Vec<utils::ComputeTuple<Vec<String>>> = vec![
         #[cfg(feature = "orx-parallel")]
         (
             "Sequential computation over Tree",

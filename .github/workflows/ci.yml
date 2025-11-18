@@ -50,7 +50,7 @@ jobs:
       run: cargo check --no-default-features --verbose --target wasm32v1-none ${{ matrix.no_std_features }}
 
     - name: Clippy
-      run: cargo clippy --no-default-features ${{ matrix.features }} -- -D warnings --verbose
+      run: cargo clippy --all-targets --no-default-features ${{ matrix.features }} -- -D warnings --verbose
 
     - name: Miri
       run: cargo +nightly miri test --lib --bins --tests --no-default-features --verbose ${{ matrix.features }}

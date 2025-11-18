@@ -37,3 +37,7 @@ serde = ["dep:serde"]
 [[bench]]
 name = "walk_iterator"
 harness = false
+
+# Lints that apply to all files and targets
+[lints.clippy]
+uninlined_format_args = "warn"

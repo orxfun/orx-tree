@@ -61,7 +61,7 @@ fn paths_par<T: Traverser>(tree: &DynTree<String>) -> Vec<String> {
         .unwrap()
 }
 
-type TRAVERSER = Dfs;
+type UsedTraverser = Dfs;
 
 fn bench(c: &mut Criterion) {
     let treatments = vec![1_024 * 64];
@@ -71,12 +71,12 @@ fn bench(c: &mut Criterion) {
     for n in &treatments {
         let data = build_tree(*n);
 
-        let expected = paths::<TRAVERSER>(&data);
+        let expected = paths::<UsedTraverser>(&data);
 
         group.bench_with_input(BenchmarkId::new("NodeRef::paths::<T>()", n), n, |b, _| {
-            let result = paths::<TRAVERSER>(&data);
+            let result = paths::<UsedTraverser>(&data);
             assert_eq!(path_value(&result), path_value(&expected));
-            b.iter(|| paths::<TRAVERSER>(&data))
+            b.iter(|| paths::<UsedTraverser>(&data))
         });
 
         #[cfg(feature = "orx-parallel")]
@@ -84,9 +84,9 @@ fn bench(c: &mut Criterion) {
             BenchmarkId::new("NodeRef::paths_par::<T>()", n),
             n,
             |b, _| {
-                let result = paths_par::<TRAVERSER>(&data);
+                let result = paths_par::<UsedTraverser>(&data);
                 assert_eq!(path_value(&result), path_value(&expected));
-                b.iter(|| paths_par::<TRAVERSER>(&data))
+                b.iter(|| paths_par::<UsedTraverser>(&data))
             },
         );
     }
