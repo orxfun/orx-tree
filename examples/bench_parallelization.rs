@@ -58,7 +58,8 @@ fn main() {
         tree.iter()
             .filter(|x| *x % 3 != 0)
             .map(|x| x + fibonacci(x % 1000))
-            .filter_map(|x| (x % 2 == 0).then(|| x.to_string()))
+            .filter(|x| x % 2 == 0)
+            .map(|x| x.to_string())
             .collect::<Vec<_>>()
     };
     expected_output.sort();
@@ -73,7 +74,8 @@ fn main() {
                 tree.iter()
                     .filter(|x| *x % 3 != 0)
                     .map(|x| x + fibonacci(x % 1000))
-                    .filter_map(|x| (x % 2 == 0).then(|| x.to_string()))
+                    .filter(|x| x % 2 == 0)
+                    .map(|x| x.to_string())
                     .collect::<Vec<_>>()
             }),
         ),
