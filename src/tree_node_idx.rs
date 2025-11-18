@@ -284,6 +284,12 @@ impl<V: TreeVariant> NodeIdx<V> {
     }
 }
 
+impl<V: TreeVariant> core::hash::Hash for NodeIdx<V> {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
+    }
+}
+
 impl<V: TreeVariant> Clone for NodeIdx<V> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
