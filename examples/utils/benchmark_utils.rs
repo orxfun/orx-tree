@@ -35,11 +35,14 @@ where
     now.elapsed().unwrap()
 }
 
+/// A tuple made up of a `name` and the function for the computation
+pub type ComputeTuple<'a, O> = (&'a str, Box<dyn Fn() -> O>);
+
 pub fn timed_reduce_all<O>(
     benchmark_name: &str,
     num_repetitions: usize,
     expected_output: Option<O>,
-    computations: &[(&str, Box<dyn Fn() -> O>)],
+    computations: &[ComputeTuple<O>],
 ) where
     O: PartialEq + Debug + Clone,
 {
@@ -82,7 +85,7 @@ pub fn timed_collect_all<Out, O>(
     benchmark_name: &str,
     num_repetitions: usize,
     expected_output: &[O],
-    computations: &[(&str, Box<dyn Fn() -> Out>)],
+    computations: &[ComputeTuple<Out>],
 ) where
     Out: IntoIterator<Item = O>,
     O: PartialEq + Ord + Debug,
