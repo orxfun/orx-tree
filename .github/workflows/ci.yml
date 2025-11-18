@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        toolchain: ["stable"]
+        toolchain: ["stable", "1.88"]
         features: ["--features orx-parallel", "--features serde"]
         no_std_features: ["--features serde"]
 
