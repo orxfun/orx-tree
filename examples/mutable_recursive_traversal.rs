@@ -27,9 +27,9 @@ enum Instruction {
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Input(x) => write!(f, "Input({})", x),
+            Self::Input(x) => write!(f, "Input({x})"),
             Self::Add => write!(f, "Add"),
-            Self::AddI { val } => write!(f, "AddI({})", val),
+            Self::AddI { val } => write!(f, "AddI({val})"),
         }
     }
 }
@@ -215,7 +215,7 @@ fn main() {
     fn test_implementation(method: &str, f: impl FnOnce(&[f32], &mut Instructions)) {
         let inputs = [10.0, 20.0];
         let mut instructions = Instructions::example();
-        println!("\n\n### {}", method);
+        println!("\n\n### {method}");
         f(&inputs, &mut instructions);
         println!("\n{}\n", &instructions.tree);
     }

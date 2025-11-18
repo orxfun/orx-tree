@@ -49,7 +49,7 @@ pub fn timed_reduce_all<O>(
     println!("\n{} {} {}", "#".repeat(10), benchmark_name, "#".repeat(10));
     for (name, fun) in computations {
         let duration = timed_reduce(num_repetitions, &expected_output, fun);
-        println!("{:>10} : {:?}", name, duration);
+        println!("{name:>10} : {duration:?}");
     }
     println!("{}\n", "#".repeat(10 + 10 + 2 + benchmark_name.len()));
 }
@@ -93,7 +93,7 @@ pub fn timed_collect_all<Out, O>(
     println!("\n{} {} {}", "#".repeat(10), benchmark_name, "#".repeat(10));
     for (name, fun) in computations {
         let duration = timed_collect(num_repetitions, expected_output, fun);
-        println!("{:>10} : {:?}", name, duration);
+        println!("{name:>10} : {duration:?}");
     }
     println!("{}\n", "#".repeat(10 + 10 + 2 + benchmark_name.len()));
 }
