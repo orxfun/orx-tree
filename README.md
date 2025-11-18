@@ -3,6 +3,7 @@
 [![orx-tree crate](https://img.shields.io/crates/v/orx-tree.svg)](https://crates.io/crates/orx-tree)
 [![orx-tree crate](https://img.shields.io/crates/d/orx-tree.svg)](https://crates.io/crates/orx-tree)
 [![orx-tree documentation](https://docs.rs/orx-tree/badge.svg)](https://docs.rs/orx-tree)
+[![MSRV](https://img.shields.io/badge/MSRV-1.88.0-blue)](https://releases.rs/docs/1.88.0/)
 
 A beautiful tree 🌳 with convenient, efficient, parallelizable growth, mutation and traversal features.
 
