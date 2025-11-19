@@ -1,6 +1,6 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use orx_iterable::{IntoCloningIterable, Iterable};
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 use orx_parallel::ParIter;
 use orx_tree::*;
 
@@ -51,7 +51,7 @@ fn paths<T: Traverser>(tree: &DynTree<String>) -> Vec<String> {
         .unwrap()
 }
 
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 fn paths_par<T: Traverser>(tree: &DynTree<String>) -> Vec<String> {
     let root = tree.root();
     root.paths_par::<T>()
@@ -79,7 +79,7 @@ fn bench(c: &mut Criterion) {
             b.iter(|| paths::<UsedTraverser>(&data))
         });
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(
             BenchmarkId::new("NodeRef::paths_par::<T>()", n),
             n,

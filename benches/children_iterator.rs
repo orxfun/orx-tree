@@ -1,5 +1,5 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 use orx_parallel::ParIter;
 use orx_tree::*;
 
@@ -47,7 +47,7 @@ fn children(tree: &DynTree<String>) -> u64 {
         .sum()
 }
 
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 fn children_par(tree: &DynTree<String>) -> u64 {
     tree.root()
         .children_par()
@@ -55,7 +55,7 @@ fn children_par(tree: &DynTree<String>) -> u64 {
         .sum()
 }
 
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 fn children_par_2threads(tree: &DynTree<String>) -> u64 {
     tree.root()
         .children_par()
@@ -80,7 +80,7 @@ fn bench(c: &mut Criterion) {
             b.iter(|| children(&tree))
         });
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(
             BenchmarkId::new("NNodeRef::children_par()", n),
             n,
@@ -91,7 +91,7 @@ fn bench(c: &mut Criterion) {
             },
         );
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(
             BenchmarkId::new("NodeRef::children_par().num_threads(2)", n),
             n,

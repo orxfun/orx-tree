@@ -1,5 +1,5 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 use orx_parallel::*;
 use orx_tree::*;
 use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -40,7 +40,7 @@ fn arbitrary_order_iter(tree: &DynTree<String>) -> i64 {
         .sum()
 }
 
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 fn arbitrary_order_par_iter(tree: &DynTree<String>) -> i64 {
     tree.par()
         .map(|x| x.parse::<usize>().unwrap())
@@ -64,7 +64,7 @@ fn walk<T: Traverser>(tree: &DynTree<String>) -> i64 {
         .sum()
 }
 
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 fn walk_par<T: Traverser>(tree: &DynTree<String>) -> i64 {
     tree.root()
         .walk_par::<T>()
@@ -89,7 +89,7 @@ fn bench(c: &mut Criterion) {
             b.iter(|| arbitrary_order_iter(&data))
         });
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(
             BenchmarkId::new("arbitrary_order_par_iter", n),
             n,
@@ -116,7 +116,7 @@ fn bench(c: &mut Criterion) {
             b.iter(|| walk::<Dfs>(&data))
         });
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(BenchmarkId::new("walk_par::<Dfs>", n), n, |b, _| {
             let result = walk_par::<Dfs>(&data);
             assert_eq!(result, expected);
@@ -129,7 +129,7 @@ fn bench(c: &mut Criterion) {
             b.iter(|| walk::<Bfs>(&data))
         });
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(BenchmarkId::new("walk_par::<Bfs>", n), n, |b, _| {
             let result = walk_par::<Bfs>(&data);
             assert_eq!(result, expected);
@@ -142,7 +142,7 @@ fn bench(c: &mut Criterion) {
             b.iter(|| walk::<PostOrder>(&data))
         });
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(BenchmarkId::new("walk_par::<PostOrder>", n), n, |b, _| {
             let result = walk_par::<PostOrder>(&data);
             assert_eq!(result, expected);

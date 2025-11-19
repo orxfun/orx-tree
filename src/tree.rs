@@ -961,7 +961,7 @@ where
     /// In brief, computation is defined as chain of iterator transformations and parallelization
     /// is handled by the underlying parallel executor.
     ///
-    /// Requires **orx-parallel** feature.
+    /// Requires **parallel** feature.
     ///
     /// [`ParIter`]: orx_parallel::ParIter
     /// [`walk`]: crate::NodeRef::walk
@@ -1015,7 +1015,7 @@ where
     ///     .sum();
     /// assert_eq!(seq_result, par_result);
     /// ```
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     pub fn par(&self) -> impl orx_parallel::ParIter<Item = &V::Item>
     where
         V::Item: Send + Sync,
@@ -1039,7 +1039,7 @@ where
     /// In brief, computation is defined as chain of iterator transformations and parallelization
     /// is handled by the underlying parallel executor.
     ///
-    /// Requires **orx-parallel** feature.
+    /// Requires **parallel** feature.
     ///
     /// [`ParIter`]: orx_parallel::ParIter
     /// [`walk`]: crate::NodeRef::walk
@@ -1095,7 +1095,7 @@ where
     ///     .sum();
     /// assert_eq!(seq_result, par_result);
     /// ```
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     pub fn into_par(self) -> impl orx_parallel::ParIter<Item = V::Item>
     where
         V::Item: Send + Sync + Clone,

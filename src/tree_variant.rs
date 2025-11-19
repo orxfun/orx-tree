@@ -1,4 +1,4 @@
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 use orx_parallel::*;
 use orx_selfref_col::{
     MemoryReclaimer, NodePtr, Refs, RefsArrayLeftMost, RefsSingle, RefsVec, Variant,
@@ -30,7 +30,7 @@ pub trait RefsChildren<V: Variant> {
 
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_>;
 
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
     where
         V: 'a,
@@ -68,7 +68,7 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
         self.iter()
     }
 
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
     where
         V: 'a,
@@ -119,7 +119,7 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
         self.iter()
     }
 
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
     where
         V: 'a,

@@ -14,7 +14,7 @@ use crate::{
     },
     tree_variant::RefsChildren,
 };
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 use orx_parallel::*;
 use orx_selfref_col::{NodePtr, Refs};
 
@@ -262,7 +262,7 @@ where
     /// Please see [`children`] for details, since `children_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// You may also see [children_iterator](https://github.com/orxfun/orx-tree/blob/main/benches/children_iterator.rs) benchmark to
     /// see an example use case.
@@ -327,7 +327,7 @@ where
     /// assert_eq!(seq_value, par_value);
     /// assert_eq!(seq_value, par_value_4t);
     /// ```
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn children_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
     where
         V::Item: Send + Sync,
@@ -634,13 +634,13 @@ where
     /// Please see [`ancestors`] for details, since `ancestors_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// [`ancestors`]: NodeRef::ancestors
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn ancestors_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
     where
         V::Item: Send + Sync,
@@ -828,13 +828,13 @@ where
     /// Please see [`custom_walk`] for details, since `custom_walk_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// [`custom_walk`]: NodeRef::custom_walk
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn custom_walk_par<F>(&self, next_node: F) -> impl ParIter<Item = &'a V::Item>
     where
         F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
@@ -930,7 +930,7 @@ where
     /// Please see [`walk`] for details, since `walk_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// You may also see [walk_iterator](https://github.com/orxfun/orx-tree/blob/main/benches/walk_iterator.rs) benchmark to
     /// see an example use case.
@@ -939,7 +939,7 @@ where
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn walk_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
     where
         T: Traverser<OverData>,
@@ -1109,13 +1109,13 @@ where
     /// Please see [`walk_with`] for details, since `walk_with_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// [`walk_with`]: NodeRef::walk_with
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn walk_with_par<'t, T, O>(
         &'a self,
         traverser: &'t mut T,
@@ -1251,7 +1251,7 @@ where
     /// Please see [`paths`] for details, since `paths_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// [`paths`]: NodeRef::paths
     /// [parallel iterator]: orx_parallel::ParIter
@@ -1333,7 +1333,7 @@ where
     /// let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn paths_par<T>(&'a self) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone>
     where
         T: Traverser<OverData>,
@@ -1472,7 +1472,7 @@ where
     /// Please see [`paths_with`] for details, since `paths_with_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// [`paths_with`]: NodeRef::paths_with
     /// [parallel iterator]: orx_parallel::ParIter
@@ -1552,7 +1552,7 @@ where
     /// let expected = [1364, 340, 84, 20, 4, 0].map(|x| x.to_string());
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn paths_with_par<T, O>(
         &'a self,
         traverser: &'a mut T,
@@ -1732,13 +1732,13 @@ where
     /// Please see [`leaves`] for details, since `leaves_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// [`leaves`]: NodeRef::leaves
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn leaves_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
     where
         T: Traverser<OverData>,
@@ -1854,13 +1854,13 @@ where
     /// Please see [`leaves_with`] for details, since `leaves_with_par` is the parallelized counterpart.
     /// * Parallel iterators can be used similar to regular iterators.
     /// * Parallel computation can be configured by using methods such as [`num_threads`] or [`chunk_size`] on the parallel iterator.
-    /// * Parallel counterparts of the tree iterators are available with **orx-parallel** feature.
+    /// * Parallel counterparts of the tree iterators are available with **parallel** feature.
     ///
     /// [`leaves_with`]: NodeRef::leaves_with
     /// [parallel iterator]: orx_parallel::ParIter
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     fn leaves_with_par<T, O>(
         &'a self,
         traverser: &'a mut T,
