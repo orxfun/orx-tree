@@ -49,6 +49,6 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
         let node_parent = unsafe { &mut *ptr_parent.ptr_mut() };
         node_parent.next_mut().insert(child_position, ptr_child);
 
-        self.idx.clone()
+        self.idx
     }
 }
