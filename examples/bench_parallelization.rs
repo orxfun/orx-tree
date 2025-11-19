@@ -1,6 +1,6 @@
-// cargo run --release --features orx-parallel --example bench_parallelization
-// cargo run --release --features orx-parallel --example bench_parallelization -- --help
-// cargo run --release --features orx-parallel --example bench_parallelization -- --len 50000 --num-repetitions 20
+// cargo run --release --features parallel --example bench_parallelization
+// cargo run --release --features parallel --example bench_parallelization -- --help
+// cargo run --release --features parallel --example bench_parallelization -- --len 50000 --num-repetitions 20
 
 mod utils;
 
@@ -65,7 +65,7 @@ fn main() {
     expected_output.sort();
 
     let computations: Vec<utils::ComputeTuple<Vec<String>>> = vec![
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         (
             "Sequential computation over Tree",
             Box::new(move || {
@@ -79,9 +79,9 @@ fn main() {
                     .collect::<Vec<_>>()
             }),
         ),
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         (
-            "Parallelized over Tree using orx-parallel",
+            "Parallelized over Tree using parallel",
             Box::new(move || {
                 let tree = build_tree(10);
 

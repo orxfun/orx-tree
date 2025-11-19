@@ -174,7 +174,7 @@ Alternatively, we can turn a mutable node into an [`into_walk`](https://docs.rs/
 
 # Features
 
-* **orx-parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel). See [parallelization section](#parallelization) for details. This feature is added as default and requires **std**. Therefore, please use `cargo add orx-tree --no-default-features` for **no-std** use cases.
+* **parallel**: Tree allows efficient parallel processing through [concurrent iterators](https://crates.io/crates/orx-concurrent-iter) and [parallel iterators](https://crates.io/crates/orx-parallel). See [parallelization section](#parallelization) for details. This feature is added as default and requires **std**. Therefore, please use `cargo add orx-tree --no-default-features` for **no-std** use cases.
 
 * **serde**: Tree implements `Serialize` and `Deserialize` traits; the "serde" feature needs to be added when required. It uses a linearized representation of the tree as a [`DepthFirstSequence`](https://docs.rs/orx-tree/latest/orx_tree/struct.DepthFirstSequence.html). You may find de-serialization examples in the corresponding [test file](https://github.com/orxfun/orx-tree/blob/main/tests/serde.rs).
 

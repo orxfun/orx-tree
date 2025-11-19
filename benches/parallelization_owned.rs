@@ -1,5 +1,5 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 use orx_parallel::ParIter;
 use orx_tree::*;
 use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -56,7 +56,7 @@ fn tree_into_bfs(mut tree: DynTree<String>) -> i64 {
         .sum()
 }
 
-#[cfg(feature = "orx-parallel")]
+#[cfg(feature = "parallel")]
 fn tree_into_par_x(tree: DynTree<String>) -> i64 {
     tree.into_par()
         .map(|x| x.parse::<usize>().unwrap())
@@ -108,9 +108,9 @@ fn bench(c: &mut Criterion) {
             },
         );
 
-        #[cfg(feature = "orx-parallel")]
+        #[cfg(feature = "parallel")]
         group.bench_with_input(
-            BenchmarkId::new("Tree::into_par_x() - orx-parallel", n),
+            BenchmarkId::new("Tree::into_par_x() - parallel", n),
             n,
             |b, _| {
                 let result = tree_into_par_x(data.clone());

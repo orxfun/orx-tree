@@ -1,4 +1,4 @@
-// cargo run --release --features orx-parallel --example demo_parallelization
+// cargo run --release --features parallel --example demo_parallelization
 
 use orx_tree::*;
 
@@ -34,7 +34,7 @@ fn main() {
         .sum();
     assert_eq!(total_num_characters, expected_num_characters);
 
-    #[cfg(feature = "orx-parallel")]
+    #[cfg(feature = "parallel")]
     {
         // computation using parallel iterator: replace `iter()` with `par()`
 
