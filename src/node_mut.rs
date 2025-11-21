@@ -8,7 +8,8 @@ use crate::{
     subtrees::{MovedSubTree, SubTreeCore},
     subtrees_within::SubTreeWithin,
     traversal::{
-        OverData, OverMut,
+        Over, OverData, OverMut,
+        enumeration::Enumeration,
         enumerations::Val,
         over::OverPtr,
         over_mut::{OverItemInto, OverItemMut},
@@ -2533,6 +2534,25 @@ where
         T: Traverser<O>,
     {
         traverser.into_iter(self)
+    }
+
+    // traversal shorthands
+
+    fn leaves_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
+    where
+        T: Traverser<OverData>,
+    {
+        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+                .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+                .map(|x: NodePtr<V>| {
+                    <OverData as Over>::Enumeration::from_element_ptr_mut::<
+                        'a,
+                        V,
+                        M,
+                        P,
+                        &'a mut V::Item,
+                    >(self.col(), x)
+                })
     }
 
     // recursive
