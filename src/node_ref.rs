@@ -285,7 +285,7 @@ where
     ///     while tree.len() < n {
     ///         let root = tree.root();
     ///         let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
-    ///         for idx in x.iter() {
+    ///         for idx in x.iter().copied() {
     ///             let count = tree.len();
     ///             let mut node = tree.node_mut(idx);
     ///             for j in 0..N {
@@ -1288,7 +1288,7 @@ where
     ///     while tree.len() < n {
     ///         let root = tree.root();
     ///         let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
-    ///         for idx in x.iter() {
+    ///         for idx in x.iter().copied() {
     ///             let count = tree.len();
     ///             let mut node = tree.node_mut(idx);
     ///             let num_children = 4;
@@ -1506,7 +1506,7 @@ where
     ///     while tree.len() < n {
     ///         let root = tree.root();
     ///         let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
-    ///         for idx in x.iter() {
+    ///         for idx in x.iter().copied() {
     ///             let count = tree.len();
     ///             let mut node = tree.node_mut(idx);
     ///             let num_children = 4;
@@ -1905,11 +1905,11 @@ where
     ///
     /// let mut a = DynTree::new(0);
     /// let [a1, a2] = a.root_mut().push_children([1, 2]);
-    /// let [a3, _] = a.node_mut(&a1).push_children([3, 4]);
-    /// a.node_mut(&a3).push_child(7);
-    /// let [a5, a6] = a.node_mut(&a2).push_children([5, 6]);
-    /// a.node_mut(&a5).push_child(8);
-    /// a.node_mut(&a6).push_children([9, 10]);
+    /// let [a3, _] = a.node_mut(a1).push_children([3, 4]);
+    /// a.node_mut(a3).push_child(7);
+    /// let [a5, a6] = a.node_mut(a2).push_children([5, 6]);
+    /// a.node_mut(a5).push_child(8);
+    /// a.node_mut(a6).push_children([9, 10]);
     ///
     /// // collect indices in breadth-first order
     ///

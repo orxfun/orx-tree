@@ -664,7 +664,7 @@ where
     /// //         |
     /// //         8
     ///
-    /// tree.swap_subtrees(&id2, &id7);
+    /// tree.swap_subtrees(id2, id7);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
@@ -760,14 +760,14 @@ where
     /// // cannot swap n3 & n10
     ///
     /// assert_eq!(
-    ///     tree.try_swap_nodes(&id3, &id10),
+    ///     tree.try_swap_nodes(id3, id10),
     ///     Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
     /// );
     ///
     /// // cannot swap n4 & n1 (root)
     ///
     /// assert_eq!(
-    ///     tree.try_swap_nodes(&id4, &id1),
+    ///     tree.try_swap_nodes(id4, id1),
     ///     Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
     /// );
     ///
@@ -783,7 +783,7 @@ where
     /// //         |
     /// //         8
     ///
-    /// let result = tree.try_swap_nodes(&id2, &id7);
+    /// let result = tree.try_swap_nodes(id2, id7);
     /// assert_eq!(result, Ok(()));
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
@@ -887,7 +887,7 @@ where
     /// //         |
     /// //         8
     ///
-    /// unsafe { tree.swap_subtrees_unchecked(&id2, &id7) };
+    /// unsafe { tree.swap_subtrees_unchecked(id2, id7) };
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);

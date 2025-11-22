@@ -83,7 +83,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // all id's above are valid => the tree only grew
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
-/// assert!(tree.get_node(&id4).is_some()); // get_node => Some(Node)
+/// assert!(tree.get_node(id4).is_some()); // get_node => Some(Node)
 /// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
 /// let _node7 = tree.node(id7); // no panic
 ///
@@ -100,7 +100,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // what about id4 & id8 => invalidated due to RemovedNode
 /// assert!(!tree.is_node_idx_valid(&id4));
-/// assert!(tree.get_node(&id4).is_none());
+/// assert!(tree.get_node(id4).is_none());
 /// assert_eq!(tree.try_node(&id4), Err(NodeIdxError::RemovedNode));
 /// // let node4 = id4.node(tree); // panics!!!
 ///
@@ -170,7 +170,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // all id's above are valid => we are in Lazy mode & the tree only grew
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
-/// assert!(tree.get_node(&id4).is_some()); // get_node => Some(Node)
+/// assert!(tree.get_node(id4).is_some()); // get_node => Some(Node)
 /// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
 /// let _node7 = tree.node(id7); // no panic!
 ///
@@ -186,7 +186,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 ///
 /// // only id4 & id8 are affected (explicit) => invalidated due to RemovedNode
 /// assert!(!tree.is_node_idx_valid(&id4));
-/// assert!(tree.get_node(&id4).is_none());
+/// assert!(tree.get_node(id4).is_none());
 /// assert_eq!(tree.try_node(&id4), Err(NodeIdxError::RemovedNode));
 /// // let node4 = id4.node(tree); // panics!
 ///
@@ -210,7 +210,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// // now, all prior indices are invalid
 /// let tree: DynTree<i32, Auto> = tree.into_auto_reclaim();
 /// assert!(!tree.is_node_idx_valid(&id2));
-/// assert!(tree.get_node(&id3).is_none());
+/// assert!(tree.get_node(id3).is_none());
 /// assert_eq!(
 ///     tree.try_node(&id4),
 ///     Err(NodeIdxError::ReorganizedCollection)

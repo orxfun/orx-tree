@@ -115,7 +115,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// // indices are collected into a vec
 /// let indices: Vec<_> = root.extend_children(2..6).collect();
 ///
-/// let id5 = &indices[3];
+/// let id5 = indices[3];
 /// let n5 = tree.node(id5);
 /// assert_eq!(n5.data(), &5);
 /// ```
@@ -192,7 +192,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// let indices: Vec<_> = root.indices::<Bfs>().collect();
 ///
 /// // now we can use indices to directly access nodes
-/// let id5 = &indices[4];
+/// let id5 = indices[4];
 /// let n5 = tree.node(id5);
 /// assert_eq!(n5.data(), &5);
 /// assert_eq!(n5.parent(), Some(tree.node(id2)));

@@ -455,7 +455,7 @@ where
     ///
     /// let mut a = DynTree::<_>::new(0);
     /// let [id1, _] = a.root_mut().push_children([1, 2]);
-    /// let [id3, _] = a.node_mut(&id1).push_children([3, 4]);
+    /// let [id3, _] = a.node_mut(id1).push_children([3, 4]);
     ///
     /// let mut b = DaryTree::<4, _>::new(5);
     /// let [id6, id7] = b.root_mut().push_children([6, 7]);
@@ -480,7 +480,7 @@ where
     /// // 8
     ///
     /// let n6 = b.node(id6).as_cloned_subtree();
-    /// a.node_mut(&id3).push_child_tree(n6);
+    /// a.node_mut(id3).push_child_tree(n6);
     ///
     /// let n7 = b.node(id7).as_copied_subtree();
     /// a.root_mut().push_child_tree(n7);
@@ -515,7 +515,7 @@ where
     /// // into_lazy_reclaim: to keep the indices valid
     /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
     /// let [id1, id2] = a.root_mut().push_children([1, 2]);
-    /// a.node_mut(&id1).push_children([3, 4]);
+    /// a.node_mut(id1).push_children([3, 4]);
     ///
     /// // into_lazy_reclaim: to keep the indices valid
     /// let mut b = DaryTree::<4, _>::new(5).into_lazy_reclaim();
@@ -537,9 +537,9 @@ where
     /// //     9   10
     ///
     /// let n7 = b.node_mut(&id7).into_subtree();
-    /// a.node_mut(&id2).push_child_tree(n7);
+    /// a.node_mut(id2).push_child_tree(n7);
     ///
-    /// let n1 = a.node_mut(&id1).into_subtree();
+    /// let n1 = a.node_mut(id1).into_subtree();
     /// b.node_mut(&id5).push_child_tree(n1);
     ///
     /// // validate the trees
@@ -1038,7 +1038,7 @@ where
     ///
     /// let mut a = DynTree::<_>::new(0);
     /// let [id1, id2] = a.root_mut().push_children([1, 2]);
-    /// let [_, id4] = a.node_mut(&id1).push_children([3, 4]);
+    /// let [_, id4] = a.node_mut(id1).push_children([3, 4]);
     ///
     /// let mut b = DaryTree::<4, _>::new(5);
     /// let [id6, id7] = b.root_mut().push_children([6, 7]);
@@ -1061,10 +1061,10 @@ where
     /// //   8
     ///
     /// let n6 = b.node(id6).as_cloned_subtree();
-    /// a.node_mut(&id4).push_sibling_tree(Side::Left, n6);
+    /// a.node_mut(id4).push_sibling_tree(Side::Left, n6);
     ///
     /// let n7 = b.node(id7).as_copied_subtree();
-    /// a.node_mut(&id2).push_sibling_tree(Side::Right, n7);
+    /// a.node_mut(id2).push_sibling_tree(Side::Right, n7);
     ///
     /// // validate the trees
     ///
@@ -1096,7 +1096,7 @@ where
     /// // into_lazy_reclaim -> to keep indices valid
     /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
     /// let [id1, id2] = a.root_mut().push_children([1, 2]);
-    /// a.node_mut(&id1).push_children([3, 4]);
+    /// a.node_mut(id1).push_children([3, 4]);
     ///
     /// // into_lazy_reclaim -> to keep indices valid
     /// let mut b = DaryTree::<4, _>::new(5).into_lazy_reclaim();
@@ -1117,9 +1117,9 @@ where
     /// //
     ///
     /// let n7 = b.node_mut(&id7).into_subtree();
-    /// a.node_mut(&id2).push_sibling_tree(Side::Left, n7);
+    /// a.node_mut(id2).push_sibling_tree(Side::Left, n7);
     ///
-    /// let n1 = a.node_mut(&id1).into_subtree();
+    /// let n1 = a.node_mut(id1).into_subtree();
     /// b.node_mut(&id6).push_sibling_tree(Side::Right, n1);
     ///
     /// // validate the trees
@@ -1497,7 +1497,7 @@ where
     /// let values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(values, [1, 2, 3, 5, 6, 7, 9, 10, 11]);
     ///
-    /// assert_eq!(tree.get_node(&id4), None);
+    /// assert_eq!(tree.get_node(id4), None);
     /// assert_eq!(tree.try_node(&id8), Err(NodeIdxError::RemovedNode));
     ///
     /// // prune n3 (3, 6, 7, 9, 10, 11)
@@ -1624,7 +1624,7 @@ where
     ///
     /// let d2 = tree.node_mut(id2).take_out();
     /// assert_eq!(d2, 2);
-    /// assert_eq!(tree.get_node(&id2), None);
+    /// assert_eq!(tree.get_node(id2), None);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 4, 5, 3, 8, 6, 10, 11, 9]);
