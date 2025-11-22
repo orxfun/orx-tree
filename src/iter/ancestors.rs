@@ -24,15 +24,13 @@ impl<V: TreeVariant> Iterator for AncestorsIterPtr<V> {
     type Item = NodePtr<V>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.current.map(|ptr| {
+        self.current.inspect(|&ptr| {
             let node = unsafe { &*ptr.ptr() };
 
             self.current = match ptr == self.root_ptr {
                 false => node.prev().get(),
                 true => None,
             };
-
-            ptr
         })
     }
 }
