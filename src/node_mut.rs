@@ -1540,7 +1540,9 @@ where
         let node = unsafe { &mut *self.node_ptr.ptr_mut() };
         if let Some(parent) = node.prev_mut().get() {
             let parent = unsafe { &mut *parent.ptr_mut() };
-            let sibling_idx = parent.next_mut().remove(self.node_ptr.ptr() as usize);
+            let sibling_idx = parent
+                .next_mut()
+                .remove(unsafe { self.node_ptr.ptr() as usize });
             debug_assert!(sibling_idx.is_some());
         }
 
@@ -2054,7 +2056,7 @@ where
     ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>>
     + DoubleEndedIterator
     + use<'_, 'a, V, M, P, MO> {
-        ChildrenMutIter::new(self.col, self.node_ptr.ptr())
+        ChildrenMutIter::new(self.col, unsafe { self.node_ptr.ptr() })
     }
 
     /// Creates an iterator that yields mutable references to data of all nodes belonging to the subtree rooted at this node.

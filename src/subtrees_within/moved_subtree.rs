@@ -42,7 +42,9 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
 
         if let Some(ptr_old_parent) = node_child.prev().get().cloned() {
             let old_parent = unsafe { &mut *ptr_old_parent.ptr_mut() };
-            old_parent.next_mut().remove(ptr_child.ptr() as usize);
+            old_parent
+                .next_mut()
+                .remove(unsafe { ptr_child.ptr() as usize });
         }
         node_child.prev_mut().set_some(ptr_parent.clone());
 

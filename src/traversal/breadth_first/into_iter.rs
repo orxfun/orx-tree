@@ -50,7 +50,7 @@ where
         match node.prev().get() {
             Some(parent) => {
                 let parent = unsafe { &mut *parent.ptr_mut() };
-                let sibling_idx = parent.next_mut().remove(root_ptr.ptr() as usize);
+                let sibling_idx = parent.next_mut().remove(unsafe { root_ptr.ptr() as usize });
                 debug_assert!(sibling_idx.is_some());
 
                 node.prev_mut().clear();
