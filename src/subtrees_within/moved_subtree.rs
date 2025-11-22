@@ -31,7 +31,7 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
         let ptr_parent = parent.node_ptr().clone();
         let ptr_child = parent
             .col()
-            .try_get_ptr(&self.idx.0)
+            .try_get_ptr(self.idx.0)
             .expect(INVALID_IDX_ERROR);
         assert!(
             AncestorsIterPtr::new(root_ptr.clone(), ptr_parent.clone()).all(|x| x != ptr_child),

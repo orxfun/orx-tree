@@ -356,7 +356,7 @@ where
     /// [`is_node_idx_valid`]: crate::Tree::is_node_idx_valid
     /// [`node_idx_error`]: crate::Tree::node_idx_error
     pub fn node_idx_error(&self, node_idx: &NodeIdx<V>) -> Option<NodeIdxError> {
-        self.0.node_idx_error(&node_idx.0)
+        self.0.node_idx_error(node_idx.0)
     }
 
     /// Returns the node with the given `node_idx`.
@@ -531,7 +531,7 @@ where
     #[inline(always)]
     pub fn try_node(&self, node_idx: &NodeIdx<V>) -> Result<Node<'_, V, M, P>, NodeIdxError> {
         self.0
-            .try_get_ptr(&node_idx.0)
+            .try_get_ptr(node_idx.0)
             .map(|ptr| Node::new(&self.0, ptr))
     }
 
@@ -556,7 +556,7 @@ where
         node_idx: &NodeIdx<V>,
     ) -> Result<NodeMut<'_, V, M, P>, NodeIdxError> {
         self.0
-            .try_get_ptr(&node_idx.0)
+            .try_get_ptr(node_idx.0)
             .map(|ptr| NodeMut::new(&mut self.0, ptr))
     }
 
@@ -802,8 +802,8 @@ where
             Some(x) => x,
             None => return Err(NodeSwapError::NodeIdxError(NodeIdxError::RemovedNode)),
         };
-        let ptr_p = self.0.try_get_ptr(&first_idx.0)?;
-        let ptr_q = self.0.try_get_ptr(&second_idx.0)?;
+        let ptr_p = self.0.try_get_ptr(first_idx.0)?;
+        let ptr_q = self.0.try_get_ptr(second_idx.0)?;
 
         if ptr_p == ptr_q {
             Ok(())
