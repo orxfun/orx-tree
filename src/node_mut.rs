@@ -2584,7 +2584,7 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// for (l, leaf) in root.leaves_mut::<Bfs>().enumerate() {
-    /// *leaf += 100 * l;
+    ///     *leaf += 100 * l;
     /// }
     ///
     /// let bfs_leaves: Vec<_> = tree.root().leaves::<Bfs>().copied().collect();
@@ -2594,7 +2594,7 @@ where
     ///
     /// let mut n3 = tree.node_mut(&id3);
     /// for (l, leaf) in n3.leaves_mut::<PostOrder>().enumerate() {
-    /// *leaf -= 100 * l;
+    ///     *leaf -= 100 * l;
     /// }
     ///
     /// let n3 = tree.node(&id3);
