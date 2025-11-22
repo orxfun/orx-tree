@@ -332,7 +332,7 @@ where
     /// [`is_node_idx_valid`]: crate::Tree::is_node_idx_valid
     /// [`node_idx_error`]: crate::Tree::node_idx_error
     #[inline(always)]
-    pub fn is_node_idx_valid(&self, node_idx: &NodeIdx<V>) -> bool {
+    pub fn is_node_idx_valid(&self, node_idx: NodeIdx<V>) -> bool {
         node_idx.0.is_valid_for(&self.0)
     }
 
@@ -351,7 +351,7 @@ where
     ///
     /// [`is_node_idx_valid`]: crate::Tree::is_node_idx_valid
     /// [`node_idx_error`]: crate::Tree::node_idx_error
-    pub fn node_idx_error(&self, node_idx: &NodeIdx<V>) -> Option<NodeIdxError> {
+    pub fn node_idx_error(&self, node_idx: NodeIdx<V>) -> Option<NodeIdxError> {
         self.0.node_idx_error(node_idx.0)
     }
 
@@ -394,17 +394,17 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let n2 = tree.node(&id2);
+    /// let n2 = tree.node(id2);
     /// assert_eq!(n2.data(), &2);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
     /// ```
     #[inline(always)]
-    pub fn node(&self, node_idx: &NodeIdx<V>) -> Node<'_, V, M, P> {
+    pub fn node(&self, node_idx: NodeIdx<V>) -> Node<'_, V, M, P> {
         assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
         Node::new(&self.0, node_idx.0.node_ptr())
     }
@@ -458,7 +458,7 @@ where
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
     /// ```
     #[inline(always)]
-    pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<'_, V, M, P> {
+    pub fn node_mut(&mut self, node_idx: NodeIdx<V>) -> NodeMut<'_, V, M, P> {
         assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
@@ -481,7 +481,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn get_node(&self, node_idx: &NodeIdx<V>) -> Option<Node<'_, V, M, P>> {
+    pub fn get_node(&self, node_idx: NodeIdx<V>) -> Option<Node<'_, V, M, P>> {
         self.is_node_idx_valid(node_idx)
             .then(|| Node::new(&self.0, node_idx.0.node_ptr()))
     }
@@ -504,7 +504,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn get_node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<'_, V, M, P>> {
+    pub fn get_node_mut(&mut self, node_idx: NodeIdx<V>) -> Option<NodeMut<'_, V, M, P>> {
         self.is_node_idx_valid(node_idx)
             .then(|| NodeMut::new(&mut self.0, node_idx.0.node_ptr()))
     }
@@ -525,7 +525,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn try_node(&self, node_idx: &NodeIdx<V>) -> Result<Node<'_, V, M, P>, NodeIdxError> {
+    pub fn try_node(&self, node_idx: NodeIdx<V>) -> Result<Node<'_, V, M, P>, NodeIdxError> {
         self.0
             .try_get_ptr(node_idx.0)
             .map(|ptr| Node::new(&self.0, ptr))
@@ -549,7 +549,7 @@ where
     #[inline(always)]
     pub fn try_node_mut(
         &mut self,
-        node_idx: &NodeIdx<V>,
+        node_idx: NodeIdx<V>,
     ) -> Result<NodeMut<'_, V, M, P>, NodeIdxError> {
         self.0
             .try_get_ptr(node_idx.0)
@@ -566,7 +566,7 @@ where
     /// [`node`]: Self::node
     /// [`is_node_idx_valid`]: Self::is_node_idx_valid
     #[inline(always)]
-    pub unsafe fn node_unchecked(&self, node_idx: &NodeIdx<V>) -> Node<'_, V, M, P> {
+    pub unsafe fn node_unchecked(&self, node_idx: NodeIdx<V>) -> Node<'_, V, M, P> {
         Node::new(&self.0, node_idx.0.node_ptr())
     }
 
@@ -580,7 +580,7 @@ where
     /// [`node_mut`]: Self::node_mut
     /// [`is_node_idx_valid`]: Self::is_node_idx_valid
     #[inline(always)]
-    pub unsafe fn node_mut_unchecked(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<'_, V, M, P> {
+    pub unsafe fn node_mut_unchecked(&mut self, node_idx: NodeIdx<V>) -> NodeMut<'_, V, M, P> {
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
 
@@ -669,7 +669,7 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
     /// ```
-    pub fn swap_subtrees(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
+    pub fn swap_subtrees(&mut self, first_idx: NodeIdx<V>, second_idx: NodeIdx<V>) {
         assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
         assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
         let ptr_root = self.root_ptr().expect("tree is not empty");
@@ -791,8 +791,8 @@ where
     /// ```
     pub fn try_swap_nodes(
         &mut self,
-        first_idx: &NodeIdx<V>,
-        second_idx: &NodeIdx<V>,
+        first_idx: NodeIdx<V>,
+        second_idx: NodeIdx<V>,
     ) -> Result<(), NodeSwapError> {
         let ptr_root = match self.root_ptr() {
             Some(x) => x,
@@ -894,8 +894,8 @@ where
     /// ```
     pub unsafe fn swap_subtrees_unchecked(
         &mut self,
-        first_idx: &NodeIdx<V>,
-        second_idx: &NodeIdx<V>,
+        first_idx: NodeIdx<V>,
+        second_idx: NodeIdx<V>,
     ) {
         assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
         assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);

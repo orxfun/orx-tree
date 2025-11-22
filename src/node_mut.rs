@@ -163,14 +163,14 @@ where
     /// //  ╱ ╲   ╱
     /// // 4   3 6
     ///
-    /// tree.node_mut(&id4).swap_data_with(&id4); // does nothing
-    /// tree.node_mut(&id2).swap_data_with(&id1);
-    /// tree.node_mut(&id5).swap_data_with(&id3);
+    /// tree.node_mut(&id4).swap_data_with(id4); // does nothing
+    /// tree.node_mut(&id2).swap_data_with(id1);
+    /// tree.node_mut(&id5).swap_data_with(id3);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [2, 1, 5, 4, 3, 6]);
     /// ```
-    pub fn swap_data_with(&mut self, other_idx: &NodeIdx<V>) {
+    pub fn swap_data_with(&mut self, other_idx: NodeIdx<V>) {
         assert!(other_idx.0.is_valid_for(self.col), "{}", INVALID_IDX_ERROR);
         let a = self.node_ptr.clone();
         let b = other_idx.0.node_ptr();

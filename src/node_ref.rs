@@ -680,22 +680,22 @@ where
     ///
     /// // ancestor tests
     ///
-    /// assert!(tree.root().is_ancestor_of(&id4));
-    /// assert!(tree.root().is_ancestor_of(&id7));
+    /// assert!(tree.root().is_ancestor_of(id4));
+    /// assert!(tree.root().is_ancestor_of(id7));
     ///
-    /// assert!(tree.node(&id2).is_ancestor_of(&id5));
-    /// assert!(tree.node(&id3).is_ancestor_of(&id6));
+    /// assert!(tree.node(&id2).is_ancestor_of(id5));
+    /// assert!(tree.node(&id3).is_ancestor_of(id6));
     ///
     /// // the other way around
-    /// assert!(!tree.node(&id6).is_ancestor_of(&id3));
+    /// assert!(!tree.node(&id6).is_ancestor_of(id3));
     ///
     /// // a node is not an ancestor of itself
-    /// assert!(!tree.node(&id6).is_ancestor_of(&id6));
+    /// assert!(!tree.node(&id6).is_ancestor_of(id6));
     ///
     /// // nodes belong to independent subtrees
-    /// assert!(!tree.node(&id2).is_ancestor_of(&id6));
+    /// assert!(!tree.node(&id2).is_ancestor_of(id6));
     /// ```
-    fn is_ancestor_of(&self, idx: &NodeIdx<V>) -> bool {
+    fn is_ancestor_of(&self, idx: NodeIdx<V>) -> bool {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
         let descendant_ptr = idx.0.node_ptr();
         let ancestor_ptr = self.node_ptr().clone();
