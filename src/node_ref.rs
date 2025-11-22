@@ -619,7 +619,7 @@ where
     /// assert_eq!(ancestors_data, [2, 1]);
     /// ```
     fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
-        let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
+        let root_ptr = self.col().ends().get().expect("Tree is non-empty");
         AncestorsIterPtr::new(root_ptr, self.node_ptr())
             .skip(1)
             .map(|ptr| Node::new(self.col(), ptr))
@@ -696,7 +696,7 @@ where
     /// assert!(!tree.node(id2).is_ancestor_of(id6));
     /// ```
     fn is_ancestor_of(&self, idx: NodeIdx<V>) -> bool {
-        let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
+        let root_ptr = self.col().ends().get().expect("Tree is non-empty");
         let descendant_ptr = idx.0.node_ptr();
         let ancestor_ptr = self.node_ptr();
         AncestorsIterPtr::new(root_ptr, descendant_ptr)

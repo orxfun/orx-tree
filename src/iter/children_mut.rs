@@ -51,7 +51,7 @@ where
     type Item = NodeMut<'b, V, M, P, NodeMutDown>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.children_ptr.next().map(|p| self.next_child(p.clone()))
+        self.children_ptr.next().map(|p| self.next_child(*p))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -79,8 +79,6 @@ where
     'a: 'b,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.children_ptr
-            .next_back()
-            .map(|p| self.next_child(p.clone()))
+        self.children_ptr.next_back().map(|p| self.next_child(*p))
     }
 }

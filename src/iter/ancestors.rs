@@ -24,7 +24,7 @@ impl<V: TreeVariant> Iterator for AncestorsIterPtr<V> {
     type Item = NodePtr<V>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.current.clone().map(|ptr| {
+        self.current.map(|ptr| {
             let node = unsafe { &*ptr.ptr() };
 
             self.current = match ptr == self.root_ptr {
@@ -41,7 +41,7 @@ impl<V: TreeVariant> Clone for AncestorsIterPtr<V> {
     fn clone(&self) -> Self {
         Self {
             root_ptr: self.root_ptr,
-            current: self.current.clone(),
+            current: self.current,
         }
     }
 }

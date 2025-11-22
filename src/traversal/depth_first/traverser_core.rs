@@ -123,7 +123,7 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         O: Over,
     {
         let (col, root) = node_mut.into_inner();
-        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root.clone()));
+        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { DfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
     }
 }

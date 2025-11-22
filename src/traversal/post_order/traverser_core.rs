@@ -123,7 +123,7 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
         O: Over,
     {
         let (col, root) = node_mut.into_inner();
-        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root.clone()));
+        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { PostOrderIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
     }
 }
