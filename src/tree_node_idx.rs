@@ -206,7 +206,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// * is invalid for any other tree:
 ///   * `idx.is_valid_for(&other_tree)` => false
 ///   * `idx.node(other_tree)` => panics!!!
-///   * `idx.get_node(&other_tree)` => None
+///   * `idx.get_node(other_tree)` => None
 ///   * `idx.try_get_node(&other_tree)` => Err([`OutOfBounds`])
 ///
 /// However, it might later become invalid for the original tree due to two reasons.
@@ -216,7 +216,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// the corresponding index becomes invalid:
 /// * `idx.is_valid_for(&correct_tree)` => false
 /// * `idx.node(correct_tree)` => panics!!!
-/// * `idx.get_node(&correct_tree)` => None
+/// * `idx.get_node(correct_tree)` => None
 /// * `idx.try_get_node(&correct_tree)` => Err([`RemovedNode`])
 ///
 /// The second reason is implicit and closely related to [`MemoryPolicy`].
@@ -224,7 +224,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// the tree, all indices cached prior to the reorganization becomes invalid:
 /// * `idx.is_valid_for(&correct_tree)` => false
 /// * `idx.node(correct_tree)` => panics!!!
-/// * `idx.get_node(&correct_tree)` => None
+/// * `idx.get_node(correct_tree)` => None
 /// * `idx.try_get_node(&correct_tree)` => Err([`ReorganizedCollection`])
 ///
 /// The implicit invalidation is not desirable and can be avoided by using memory policies,

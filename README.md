@@ -318,7 +318,7 @@ let [id4, _] = other_tree.root_mut().push_children([4, 5]);
 other_tree.node_mut(id4).push_child(8);
 
 let id2 = tree
-    .node_mut(&id3)
+    .node_mut(id3)
     .push_sibling_tree(Side::Left, other_tree);
 let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
 assert_eq!(bfs, [1, 2, 3, 4, 5, 9, 8]);

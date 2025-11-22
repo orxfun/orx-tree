@@ -62,8 +62,8 @@ where
     /// assert_eq!(tree.get_node(indices[2]), None);
     /// assert_eq!(tree.try_node(indices[2]), Err(NodeIdxError::OutOfBounds));
     ///
-    /// assert_eq!(clone.get_node(&id2), None);
-    /// assert_eq!(clone.try_node(&id2), Err(NodeIdxError::OutOfBounds));
+    /// assert_eq!(clone.get_node(id2), None);
+    /// assert_eq!(clone.try_node(id2), Err(NodeIdxError::OutOfBounds));
     ///
     /// assert_eq!(clone.node(indices[2]).data(), &2);
     /// ```
