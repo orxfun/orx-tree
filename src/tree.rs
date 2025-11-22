@@ -215,7 +215,6 @@ where
     /// ```
     pub fn root(&self) -> Node<'_, V, M, P> {
         self.root_ptr()
-            .cloned()
             .map(|p| Node::new(&self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
     }
@@ -260,7 +259,6 @@ where
     /// ```
     pub fn root_mut(&mut self) -> NodeMut<'_, V, M, P> {
         self.root_ptr()
-            .cloned()
             .map(|p| NodeMut::new(&mut self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
     }
@@ -287,7 +285,7 @@ where
     /// assert_eq!(tree.root().data(), &'a');
     /// ```
     pub fn get_root(&self) -> Option<Node<'_, V, M, P>> {
-        self.root_ptr().cloned().map(|p| Node::new(&self.0, p))
+        self.root_ptr().map(|p| Node::new(&self.0, p))
     }
 
     /// Returns the root as a mutable node of the tree; None if the tree is empty.
@@ -312,9 +310,7 @@ where
     /// assert_eq!(tree.get_root_mut(), None);
     /// ```
     pub fn get_root_mut(&mut self) -> Option<NodeMut<'_, V, M, P>> {
-        self.root_ptr()
-            .cloned()
-            .map(|p| NodeMut::new(&mut self.0, p))
+        self.root_ptr().map(|p| NodeMut::new(&mut self.0, p))
     }
 
     // get nodes
@@ -807,9 +803,9 @@ where
 
         if ptr_p == ptr_q {
             Ok(())
-        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).any(|x| x == ptr_q) {
+        } else if AncestorsIterPtr::new(ptr_root, ptr_p).any(|x| x == ptr_q) {
             Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
-        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).any(|x| x == ptr_p) {
+        } else if AncestorsIterPtr::new(ptr_root, ptr_q).any(|x| x == ptr_p) {
             Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
         } else {
             // # SAFETY: all possible error cases are checked and handled
@@ -914,13 +910,13 @@ where
         let p = unsafe { &mut *ptr_p.ptr_mut() };
         let q = unsafe { &mut *ptr_q.ptr_mut() };
 
-        let parent_p = p.prev().get().cloned();
-        let parent_q = q.prev().get().cloned();
+        let parent_p = p.prev().get();
+        let parent_q = q.prev().get();
 
         match parent_p {
             Some(parent_ptr_p) => {
                 let parent_p = unsafe { &mut *parent_ptr_p.ptr_mut() };
-                parent_p.next_mut().replace_with(&ptr_p, ptr_q.clone());
+                parent_p.next_mut().replace_with(&ptr_p, ptr_q);
 
                 q.prev_mut().set_some(parent_ptr_p);
             }
@@ -1122,7 +1118,7 @@ where
     }
 
     /// Returns the pointer to the root; None if empty.
-    fn root_ptr(&self) -> Option<&NodePtr<V>> {
+    fn root_ptr(&self) -> Option<NodePtr<V>> {
         self.0.ends().get()
     }
 }

@@ -78,8 +78,8 @@ where
     }
 
     #[inline(always)]
-    fn node_ptr(&self) -> &NodePtr<V> {
-        &self.node_ptr
+    fn node_ptr(&self) -> NodePtr<V> {
+        self.node_ptr
     }
 }
 
@@ -222,8 +222,8 @@ where
     /// assert_eq!(bfs, [8, 1, 3, 2, 5, 6, 7, 4, 9, 10, 11]);
     /// ```
     pub fn swap_data_with_parent(&mut self) -> bool {
-        let a = self.node_ptr.clone();
-        let b = unsafe { &*a.ptr() }.prev().get().cloned();
+        let a = self.node_ptr;
+        let b = unsafe { &*a.ptr() }.prev().get();
         match b {
             Some(b) => {
                 Self::swap_data_of_nodes(a, b);
@@ -285,7 +285,7 @@ where
     /// ```
     pub fn push_child(&mut self, value: V::Item) -> NodeIdx<V> {
         let child_ptr = self.push_child_get_ptr(value);
-        self.node_idx_for(&child_ptr)
+        self.node_idx_for(child_ptr)
     }
 
     /// Pushes the given constant number of `values` as children of this node;
@@ -335,7 +335,7 @@ where
     pub fn push_children<const N: usize>(&mut self, values: [V::Item; N]) -> [NodeIdx<V>; N] {
         values.map(|child| {
             let child_ptr = self.push_child_get_ptr(child);
-            self.node_idx_for(&child_ptr)
+            self.node_idx_for(child_ptr)
         })
     }
 
@@ -403,7 +403,7 @@ where
             let child_ptr = self.push_child_get_ptr(value);
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
-                &child_ptr,
+                child_ptr,
             ))
         })
     }
@@ -804,8 +804,8 @@ where
             Side::Right => self.sibling_idx() + 1,
         };
 
-        let ptr = Self::insert_sibling_get_ptr(self.col, value, &parent_ptr, position);
-        self.node_idx_for(&ptr)
+        let ptr = Self::insert_sibling_get_ptr(self.col, value, parent_ptr, position);
+        self.node_idx_for(ptr)
     }
 
     /// Pushes the given constant number of `values` as:
@@ -884,12 +884,11 @@ where
         };
 
         values.map(|sibling| {
-            let sibling_ptr =
-                Self::insert_sibling_get_ptr(self.col, sibling, &parent_ptr, position);
+            let sibling_ptr = Self::insert_sibling_get_ptr(self.col, sibling, parent_ptr, position);
             position += 1;
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
-                &sibling_ptr,
+                sibling_ptr,
             ))
         })
     }
@@ -975,12 +974,11 @@ where
         };
 
         values.into_iter().map(move |sibling| {
-            let sibling_ptr =
-                Self::insert_sibling_get_ptr(self.col, sibling, &parent_ptr, position);
+            let sibling_ptr = Self::insert_sibling_get_ptr(self.col, sibling, parent_ptr, position);
             position += 1;
             NodeIdx(orx_selfref_col::NodeIdx::new(
                 self.col.memory_state(),
-                &sibling_ptr,
+                sibling_ptr,
             ))
         })
     }
@@ -1407,36 +1405,34 @@ where
     pub fn push_parent(&mut self, value: V::Item) -> NodeIdx<V> {
         let parent_ptr = self.col.push(value);
 
-        let child_ptr = self.node_ptr.clone();
+        let child_ptr = self.node_ptr;
         let child = unsafe { &mut *child_ptr.ptr_mut() };
 
-        let ancestor_ptr = child.prev().get().cloned();
+        let ancestor_ptr = child.prev().get();
 
         // down arrows
         match &ancestor_ptr {
             Some(ancestor_ptr) => {
                 let ancestor = unsafe { &mut *ancestor_ptr.ptr_mut() };
-                ancestor
-                    .next_mut()
-                    .replace_with(&child_ptr, parent_ptr.clone());
+                ancestor.next_mut().replace_with(&child_ptr, parent_ptr);
             }
             None => {
                 // this node was the root => parent will be the new root
-                self.col.ends_mut().set_some(parent_ptr.clone());
+                self.col.ends_mut().set_some(parent_ptr);
             }
         }
 
         let parent = unsafe { &mut *parent_ptr.ptr_mut() };
-        parent.next_mut().push(child_ptr.clone());
+        parent.next_mut().push(child_ptr);
 
         // up arrows
 
         let child = unsafe { &mut *child_ptr.ptr_mut() };
-        child.prev_mut().set_some(parent_ptr.clone());
+        child.prev_mut().set_some(parent_ptr);
 
         parent.prev_mut().set(ancestor_ptr);
 
-        self.node_idx_for(&parent_ptr)
+        self.node_idx_for(parent_ptr)
     }
 
     // shrink
@@ -1530,10 +1526,10 @@ where
         // taking its data out and emptying all of its previous and next links.
         // Close operation is lazy and does not invalidate the pointers that we the
         // shared reference to create.
-        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr.clone()));
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr));
         for ptr in iter {
             if ptr != self.node_ptr {
-                self.col.close(&ptr);
+                self.col.close(ptr);
             }
         }
 
@@ -1547,14 +1543,14 @@ where
         }
 
         let root_ptr = self.col.ends().get().expect("tree is not empty");
-        if root_ptr == &self.node_ptr {
+        if root_ptr == self.node_ptr {
             self.col.ends_mut().clear();
         }
 
         // # SAFETY: On the other hand, close_and_reclaim might trigger a reclaim
         // operation which moves around the nodes, invalidating other pointers;
         // however, only after 'self.node_ptr' is also closed.
-        self.col.close_and_reclaim(&self.node_ptr)
+        self.col.close_and_reclaim(self.node_ptr)
     }
 
     /// Removes this node and returns its data;
@@ -1661,7 +1657,7 @@ where
             }
         }
 
-        self.col.close_and_reclaim(&self.node_ptr)
+        self.col.close_and_reclaim(self.node_ptr)
     }
 
     /// Removes all children of this node together with the subtrees rooted at the children.
@@ -2889,10 +2885,10 @@ where
 
         let child_ptr = self.col.push(value);
 
-        let child = self.col.node_mut(&child_ptr);
+        let child = self.col.node_mut(child_ptr);
         child.prev_mut().set_some(parent_ptr.clone());
 
-        let parent = self.col.node_mut(&parent_ptr);
+        let parent = self.col.node_mut(parent_ptr);
         parent.next_mut().push(child_ptr.clone());
 
         child_ptr
@@ -2901,16 +2897,16 @@ where
     fn insert_sibling_get_ptr(
         col: &mut Col<V, M, P>,
         value: V::Item,
-        parent_ptr: &NodePtr<V>,
+        parent_ptr: NodePtr<V>,
         position: usize,
     ) -> NodePtr<V> {
         let sibling_ptr = col.push(value);
 
-        let child = col.node_mut(&sibling_ptr);
-        child.prev_mut().set_some(parent_ptr.clone());
+        let child = col.node_mut(sibling_ptr);
+        child.prev_mut().set_some(parent_ptr);
 
         let parent = col.node_mut(parent_ptr);
-        parent.next_mut().insert(position, sibling_ptr.clone());
+        parent.next_mut().insert(position, sibling_ptr);
 
         sibling_ptr
     }
@@ -2920,15 +2916,15 @@ where
     }
 
     pub(crate) fn parent_ptr(&self) -> Option<NodePtr<V>> {
-        self.node().prev().get().cloned()
+        self.node().prev().get()
     }
 
     /// Returns the pointer to the root; None if empty.
-    pub(crate) fn root_ptr(&self) -> Option<&NodePtr<V>> {
+    pub(crate) fn root_ptr(&self) -> Option<NodePtr<V>> {
         self.col.ends().get()
     }
 
-    fn node_idx_for(&self, ptr: &NodePtr<V>) -> NodeIdx<V> {
+    fn node_idx_for(&self, ptr: NodePtr<V>) -> NodeIdx<V> {
         NodeIdx(orx_selfref_col::NodeIdx::new(self.col.memory_state(), ptr))
     }
 
@@ -2951,8 +2947,8 @@ where
             true => self.push_child(value),
             false => {
                 let ptr =
-                    Self::insert_sibling_get_ptr(self.col, value, &self.node_ptr, child_position);
-                self.node_idx_for(&ptr)
+                    Self::insert_sibling_get_ptr(self.col, value, self.node_ptr, child_position);
+                self.node_idx_for(ptr)
             }
         };
 
@@ -3091,11 +3087,7 @@ where
     /// assert_eq!(dfs, ['x', 'a', 'c', 'd', 'e', 'b', 'f', 'g']);
     /// ```
     pub fn parent_mut(&mut self) -> Option<NodeMut<'_, V, M, P>> {
-        self.node()
-            .prev()
-            .get()
-            .cloned()
-            .map(|p| NodeMut::new(self.col, p))
+        self.node().prev().get().map(|p| NodeMut::new(self.col, p))
     }
 
     /// Consumes this mutable node and returns the mutable node of its parent,
@@ -3155,10 +3147,6 @@ where
     /// assert_eq!(dfs, ['r', 'a', 'c', 'd', 'e', 'b', 'f', 'g', 'h', 'i', 'j']);
     /// ```
     pub fn into_parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
-        self.node()
-            .prev()
-            .get()
-            .cloned()
-            .map(|p| NodeMut::new(self.col, p))
+        self.node().prev().get().map(|p| NodeMut::new(self.col, p))
     }
 }

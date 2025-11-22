@@ -80,7 +80,7 @@ where
     }
 
     #[inline(always)]
-    fn node_ptr(&self) -> &NodePtr<V> {
-        &self.node_ptr
+    fn node_ptr(&self) -> NodePtr<V> {
+        self.node_ptr
     }
 }

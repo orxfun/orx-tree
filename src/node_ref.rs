@@ -26,7 +26,7 @@ where
 {
     fn col(&self) -> &'a Col<V, M, P>;
 
-    fn node_ptr(&self) -> &NodePtr<V>;
+    fn node_ptr(&self) -> NodePtr<V>;
 
     #[inline(always)]
     fn node(&self) -> &'a N<V> {
@@ -503,7 +503,7 @@ where
             .map(|parent| {
                 let ptr = self.node_ptr();
                 let mut children = parent.next().children_ptr();
-                children.position(|x| x == ptr).expect("this node exists")
+                children.position(|x| *x == ptr).expect("this node exists")
             })
             .unwrap_or(0)
     }
@@ -1238,10 +1238,10 @@ where
         T: Traverser<OverData>,
     {
         let node_ptr = self.node_ptr();
-        T::iter_ptr_with_owned_storage(node_ptr.clone())
+        T::iter_ptr_with_owned_storage(node_ptr)
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
-            .map(|x: NodePtr<V>| {
-                let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
+            .map(move |x: NodePtr<V>| {
+                let iter = AncestorsIterPtr::new(node_ptr, x);
                 iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
             })
     }
@@ -1455,7 +1455,7 @@ where
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
                 unsafe { &*ptr.ptr() }.next().is_empty()
             })
-            .map(|x| {
+            .map(move |x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(&x);
                 let iter = AncestorsIterPtr::new(node_ptr.clone(), ptr.clone());
                 iter.map(|ptr: NodePtr<V>| {
@@ -1942,7 +1942,7 @@ where
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();
         T::iter_ptr_with_owned_storage(node_ptr.clone())
-            .map(move |x: NodePtr<V>| NodeIdx(orx_selfref_col::NodeIdx::new(state, &x)))
+            .map(move |x: NodePtr<V>| NodeIdx(orx_selfref_col::NodeIdx::new(state, x)))
     }
 
     /// Returns an iterator of node indices.
@@ -1979,7 +1979,7 @@ where
         let state = self.col().memory_state();
         T::iter_ptr_with_storage(node_ptr.clone(), traverser.storage_mut()).map(move |x| {
             <O::Enumeration as Enumeration>::map_node_data(x, |ptr: NodePtr<V>| {
-                NodeIdx(orx_selfref_col::NodeIdx::new(state, &ptr))
+                NodeIdx(orx_selfref_col::NodeIdx::new(state, ptr))
             })
         })
     }

@@ -49,7 +49,7 @@ where
 
     fn root_parent_ptr(&self) -> Option<NodePtr<V>> {
         let root = unsafe { &*self.node.node_ptr().ptr() };
-        root.prev().get().cloned()
+        root.prev().get()
     }
 
     fn root_sibling_idx(&self) -> usize {

@@ -28,7 +28,7 @@ impl<V: TreeVariant> Iterator for AncestorsIterPtr<V> {
             let node = unsafe { &*ptr.ptr() };
 
             self.current = match ptr == self.root_ptr {
-                false => node.prev().get().cloned(),
+                false => node.prev().get(),
                 true => None,
             };
 
