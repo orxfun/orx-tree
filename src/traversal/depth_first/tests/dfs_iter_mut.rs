@@ -55,7 +55,7 @@ fn dfs_iter_mut_val() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter =
         unsafe { DfsIterMut::<_, Auto, SplitRecursive, Val, _, &mut i32>::from((&tree.0, iter)) };
@@ -65,7 +65,7 @@ fn dfs_iter_mut_val() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -80,7 +80,7 @@ fn dfs_iter_mut_depth() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
         DfsIterMut::<_, Auto, SplitRecursive, DepthVal, _, &mut i32>::from((&tree.0, iter))
@@ -91,7 +91,7 @@ fn dfs_iter_mut_depth() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -106,7 +106,7 @@ fn dfs_iter_mut_sibling() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
         DfsIterMut::<_, Auto, SplitRecursive, SiblingIdxVal, _, &mut i32>::from((&tree.0, iter))
@@ -117,7 +117,7 @@ fn dfs_iter_mut_sibling() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -132,7 +132,7 @@ fn dfs_iter_mut_depth_sibling() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
         DfsIterMut::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &mut i32>::from((
@@ -145,7 +145,7 @@ fn dfs_iter_mut_depth_sibling() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = DfsIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = DfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(

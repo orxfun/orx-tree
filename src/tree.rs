@@ -680,11 +680,11 @@ where
             true => {}
             false => {
                 assert!(
-                    AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).all(|x| x != ptr_q),
+                    AncestorsIterPtr::new(ptr_root.clone(), ptr_p).all(|x| x != ptr_q),
                     "Node with `second_idx` is an ancestor of the node with `first_idx`; cannot swap nodes."
                 );
                 assert!(
-                    AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).all(|x| x != ptr_p),
+                    AncestorsIterPtr::new(ptr_root.clone(), ptr_q).all(|x| x != ptr_p),
                     "Node with `first_idx` is an ancestor of the node with `second_idx`; cannot swap nodes."
                 );
                 // # SAFETY: all possible error cases are checked and handled

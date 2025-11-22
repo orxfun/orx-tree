@@ -1773,7 +1773,7 @@ where
     where
         F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
     {
-        let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr().clone()), next_node);
+        let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr()), next_node);
         iter_ptr.map(|ptr| {
             let node = unsafe { &mut *ptr.ptr_mut() };
             node.data_mut()
@@ -2602,7 +2602,7 @@ where
     where
         T: Traverser<OverData>,
     {
-        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+        T::iter_ptr_with_owned_storage(self.node_ptr())
                 .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
                 .map(|x: NodePtr<V>| {
                     <OverData as Over>::Enumeration::from_element_ptr_mut::<

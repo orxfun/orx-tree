@@ -44,7 +44,7 @@ where
     V::Item: Copy,
 {
     fn root_ptr(&self) -> NodePtr<V> {
-        self.node.node_ptr().clone()
+        self.node.node_ptr()
     }
 
     fn root_parent_ptr(&self) -> Option<NodePtr<V>> {
@@ -57,7 +57,7 @@ where
     }
 
     fn create_subtree(&mut self) -> impl IntoIterator<Item = (usize, <V>::Item)> {
-        let ptr = self.node.node_ptr().clone();
+        let ptr = self.node.node_ptr();
         let iter_ptr = Dfs::<OverDepthPtr>::iter_ptr_with_owned_storage(ptr);
         iter_ptr.map(|(depth, ptr)| {
             (

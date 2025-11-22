@@ -47,7 +47,7 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
         M: MemoryPolicy,
         P: PinnedStorage,
     {
-        let root = node.node_ptr().clone();
+        let root = node.node_ptr();
         let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root));
         PostOrderIterRef::from((node.col(), iter_ptr))
     }
@@ -106,7 +106,7 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
         MO: NodeMutOrientation,
         O: OverMut,
     {
-        let root = node_mut.node_ptr().clone();
+        let root = node_mut.node_ptr();
         let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { PostOrderIterMut::from((node_mut.col(), iter_ptr)) }
     }

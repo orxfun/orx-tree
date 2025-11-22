@@ -56,7 +56,7 @@ fn bfs_iter_mut_val() {
     let mut queue = VecDeque::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     let iter =
         unsafe { BfsIterMut::<_, Auto, SplitRecursive, Val, _, &mut i32>::from((&tree.0, iter)) };
@@ -66,7 +66,7 @@ fn bfs_iter_mut_val() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, Val, _>::from((&mut queue, ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -81,7 +81,7 @@ fn bfs_iter_mut_depth() {
     let mut queue = VecDeque::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, DepthVal, _>::from((&mut queue, ptr));
     let iter = unsafe {
         BfsIterMut::<_, Auto, SplitRecursive, DepthVal, _, &mut i32>::from((&tree.0, iter))
@@ -92,7 +92,7 @@ fn bfs_iter_mut_depth() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, Val, _>::from((VecDeque::new(), ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -107,7 +107,7 @@ fn bfs_iter_mut_sibling() {
     let mut queue = VecDeque::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, SiblingIdxVal, _>::from((&mut queue, ptr));
     let iter = unsafe {
         BfsIterMut::<_, Auto, SplitRecursive, SiblingIdxVal, _, &mut i32>::from((&tree.0, iter))
@@ -118,7 +118,7 @@ fn bfs_iter_mut_sibling() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, Val, _>::from((VecDeque::new(), ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -133,7 +133,7 @@ fn bfs_iter_mut_depth_sibling() {
     let mut queue = VecDeque::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut queue, ptr));
     let iter = unsafe {
         BfsIterMut::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &mut i32>::from((
@@ -146,7 +146,7 @@ fn bfs_iter_mut_depth_sibling() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = BfsIterPtr::<_, Val, _>::from((VecDeque::new(), ptr));
     let iter = BfsIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(

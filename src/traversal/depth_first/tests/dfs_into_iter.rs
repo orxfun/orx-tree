@@ -56,7 +56,7 @@ fn dfs_into_iter_partially_used(use_iter: UseIter) {
         let mut stack = Vec::default();
 
         let root = tree.root();
-        let ptr = root.node_ptr().clone();
+        let ptr = root.node_ptr();
         let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr.clone()));
         {
             let mut iter = unsafe {
@@ -82,7 +82,7 @@ fn dfs_into_iter_partially_used(use_iter: UseIter) {
 
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
-        let ptr = n3.node_ptr().clone();
+        let ptr = n3.node_ptr();
         let iter = DfsIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         {
             let mut iter = unsafe {
@@ -114,7 +114,7 @@ fn dfs_into_iter_partially_used(use_iter: UseIter) {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
-        let ptr = n7.node_ptr().clone();
+        let ptr = n7.node_ptr();
         let iter = DfsIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         {
             let mut iter = unsafe {
@@ -148,7 +148,7 @@ fn dfs_into_iter_val() {
         let mut stack = Vec::default();
 
         let root = tree.root();
-        let ptr = root.node_ptr().clone();
+        let ptr = root.node_ptr();
         let iter = DfsIterPtr::<_, Val, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
@@ -169,7 +169,7 @@ fn dfs_into_iter_val() {
 
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
-        let ptr = n3.node_ptr().clone();
+        let ptr = n3.node_ptr();
         let iter = DfsIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
@@ -193,7 +193,7 @@ fn dfs_into_iter_val() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
-        let ptr = n7.node_ptr().clone();
+        let ptr = n7.node_ptr();
         let iter = DfsIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
@@ -219,7 +219,7 @@ fn dfs_into_iter_depth() {
         let mut stack = Vec::default();
 
         let root = tree.root();
-        let ptr = root.node_ptr().clone();
+        let ptr = root.node_ptr();
         let iter = DfsIterPtr::<_, DepthVal, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, DepthVal, _>::from((&mut tree.0, iter, ptr))
@@ -243,7 +243,7 @@ fn dfs_into_iter_depth() {
 
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
-        let ptr = n3.node_ptr().clone();
+        let ptr = n3.node_ptr();
         let iter = DfsIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, DepthVal, _>::from((&mut tree.0, iter, ptr))
@@ -270,7 +270,7 @@ fn dfs_into_iter_depth() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
-        let ptr = n7.node_ptr().clone();
+        let ptr = n7.node_ptr();
         let iter = DfsIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, DepthVal, _>::from((&mut tree.0, iter, ptr))
@@ -299,7 +299,7 @@ fn dfs_into_iter_sibling_idx() {
         let mut stack = Vec::default();
 
         let root = tree.root();
-        let ptr = root.node_ptr().clone();
+        let ptr = root.node_ptr();
         let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, SiblingIdxVal, _>::from((&mut tree.0, iter, ptr))
@@ -323,7 +323,7 @@ fn dfs_into_iter_sibling_idx() {
 
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
-        let ptr = n3.node_ptr().clone();
+        let ptr = n3.node_ptr();
         let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, SiblingIdxVal, _>::from((&mut tree.0, iter, ptr))
@@ -350,7 +350,7 @@ fn dfs_into_iter_sibling_idx() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
-        let ptr = n7.node_ptr().clone();
+        let ptr = n7.node_ptr();
         let iter = DfsIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, SiblingIdxVal, _>::from((&mut tree.0, iter, ptr))
@@ -379,7 +379,7 @@ fn dfs_into_iter_depth_sibling_idx() {
         let mut stack = Vec::default();
 
         let root = tree.root();
-        let ptr = root.node_ptr().clone();
+        let ptr = root.node_ptr();
         let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _>::from((
@@ -409,7 +409,7 @@ fn dfs_into_iter_depth_sibling_idx() {
 
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
-        let ptr = n3.node_ptr().clone();
+        let ptr = n3.node_ptr();
         let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _>::from((
@@ -442,7 +442,7 @@ fn dfs_into_iter_depth_sibling_idx() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
-        let ptr = n7.node_ptr().clone();
+        let ptr = n7.node_ptr();
         let iter = DfsIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
         let iter = unsafe {
             DfsIterInto::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _>::from((

@@ -47,7 +47,7 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         M: MemoryPolicy,
         P: PinnedStorage,
     {
-        let root = node.node_ptr().clone();
+        let root = node.node_ptr();
         let iter = DfsIterPtr::<_, O::Enumeration, _>::from((storage, root));
         DfsIterRef::<'_, _, M, P, _, _, _>::from((node.col(), iter))
     }
@@ -106,7 +106,7 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         MO: NodeMutOrientation,
         O: OverMut,
     {
-        let root = node_mut.node_ptr().clone();
+        let root = node_mut.node_ptr();
         let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { DfsIterMut::from((node_mut.col(), iter_ptr)) }
     }

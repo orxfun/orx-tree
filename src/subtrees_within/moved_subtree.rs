@@ -28,7 +28,7 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
         MO: NodeMutOrientation,
     {
         let root_ptr = parent.root_ptr().expect("non-empty tree");
-        let ptr_parent = parent.node_ptr().clone();
+        let ptr_parent = parent.node_ptr();
         let ptr_child = parent
             .col()
             .try_get_ptr(self.idx.0)

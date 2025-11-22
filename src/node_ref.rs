@@ -620,7 +620,7 @@ where
     /// ```
     fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
-        AncestorsIterPtr::new(root_ptr, self.node_ptr().clone())
+        AncestorsIterPtr::new(root_ptr, self.node_ptr())
             .skip(1)
             .map(|ptr| Node::new(self.col(), ptr))
     }
@@ -698,7 +698,7 @@ where
     fn is_ancestor_of(&self, idx: NodeIdx<V>) -> bool {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty").clone();
         let descendant_ptr = idx.0.node_ptr();
-        let ancestor_ptr = self.node_ptr().clone();
+        let ancestor_ptr = self.node_ptr();
         AncestorsIterPtr::new(root_ptr, descendant_ptr)
             .skip(1) // a node is not an ancestor of itself
             .any(|ptr| ptr == ancestor_ptr)
@@ -740,7 +740,7 @@ where
     /// ```
     fn height(&self) -> usize {
         let mut traverser = Dfs::<OverDepthPtr>::new();
-        Dfs::<OverDepthPtr>::iter_ptr_with_storage(self.node_ptr().clone(), traverser.storage_mut())
+        Dfs::<OverDepthPtr>::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
             .map(|(depth, _)| depth)
             .max()
             .expect("the iterator is not empty")
@@ -815,7 +815,7 @@ where
     where
         F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
     {
-        let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr().clone()), next_node);
+        let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr()), next_node);
         iter_ptr.map(|ptr| {
             let node = unsafe { &*ptr.ptr() };
             node.data()
@@ -1717,7 +1717,7 @@ where
     where
         T: Traverser<OverData>,
     {
-        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+        T::iter_ptr_with_owned_storage(self.node_ptr())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(|x: NodePtr<V>| {
                 <OverData as Over>::Enumeration::from_element_ptr::<'a, V, M, P, &'a V::Item>(
@@ -1836,7 +1836,7 @@ where
         O: Over,
         T: Traverser<O>,
     {
-        T::iter_ptr_with_storage(self.node_ptr().clone(), traverser.storage_mut())
+        T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
                 unsafe { &*ptr.ptr() }.next().is_empty()

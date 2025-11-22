@@ -58,7 +58,7 @@ fn post_order_iter_mut_val() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = unsafe {
         PostOrderIterMut::<_, Auto, SplitRecursive, Val, _, &mut i32>::from((&mut tree.0, iter))
@@ -69,7 +69,7 @@ fn post_order_iter_mut_val() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -84,7 +84,7 @@ fn post_order_iter_mut_depth() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
         PostOrderIterMut::<_, Auto, SplitRecursive, DepthVal, _, &mut i32>::from((
@@ -98,7 +98,7 @@ fn post_order_iter_mut_depth() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -113,7 +113,7 @@ fn post_order_iter_mut_sibling() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
         PostOrderIterMut::<_, Auto, SplitRecursive, SiblingIdxVal, _, &mut i32>::from((
@@ -127,7 +127,7 @@ fn post_order_iter_mut_sibling() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(
@@ -142,7 +142,7 @@ fn post_order_iter_mut_depth_sibling() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr));
     let iter = unsafe {
         PostOrderIterMut::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _, &mut i32>::from((
@@ -156,7 +156,7 @@ fn post_order_iter_mut_depth_sibling() {
     }
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::new(), ptr));
     let iter = PostOrderIterRef::<_, Auto, SplitRecursive, Val, _, &i32>::from((root.col(), iter));
     assert_eq!(

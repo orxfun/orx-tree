@@ -47,7 +47,7 @@ impl<O: Over> TraverserCore<O> for Bfs<O> {
         M: MemoryPolicy,
         P: PinnedStorage,
     {
-        let root = node.node_ptr().clone();
+        let root = node.node_ptr();
         let iter = BfsIterPtr::<_, O::Enumeration, _>::from((storage, root));
         BfsIterRef::<'_, _, M, P, _, _, _>::from((node.col(), iter))
     }
@@ -106,7 +106,7 @@ impl<O: Over> TraverserCore<O> for Bfs<O> {
         MO: NodeMutOrientation,
         O: OverMut,
     {
-        let root = node_mut.node_ptr().clone();
+        let root = node_mut.node_ptr();
         let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { BfsIterMut::from((node_mut.col(), iter_ptr)) }
     }
