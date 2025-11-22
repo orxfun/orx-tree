@@ -1414,7 +1414,7 @@ where
         match &ancestor_ptr {
             Some(ancestor_ptr) => {
                 let ancestor = unsafe { &mut *ancestor_ptr.ptr_mut() };
-                ancestor.next_mut().replace_with(&child_ptr, parent_ptr);
+                ancestor.next_mut().replace_with(child_ptr, parent_ptr);
             }
             None => {
                 // this node was the root => parent will be the new root
@@ -1836,7 +1836,6 @@ where
         self.node()
             .next()
             .get_ptr(child_index)
-            .cloned()
             .map(move |p| NodeMut::new(self.col, p))
     }
 

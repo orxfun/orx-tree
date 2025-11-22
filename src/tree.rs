@@ -916,7 +916,7 @@ where
         match parent_p {
             Some(parent_ptr_p) => {
                 let parent_p = unsafe { &mut *parent_ptr_p.ptr_mut() };
-                parent_p.next_mut().replace_with(&ptr_p, ptr_q);
+                parent_p.next_mut().replace_with(ptr_p, ptr_q);
 
                 q.prev_mut().set_some(parent_ptr_p);
             }
@@ -928,7 +928,7 @@ where
         match parent_q {
             Some(parent_ptr_q) => {
                 let parent_q = unsafe { &mut *parent_ptr_q.ptr_mut() };
-                parent_q.next_mut().replace_with(&ptr_q, ptr_p);
+                parent_q.next_mut().replace_with(ptr_q, ptr_p);
 
                 p.prev_mut().set_some(parent_ptr_q);
             }
