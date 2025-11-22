@@ -7,11 +7,11 @@ fn main() {
 
     let mut root = tree.root_mut();
     let [id2, id3] = root.push_children([2, 3]);
-    let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    let id8 = tree.node_mut(&id4).push_child(8);
-    let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    tree.node_mut(&id6).push_child(9);
-    let [_, id11] = tree.node_mut(&id7).push_children([10, 11]);
+    let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    let id8 = tree.node_mut(id4).push_child(8);
+    let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    tree.node_mut(id6).push_child(9);
+    let [_, id11] = tree.node_mut(id7).push_children([10, 11]);
 
     print!("{}", &tree);
     // 1
@@ -27,9 +27,9 @@ fn main() {
     //       └──11
 
     let root = tree.root();
-    let n3 = tree.node(&id3);
-    let n8 = tree.node(&id8);
-    let n11 = tree.node(&id11);
+    let n3 = tree.node(id3);
+    let n8 = tree.node(id8);
+    let n11 = tree.node(id11);
 
     // leaves
 

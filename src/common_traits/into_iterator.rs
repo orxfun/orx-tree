@@ -41,12 +41,12 @@ where
     /// let mut root = tree.root_mut();
     /// let [id1, id2] = root.push_children([1, 2]);
     ///
-    /// let mut n1 = tree.node_mut(&id1);
+    /// let mut n1 = tree.node_mut(id1);
     /// let [id3, _] = n1.push_children([3, 4]);
     ///
-    /// tree.node_mut(&id3).push_child(7);
+    /// tree.node_mut(id3).push_child(7);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// n2.push_children([5, 6]);
     ///
     /// // transform the tree into an arbitrary order iterator
@@ -142,12 +142,12 @@ where
     /// let mut root = tree.root_mut();
     /// let [id1, id2] = root.push_children([1, 2]);
     ///
-    /// let mut n1 = tree.node_mut(&id1);
+    /// let mut n1 = tree.node_mut(id1);
     /// let [id3, _] = n1.push_children([3, 4]);
     ///
-    /// tree.node_mut(&id3).push_child(7);
+    /// tree.node_mut(id3).push_child(7);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// n2.push_children([5, 6]);
     ///
     /// // iterate over the tree in an arbitrary order
@@ -245,12 +245,12 @@ where
     /// let mut root = tree.root_mut();
     /// let [id1, id2] = root.push_children([1, 2]);
     ///
-    /// let mut n1 = tree.node_mut(&id1);
+    /// let mut n1 = tree.node_mut(id1);
     /// let [id3, _] = n1.push_children([3, 4]);
     ///
-    /// tree.node_mut(&id3).push_child(7);
+    /// tree.node_mut(id3).push_child(7);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// n2.push_children([5, 6]);
     ///
     /// // mutably iterate over the tree in an arbitrary order

@@ -22,16 +22,16 @@ fn tree() -> DynTree<i32> {
     let mut root = tree.root_mut();
     let [id2, id3] = root.push_children([2, 3]);
 
-    let mut n2 = tree.node_mut(&id2);
+    let mut n2 = tree.node_mut(id2);
     let [id4, _] = n2.push_children([4, 5]);
 
-    tree.node_mut(&id4).push_child(8);
+    tree.node_mut(id4).push_child(8);
 
-    let mut n3 = tree.node_mut(&id3);
+    let mut n3 = tree.node_mut(id3);
     let [id6, id7] = n3.push_children([6, 7]);
 
-    tree.node_mut(&id6).push_child(9);
-    tree.node_mut(&id7).push_children([10, 11]);
+    tree.node_mut(id6).push_child(9);
+    tree.node_mut(id7).push_children([10, 11]);
 
     tree
 }
@@ -60,17 +60,17 @@ fn post_order_iter_ptr() {
     let mut stack = Vec::default();
 
     let root = tree.root();
-    let ptr = root.node_ptr().clone();
+    let ptr = root.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     assert_eq!(data(iter), [8, 4, 5, 2, 9, 6, 10, 11, 7, 3, 1]);
 
     let n3 = root.get_child(1).unwrap();
-    let ptr = n3.node_ptr().clone();
+    let ptr = n3.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
     assert_eq!(data(iter), [9, 6, 10, 11, 7, 3]);
 
     let n7 = n3.get_child(1).unwrap();
-    let ptr = n7.node_ptr().clone();
+    let ptr = n7.node_ptr();
     let iter = PostOrderIterPtr::<_, Val, _>::from((stack, ptr));
     assert_eq!(data(iter), [10, 11, 7]);
 }

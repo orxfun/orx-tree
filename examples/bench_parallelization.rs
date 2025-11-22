@@ -39,7 +39,7 @@ fn build_tree(total_depth: usize) -> DaryTree<4, usize> {
         let leaves: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
         for idx in leaves {
             let count = tree.len();
-            let mut node = tree.node_mut(&idx);
+            let mut node = tree.node_mut(idx);
             for j in 0..4 {
                 node.push_child(count + j);
             }

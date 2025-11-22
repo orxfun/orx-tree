@@ -53,7 +53,9 @@ where
 
         let child = children
             .iter_mut()
-            .find(|x| x.ptr() == occupied)
+            // SAFETY: we have a mutual &mut reference to the underlying collection
+            // which is guaranteed to be in the same memory state as occupied
+            .find(|x| unsafe { x.ptr() == occupied })
             .expect("valid tree state ensures this");
 
         *child = NodePtr::new(vacant);
@@ -68,7 +70,9 @@ where
 
     // root => vacant
 
-    if occupied == col.ends().get().expect("nonempty tree").ptr() {
+    // SAFETY: we have a mutual &mut reference to the underlying collection
+    // which is guaranteed to be in the same memory state as occupied
+    if occupied == unsafe { col.ends().get().expect("nonempty tree").ptr() } {
         col.ends_mut().set_some(NodePtr::new(vacant));
     }
 

@@ -36,7 +36,7 @@ pub trait RefsChildren<V: Variant> {
         V: 'a,
         V::Item: Send + Sync;
 
-    fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>>;
+    fn get_ptr(&self, i: usize) -> Option<NodePtr<V>>;
 
     // mut
 
@@ -44,11 +44,8 @@ pub trait RefsChildren<V: Variant> {
 
     fn insert(&mut self, position: usize, node_ptr: NodePtr<V>);
 
-    fn replace_with(
-        &mut self,
-        old_node_ptr: &NodePtr<V>,
-        new_node_ptr: NodePtr<V>,
-    ) -> Option<usize>;
+    fn replace_with(&mut self, old_node_ptr: NodePtr<V>, new_node_ptr: NodePtr<V>)
+    -> Option<usize>;
 }
 
 impl<V: Variant> RefsChildren<V> for RefsVec<V> {
@@ -78,7 +75,7 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     }
 
     #[inline(always)]
-    fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>> {
+    fn get_ptr(&self, i: usize) -> Option<NodePtr<V>> {
         self.get(i)
     }
 
@@ -95,7 +92,7 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     #[inline(always)]
     fn replace_with(
         &mut self,
-        old_node_ptr: &NodePtr<V>,
+        old_node_ptr: NodePtr<V>,
         new_node_ptr: NodePtr<V>,
     ) -> Option<usize> {
         RefsVec::replace_with(self, old_node_ptr, new_node_ptr)
@@ -132,7 +129,7 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     }
 
     #[inline(always)]
-    fn get_ptr(&self, i: usize) -> Option<&NodePtr<V>> {
+    fn get_ptr(&self, i: usize) -> Option<NodePtr<V>> {
         self.get(i)
     }
 
@@ -149,7 +146,7 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     #[inline(always)]
     fn replace_with(
         &mut self,
-        old_node_ptr: &NodePtr<V>,
+        old_node_ptr: NodePtr<V>,
         new_node_ptr: NodePtr<V>,
     ) -> Option<usize> {
         RefsArrayLeftMost::replace_with(self, old_node_ptr, new_node_ptr)

@@ -14,7 +14,7 @@ where
     P: PinnedStorage,
 {
     fn root_ptr(&self) -> NodePtr<V> {
-        self.root().node_ptr().clone()
+        self.root().node_ptr()
     }
 
     fn root_parent_ptr(&self) -> Option<NodePtr<V>> {

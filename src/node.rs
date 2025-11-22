@@ -50,7 +50,7 @@ where
     fn clone(&self) -> Self {
         Self {
             col: self.col,
-            node_ptr: self.node_ptr.clone(),
+            node_ptr: self.node_ptr,
         }
     }
 }
@@ -80,7 +80,7 @@ where
     }
 
     #[inline(always)]
-    fn node_ptr(&self) -> &NodePtr<V> {
-        &self.node_ptr
+    fn node_ptr(&self) -> NodePtr<V> {
+        self.node_ptr
     }
 }
