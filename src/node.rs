@@ -50,7 +50,7 @@ where
     fn clone(&self) -> Self {
         Self {
             col: self.col,
-            node_ptr: self.node_ptr.clone(),
+            node_ptr: self.node_ptr,
         }
     }
 }

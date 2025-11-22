@@ -254,7 +254,7 @@ where
         self.node()
             .next()
             .children_ptr()
-            .map(|ptr| Node::new(self.col(), ptr.clone()))
+            .map(|ptr| Node::new(self.col(), *ptr))
     }
 
     /// Creates a **[parallel iterator]** of children nodes of this node.
@@ -336,7 +336,7 @@ where
         self.node()
             .next()
             .children_ptr_par()
-            .map(|ptr| Node::new(self.col(), ptr.clone()))
+            .map(|ptr| Node::new(self.col(), *ptr))
     }
 
     /// Returns the `child-index`-th child of the node; returns None if out of bounds.
@@ -375,7 +375,7 @@ where
         self.node()
             .next()
             .get_ptr(child_index)
-            .map(|ptr| Node::new(self.col(), ptr.clone()))
+            .map(|ptr| Node::new(self.col(), ptr))
     }
 
     /// Returns the `child-index`-th child of the node.
@@ -440,7 +440,7 @@ where
         self.node()
             .prev()
             .get()
-            .map(|ptr| Node::new(self.col(), ptr.clone()))
+            .map(|ptr| Node::new(self.col(), ptr))
     }
 
     /// Returns the position of this node in the children collection of its parent;
@@ -1340,11 +1340,11 @@ where
         V::Item: Send + Sync,
     {
         let node_ptr = self.node_ptr();
-        let node_ptrs: alloc::vec::Vec<_> = T::iter_ptr_with_owned_storage(node_ptr.clone())
+        let node_ptrs: alloc::vec::Vec<_> = T::iter_ptr_with_owned_storage(node_ptr)
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .collect();
         node_ptrs.into_par().map(move |x| {
-            let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
+            let iter = AncestorsIterPtr::new(node_ptr, x);
             iter.map(|ptr| (unsafe { &*ptr.ptr() }).data().expect("active tree node"))
         })
     }
@@ -1450,14 +1450,14 @@ where
         T: Traverser<O>,
     {
         let node_ptr = self.node_ptr();
-        T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
+        T::iter_ptr_with_storage(node_ptr, TraverserCore::storage_mut(traverser))
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
                 unsafe { &*ptr.ptr() }.next().is_empty()
             })
             .map(move |x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(&x);
-                let iter = AncestorsIterPtr::new(node_ptr.clone(), ptr.clone());
+                let iter = AncestorsIterPtr::new(node_ptr, *ptr);
                 iter.map(|ptr: NodePtr<V>| {
                     O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
                         self.col(),
@@ -1566,11 +1566,11 @@ where
         let node_ptr = self.node_ptr();
 
         let node_ptrs: alloc::vec::Vec<_> =
-            T::iter_ptr_with_storage(node_ptr.clone(), TraverserCore::storage_mut(traverser))
+            T::iter_ptr_with_storage(node_ptr, TraverserCore::storage_mut(traverser))
                 .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
                 .collect();
         node_ptrs.into_par().map(move |x| {
-            let iter = AncestorsIterPtr::new(node_ptr.clone(), x);
+            let iter = AncestorsIterPtr::new(node_ptr, x);
             iter.map(|ptr: NodePtr<V>| {
                 O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
                     self.col(),
@@ -1941,7 +1941,7 @@ where
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();
-        T::iter_ptr_with_owned_storage(node_ptr.clone())
+        T::iter_ptr_with_owned_storage(node_ptr)
             .map(move |x: NodePtr<V>| NodeIdx(orx_selfref_col::NodeIdx::new(state, x)))
     }
 
@@ -1977,7 +1977,7 @@ where
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();
-        T::iter_ptr_with_storage(node_ptr.clone(), traverser.storage_mut()).map(move |x| {
+        T::iter_ptr_with_storage(node_ptr, traverser.storage_mut()).map(move |x| {
             <O::Enumeration as Enumeration>::map_node_data(x, |ptr: NodePtr<V>| {
                 NodeIdx(orx_selfref_col::NodeIdx::new(state, ptr))
             })

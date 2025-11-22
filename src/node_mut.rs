@@ -172,7 +172,7 @@ where
     /// ```
     pub fn swap_data_with(&mut self, other_idx: NodeIdx<V>) {
         assert!(other_idx.0.is_valid_for(self.col), "{}", INVALID_IDX_ERROR);
-        let a = self.node_ptr.clone();
+        let a = self.node_ptr;
         let b = other_idx.0.node_ptr();
         Self::swap_data_of_nodes(a, b);
     }
@@ -1640,7 +1640,7 @@ where
 
         for child_ptr in self.node().next().children_ptr() {
             let child = unsafe { &mut *child_ptr.ptr_mut() };
-            child.prev_mut().set(parent_ptr.clone());
+            child.prev_mut().set(parent_ptr);
         }
 
         match parent_ptr {
@@ -2762,7 +2762,7 @@ where
     /// ```
     #[allow(clippy::missing_panics_doc)]
     pub fn recursive_set(&mut self, compute_data: impl Fn(&V::Item, &[&V::Item]) -> V::Item) {
-        let iter = PostOrder::<OverPtr>::iter_ptr_with_owned_storage(self.node_ptr.clone());
+        let iter = PostOrder::<OverPtr>::iter_ptr_with_owned_storage(self.node_ptr);
         let mut children_data = Vec::<&V::Item>::new();
 
         for ptr in iter {
@@ -2880,15 +2880,15 @@ where
     }
 
     pub(crate) fn push_child_get_ptr(&mut self, value: V::Item) -> NodePtr<V> {
-        let parent_ptr = self.node_ptr.clone();
+        let parent_ptr = self.node_ptr;
 
         let child_ptr = self.col.push(value);
 
         let child = self.col.node_mut(child_ptr);
-        child.prev_mut().set_some(parent_ptr.clone());
+        child.prev_mut().set_some(parent_ptr);
 
         let parent = self.col.node_mut(parent_ptr);
-        parent.next_mut().push(child_ptr.clone());
+        parent.next_mut().push(child_ptr);
 
         child_ptr
     }
@@ -3012,7 +3012,7 @@ where
     }
 
     pub(crate) unsafe fn clone_node_mut(&mut self) -> Self {
-        let node_ptr = self.node_ptr.clone();
+        let node_ptr = self.node_ptr;
         let col = self.col as *mut Col<V, M, P>;
         Self {
             col: unsafe { &mut *col },

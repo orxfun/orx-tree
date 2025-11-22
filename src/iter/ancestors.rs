@@ -40,7 +40,7 @@ impl<V: TreeVariant> Iterator for AncestorsIterPtr<V> {
 impl<V: TreeVariant> Clone for AncestorsIterPtr<V> {
     fn clone(&self) -> Self {
         Self {
-            root_ptr: self.root_ptr.clone(),
+            root_ptr: self.root_ptr,
             current: self.current.clone(),
         }
     }

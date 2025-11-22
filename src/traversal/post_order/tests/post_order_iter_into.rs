@@ -57,7 +57,7 @@ fn post_order_into_iter_partially_used(use_iter: UseIter) {
 
         let root = tree.root();
         let ptr = root.node_ptr();
-        let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr.clone()));
+        let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
         {
             let mut iter = unsafe {
                 PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
@@ -83,7 +83,7 @@ fn post_order_into_iter_partially_used(use_iter: UseIter) {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr();
-        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr));
         {
             let mut iter = unsafe {
                 PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
@@ -115,7 +115,7 @@ fn post_order_into_iter_partially_used(use_iter: UseIter) {
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr();
-        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr));
         {
             let mut iter = unsafe {
                 PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
@@ -149,7 +149,7 @@ fn post_order_into_iter_val() {
 
         let root = tree.root();
         let ptr = root.node_ptr();
-        let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr.clone()));
+        let iter = PostOrderIterPtr::<_, Val, _>::from((&mut stack, ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
         };
@@ -170,7 +170,7 @@ fn post_order_into_iter_val() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr();
-        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
         };
@@ -194,7 +194,7 @@ fn post_order_into_iter_val() {
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr();
-        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, Val, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, Val, _>::from((&mut tree.0, iter, ptr))
         };
@@ -220,7 +220,7 @@ fn post_order_into_iter_depth() {
 
         let root = tree.root();
         let ptr = root.node_ptr();
-        let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr.clone()));
+        let iter = PostOrderIterPtr::<_, DepthVal, _>::from((&mut stack, ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, DepthVal, _>::from((
                 &mut tree.0,
@@ -248,7 +248,7 @@ fn post_order_into_iter_depth() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr();
-        let iter = PostOrderIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, DepthVal, _>::from((
                 &mut tree.0,
@@ -279,7 +279,7 @@ fn post_order_into_iter_depth() {
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr();
-        let iter = PostOrderIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, DepthVal, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, DepthVal, _>::from((
                 &mut tree.0,
@@ -312,7 +312,7 @@ fn post_order_into_iter_sibling_idx() {
 
         let root = tree.root();
         let ptr = root.node_ptr();
-        let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr.clone()));
+        let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((&mut stack, ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, SiblingIdxVal, _>::from((
                 &mut tree.0,
@@ -340,7 +340,7 @@ fn post_order_into_iter_sibling_idx() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr();
-        let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, SiblingIdxVal, _>::from((
                 &mut tree.0,
@@ -371,7 +371,7 @@ fn post_order_into_iter_sibling_idx() {
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr();
-        let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, SiblingIdxVal, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, SiblingIdxVal, _>::from((
                 &mut tree.0,
@@ -404,7 +404,7 @@ fn post_order_into_iter_depth_sibling_idx() {
 
         let root = tree.root();
         let ptr = root.node_ptr();
-        let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr.clone()));
+        let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((&mut stack, ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _>::from((
                 &mut tree.0,
@@ -434,8 +434,7 @@ fn post_order_into_iter_depth_sibling_idx() {
         let root = tree.root();
         let n3 = root.get_child(1).unwrap();
         let ptr = n3.node_ptr();
-        let iter =
-            PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _>::from((
                 &mut tree.0,
@@ -468,8 +467,7 @@ fn post_order_into_iter_depth_sibling_idx() {
         let n3 = root.get_child(1).unwrap();
         let n7 = n3.get_child(1).unwrap();
         let ptr = n7.node_ptr();
-        let iter =
-            PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr.clone()));
+        let iter = PostOrderIterPtr::<_, DepthSiblingIdxVal, _>::from((Vec::default(), ptr));
         let iter = unsafe {
             PostOrderIterInto::<_, Auto, SplitRecursive, DepthSiblingIdxVal, _>::from((
                 &mut tree.0,
