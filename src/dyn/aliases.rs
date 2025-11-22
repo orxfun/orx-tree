@@ -23,27 +23,27 @@ use crate::{Node, Tree, memory::Auto, pinned_storage::SplitRecursive};
 ///
 /// let mut root = tree.root_mut();
 /// let [id2, id3] = root.push_children([2, 3]);
-/// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-/// let id8 = tree.node_mut(&id4).push_child(8);
-/// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-/// let id9 = tree.node_mut(&id6).push_child(9);
-/// tree.node_mut(&id7).push_children([10, 11]);
+/// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+/// let id8 = tree.node_mut(id4).push_child(8);
+/// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+/// let id9 = tree.node_mut(id6).push_child(9);
+/// tree.node_mut(id7).push_children([10, 11]);
 ///
 /// // traversals
 ///
 /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
 /// assert_eq!(bfs, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
-/// let dfs: Vec<_> = tree.node(&id3).walk::<Dfs>().copied().collect();
+/// let dfs: Vec<_> = tree.node(id3).walk::<Dfs>().copied().collect();
 /// assert_eq!(dfs, [3, 6, 9, 7, 10, 11]);
 ///
-/// let post_order: Vec<_> = tree.node(&id3).walk::<PostOrder>().copied().collect();
+/// let post_order: Vec<_> = tree.node(id3).walk::<PostOrder>().copied().collect();
 /// assert_eq!(post_order, [9, 6, 10, 11, 7, 3]);
 ///
 /// let leaves: Vec<_> = tree.root().leaves::<Dfs>().copied().collect();
 /// assert_eq!(leaves, [8, 5, 9, 10, 11]);
 ///
-/// let node3 = tree.node(&id3);
+/// let node3 = tree.node(id3);
 /// let paths: Vec<Vec<_>> = node3.paths::<Bfs>().map(|p| p.copied().collect()).collect();
 /// assert_eq!(paths, [[9, 6, 3], [10, 7, 3], [11, 7, 3]]);
 /// ```

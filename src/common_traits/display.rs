@@ -33,11 +33,11 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// let expected_str = r#"1
     /// ├──2
@@ -60,8 +60,8 @@ where
     ///    ├──10
     ///    └──11
     /// "#;
-    /// println!("{}", tree.node(&id3).to_string());
-    /// assert_eq!(tree.node(&id3).to_string(), expected_str);
+    /// println!("{}", tree.node(id3).to_string());
+    /// assert_eq!(tree.node(id3).to_string(), expected_str);
     /// ```
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut t = Traversal.dfs().over_nodes().with_depth().with_sibling_idx();
@@ -96,11 +96,11 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// let expected_str = r#"1
     /// ├──2
@@ -123,8 +123,8 @@ where
     ///    ├──10
     ///    └──11
     /// "#;
-    /// println!("{}", tree.node(&id3).to_string());
-    /// assert_eq!(tree.node(&id3).to_string(), expected_str);
+    /// println!("{}", tree.node(id3).to_string());
+    /// assert_eq!(tree.node(id3).to_string(), expected_str);
     /// ```
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut t = Traversal.dfs().over_nodes().with_depth().with_sibling_idx();
@@ -159,11 +159,11 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// let expected_str = r#"1
     /// ├──2
@@ -186,8 +186,8 @@ where
     ///    ├──10
     ///    └──11
     /// "#;
-    /// println!("{}", tree.node(&id3).to_string());
-    /// assert_eq!(tree.node(&id3).to_string(), expected_str);
+    /// println!("{}", tree.node(id3).to_string());
+    /// assert_eq!(tree.node(id3).to_string(), expected_str);
     /// ```
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self.get_root() {

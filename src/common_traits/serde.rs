@@ -41,10 +41,10 @@ where
     /// // 6         7
     /// let mut tree = DaryTree::<4, _>::new(0);
     /// let [id1, id2] = tree.root_mut().push_children([1, 2]);
-    /// let id3 = tree.node_mut(&id1).push_child(3);
-    /// tree.node_mut(&id3).push_child(6);
-    /// let [_, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id5).push_child(7);
+    /// let id3 = tree.node_mut(id1).push_child(3);
+    /// tree.node_mut(id3).push_child(6);
+    /// let [_, id5] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id5).push_child(7);
     ///
     /// let json = serde_json::to_string(&tree).unwrap();
     /// assert_eq!(json, "[[0,0],[1,1],[2,3],[3,6],[1,2],[2,4],[2,5],[3,7]]");

@@ -103,7 +103,7 @@ where
     ///
     /// assert_eq!(tree.len(), 3);
     ///
-    /// let mut node = tree.node_mut(&idx);
+    /// let mut node = tree.node_mut(idx);
     /// node.push_child(7);
     ///
     /// assert_eq!(tree.len(), 4);
@@ -166,7 +166,7 @@ where
     /// root.push_child(4);
     /// let [idx] = root.push_children([2]);
     ///
-    /// let mut node = tree.node_mut(&idx);
+    /// let mut node = tree.node_mut(idx);
     /// node.push_child(7);
     ///
     /// assert_eq!(tree.len(), 4);
@@ -254,8 +254,8 @@ where
     /// assert_eq!(root.data(), &'a');
     ///
     /// let [b, c] = root.push_children(['b', 'c']);
-    /// tree.node_mut(&b).push_child('d');
-    /// tree.node_mut(&c).push_children(['e', 'f']);
+    /// tree.node_mut(b).push_child('d');
+    /// tree.node_mut(c).push_children(['e', 'f']);
     /// ```
     pub fn root_mut(&mut self) -> NodeMut<'_, V, M, P> {
         self.root_ptr()
@@ -448,10 +448,10 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let n2 = tree.node(&id2);
+    /// let n2 = tree.node(id2);
     /// assert_eq!(n2.data(), &2);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
@@ -641,16 +641,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// let [_, _] = tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [_, _] = tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // we can swap n2 & n7
     /// //      1
@@ -746,16 +746,16 @@ where
     /// let id1 = root.idx();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// let [id10, _] = tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [id10, _] = tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // cannot swap n3 & n10
     ///
@@ -864,16 +864,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// let [_, _] = tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [_, _] = tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // we can swap n2 & n5
     /// //      1
@@ -980,7 +980,7 @@ where
     ///     let leaves: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
     ///     for idx in leaves {
     ///         let count = tree.len();
-    ///         let mut node = tree.node_mut(&idx);
+    ///         let mut node = tree.node_mut(idx);
     ///         for j in 0..num_children {
     ///             node.push_child((count + j).to_string());
     ///         }
@@ -1058,7 +1058,7 @@ where
     ///     let leaves: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
     ///     for idx in leaves {
     ///         let count = tree.len();
-    ///         let mut node = tree.node_mut(&idx);
+    ///         let mut node = tree.node_mut(idx);
     ///         for j in 0..num_children {
     ///             node.push_child((count + j).to_string());
     ///         }

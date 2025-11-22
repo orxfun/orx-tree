@@ -105,7 +105,7 @@ where
     /// assert_eq!(root.data(), &10);
     ///
     /// let [idx_a] = root.push_children([1]);
-    /// let mut node = tree.node_mut(&idx_a);
+    /// let mut node = tree.node_mut(idx_a);
     ///
     /// *node.data_mut() += 10;
     /// assert_eq!(node.data(), &11);
@@ -148,10 +148,10 @@ where
     /// let id1 = root.idx();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, id5] = n2.push_children([4, 5]);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// n3.push_child(6);
     ///
     /// // swap data of nodes to obtain
@@ -163,9 +163,9 @@ where
     /// //  ╱ ╲   ╱
     /// // 4   3 6
     ///
-    /// tree.node_mut(&id4).swap_data_with(id4); // does nothing
-    /// tree.node_mut(&id2).swap_data_with(id1);
-    /// tree.node_mut(&id5).swap_data_with(id3);
+    /// tree.node_mut(id4).swap_data_with(id4); // does nothing
+    /// tree.node_mut(id2).swap_data_with(id1);
+    /// tree.node_mut(id5).swap_data_with(id3);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [2, 1, 5, 4, 3, 6]);
@@ -196,11 +196,11 @@ where
     /// // 8     9 10  11
     /// let mut tree = DynTree::new(1);
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// let id8 = tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// let id8 = tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // let's move 8 up to root one by one, swapping with its parents
     /// //      8
@@ -211,9 +211,9 @@ where
     /// // 2   5 6   7
     /// // |     |  ╱ ╲
     /// // 4     9 10  11
-    /// tree.node_mut(&id8).swap_data_with_parent();
-    /// tree.node_mut(&id4).swap_data_with_parent();
-    /// tree.node_mut(&id2).swap_data_with_parent();
+    /// tree.node_mut(id8).swap_data_with_parent();
+    /// tree.node_mut(id4).swap_data_with_parent();
+    /// tree.node_mut(id2).swap_data_with_parent();
     ///
     /// let swapped = tree.root_mut().swap_data_with_parent();
     /// assert!(!swapped);
@@ -261,19 +261,19 @@ where
     /// let id1 = root.push_child(1);
     /// let id2 = root.push_child(2);
     ///
-    /// let mut n1 = tree.node_mut(&id1);
+    /// let mut n1 = tree.node_mut(id1);
     /// let id3 = n1.push_child(3);
     /// n1.push_child(4);
     ///
-    /// tree.node_mut(&id3).push_child(7);
+    /// tree.node_mut(id3).push_child(7);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let id5 = n2.push_child(5);
     /// let id6 = n2.push_child(6);
     ///
-    /// tree.node_mut(&id5).push_child(8);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id6).push_child(10);
+    /// tree.node_mut(id5).push_child(8);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id6).push_child(10);
     ///
     /// // validate the tree
     ///
@@ -313,16 +313,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id1, id2] = root.push_children([1, 2]);
     ///
-    /// let mut n1 = tree.node_mut(&id1);
+    /// let mut n1 = tree.node_mut(id1);
     /// let [id3, _] = n1.push_children([3, 4]);
     ///
-    /// tree.node_mut(&id3).push_child(7);
+    /// tree.node_mut(id3).push_child(7);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id5, id6] = n2.push_children([5, 6]);
     ///
-    /// tree.node_mut(&id5).push_child(8);
-    /// tree.node_mut(&id6).push_children([9, 10]);
+    /// tree.node_mut(id5).push_child(8);
+    /// tree.node_mut(id6).push_children([9, 10]);
     ///
     /// // validate the tree
     ///
@@ -370,16 +370,16 @@ where
     /// idx.push(root.idx());
     /// idx.extend(root.extend_children(1..=2));
     ///
-    /// let mut n1 = tree.node_mut(&idx[1]);
+    /// let mut n1 = tree.node_mut(idx[1]);
     /// idx.extend(n1.extend_children([3, 4]));
     ///
-    /// let mut n2 = tree.node_mut(&idx[2]);
+    /// let mut n2 = tree.node_mut(idx[2]);
     /// idx.extend(n2.extend_children(5..=6));
     ///
-    /// idx.push(tree.node_mut(&idx[3]).push_child(7));
+    /// idx.push(tree.node_mut(idx[3]).push_child(7));
     ///
-    /// idx.push(tree.node_mut(&idx[5]).push_child(8));
-    /// idx.extend(tree.node_mut(&idx[6]).extend_children([9, 10]));
+    /// idx.push(tree.node_mut(idx[5]).push_child(8));
+    /// idx.extend(tree.node_mut(idx[6]).extend_children([9, 10]));
     ///
     /// // validate the tree
     ///
@@ -479,10 +479,10 @@ where
     /// // |
     /// // 8
     ///
-    /// let n6 = b.node(&id6).as_cloned_subtree();
+    /// let n6 = b.node(id6).as_cloned_subtree();
     /// a.node_mut(&id3).push_child_tree(n6);
     ///
-    /// let n7 = b.node(&id7).as_copied_subtree();
+    /// let n7 = b.node(id7).as_copied_subtree();
     /// a.root_mut().push_child_tree(n7);
     ///
     /// // validate the trees
@@ -579,8 +579,8 @@ where
     ///
     /// let mut tree = DynTree::<_>::new(0);
     /// let id0 = tree.root().idx();
-    /// let id1 = tree.node_mut(&id0).push_child(1);
-    /// tree.node_mut(&id1).push_child(3);
+    /// let id1 = tree.node_mut(id0).push_child(1);
+    /// tree.node_mut(id1).push_child(3);
     ///
     /// let mut b = BinaryTree::<_>::new(4);
     /// b.root_mut().push_child(7);
@@ -592,11 +592,11 @@ where
     ///
     /// // merge b & c into tree
     ///
-    /// let id4 = tree.node_mut(&id1).push_child_tree(b);
-    /// let id2 = tree.node_mut(&id0).push_child_tree(c);
+    /// let id4 = tree.node_mut(id1).push_child_tree(b);
+    /// let id2 = tree.node_mut(id0).push_child_tree(c);
     ///
-    /// assert_eq!(tree.node(&id2).data(), &2);
-    /// assert_eq!(tree.node(&id4).data(), &4);
+    /// assert_eq!(tree.node(id2).data(), &2);
+    /// assert_eq!(tree.node(id4).data(), &4);
     ///
     /// // validate the tree
     ///
@@ -663,17 +663,17 @@ where
     /// let mut tree = DynTree::<_>::new(1);
     ///
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    /// let id8 = tree.node_mut(&id4).push_child(8);
-    /// tree.node_mut(&id3).push_children([6, 7]);
+    /// let [id4, id5] = tree.node_mut(id2).push_children([4, 5]);
+    /// let id8 = tree.node_mut(id4).push_child(8);
+    /// tree.node_mut(id3).push_children([6, 7]);
     ///
     /// // move subtree rooted at n8 (single node) as a child of n2
     /// let st8 = id8.into_subtree_within();
-    /// tree.node_mut(&id2).push_child_tree_within(st8);
+    /// tree.node_mut(id2).push_child_tree_within(st8);
     ///
     /// // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
     /// let st3 = id3.into_subtree_within();
-    /// tree.node_mut(&id5).push_child_tree_within(st3);
+    /// tree.node_mut(id5).push_child_tree_within(st3);
     ///
     /// // validate the tree
     ///
@@ -707,17 +707,17 @@ where
     /// let mut tree = DynTree::<_>::new(1);
     ///
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id5).push_child(8);
-    /// tree.node_mut(&id3).push_children([6, 7]);
+    /// let [id4, id5] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id5).push_child(8);
+    /// tree.node_mut(id3).push_children([6, 7]);
     ///
     /// // clone subtree rooted at n5 as a child of n4
     /// let st5 = id5.as_cloned_subtree_within();
-    /// tree.node_mut(&id4).push_child_tree_within(st5);
+    /// tree.node_mut(id4).push_child_tree_within(st5);
     ///
     /// // copy subtree rooted at n3 (n3, n6 & n7) as a child of n3 (itself)
     /// let st3 = id3.as_cloned_subtree_within();
-    /// tree.node_mut(&id3).push_child_tree_within(st3);
+    /// tree.node_mut(id3).push_child_tree_within(st3);
     ///
     /// // validate the tree
     ///
@@ -761,10 +761,10 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6] = n3.push_children([6]);
     ///
     /// // grow horizontally to obtain
@@ -778,11 +778,11 @@ where
     /// //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
     /// // 7 4    8  5    9 10 6 11 12
     ///
-    /// let mut n4 = tree.node_mut(&id4);
+    /// let mut n4 = tree.node_mut(id4);
     /// n4.push_sibling(Side::Left, 7);
     /// n4.push_sibling(Side::Right, 8);
     ///
-    /// let mut n6 = tree.node_mut(&id6);
+    /// let mut n6 = tree.node_mut(id6);
     /// n6.push_sibling(Side::Left, 9);
     /// n6.push_sibling(Side::Left, 10);
     /// let id12 = n6.push_sibling(Side::Right, 12);
@@ -791,8 +791,8 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     ///
-    /// assert_eq!(tree.node(&id12).data(), &12);
-    /// assert_eq!(tree.node(&id11).data(), &11);
+    /// assert_eq!(tree.node(id12).data(), &12);
+    /// assert_eq!(tree.node(id11).data(), &11);
     /// ```
     pub fn push_sibling(&mut self, side: Side, value: V::Item) -> NodeIdx<V> {
         let parent_ptr = self
@@ -836,10 +836,10 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6] = n3.push_children([6]);
     ///
     /// // grow horizontally to obtain
@@ -853,21 +853,21 @@ where
     /// //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
     /// // 7 4    8  5    9 10 6 11 12
     ///
-    /// let mut n4 = tree.node_mut(&id4);
+    /// let mut n4 = tree.node_mut(id4);
     /// n4.push_sibling(Side::Left, 7);
     /// n4.push_sibling(Side::Right, 8);
     ///
-    /// let mut n6 = tree.node_mut(&id6);
+    /// let mut n6 = tree.node_mut(id6);
     /// let [id9, id10] = n6.push_siblings(Side::Left, [9, 10]);
     /// let [id11, id12] = n6.push_siblings(Side::Right, [11, 12]);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     ///
-    /// assert_eq!(tree.node(&id9).data(), &9);
-    /// assert_eq!(tree.node(&id10).data(), &10);
-    /// assert_eq!(tree.node(&id11).data(), &11);
-    /// assert_eq!(tree.node(&id12).data(), &12);
+    /// assert_eq!(tree.node(id9).data(), &9);
+    /// assert_eq!(tree.node(id10).data(), &10);
+    /// assert_eq!(tree.node(id11).data(), &11);
+    /// assert_eq!(tree.node(id12).data(), &12);
     /// ```
     pub fn push_siblings<const N: usize>(
         &mut self,
@@ -924,10 +924,10 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6] = n3.push_children([6]);
     ///
     /// // grow horizontally to obtain
@@ -941,19 +941,19 @@ where
     /// //  ╱ ╱   ╲ ╲      ╱╲  |  ╱╲
     /// // 7 4    8  5    9 10 6 11 12
     ///
-    /// let mut n4 = tree.node_mut(&id4);
+    /// let mut n4 = tree.node_mut(id4);
     /// n4.push_sibling(Side::Left, 7);
     /// n4.push_sibling(Side::Right, 8);
     ///
-    /// let mut n6 = tree.node_mut(&id6);
+    /// let mut n6 = tree.node_mut(id6);
     /// n6.extend_siblings(Side::Left, 9..=10).count();
     /// let idx: Vec<_> = n6.extend_siblings(Side::Right, 11..=12).collect();
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 7, 4, 8, 5, 9, 10, 6, 11, 12]);
     ///
-    /// assert_eq!(tree.node(&idx[0]).data(), &11);
-    /// assert_eq!(tree.node(&idx[1]).data(), &12);
+    /// assert_eq!(tree.node(idx[0]).data(), &11);
+    /// assert_eq!(tree.node(idx[1]).data(), &12);
     /// ```
     pub fn extend_siblings<'b, I>(
         &'b mut self,
@@ -1060,10 +1060,10 @@ where
     /// //   |
     /// //   8
     ///
-    /// let n6 = b.node(&id6).as_cloned_subtree();
+    /// let n6 = b.node(id6).as_cloned_subtree();
     /// a.node_mut(&id4).push_sibling_tree(Side::Left, n6);
     ///
-    /// let n7 = b.node(&id7).as_copied_subtree();
+    /// let n7 = b.node(id7).as_copied_subtree();
     /// a.node_mut(&id2).push_sibling_tree(Side::Right, n7);
     ///
     /// // validate the trees
@@ -1159,8 +1159,8 @@ where
     ///
     /// let mut tree = DynTree::<_>::new(0);
     /// let id0 = tree.root().idx();
-    /// let id1 = tree.node_mut(&id0).push_child(1);
-    /// let id3 = tree.node_mut(&id1).push_child(3);
+    /// let id1 = tree.node_mut(id0).push_child(1);
+    /// let id3 = tree.node_mut(id1).push_child(3);
     ///
     /// let mut b = BinaryTree::<_>::new(4);
     /// b.root_mut().push_child(7);
@@ -1172,11 +1172,11 @@ where
     ///
     /// // merge b & c into tree
     ///
-    /// let id4 = tree.node_mut(&id3).push_sibling_tree(Side::Left, b);
-    /// let id2 = tree.node_mut(&id1).push_sibling_tree(Side::Right, c);
+    /// let id4 = tree.node_mut(id3).push_sibling_tree(Side::Left, b);
+    /// let id2 = tree.node_mut(id1).push_sibling_tree(Side::Right, c);
     ///
-    /// assert_eq!(tree.node(&id2).data(), &2);
-    /// assert_eq!(tree.node(&id4).data(), &4);
+    /// assert_eq!(tree.node(id2).data(), &2);
+    /// assert_eq!(tree.node(id4).data(), &4);
     ///
     /// // validate the tree
     ///
@@ -1259,18 +1259,18 @@ where
     /// let mut tree = DynTree::<_>::new(1);
     ///
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    /// let id8 = tree.node_mut(&id4).push_child(8);
-    /// tree.node_mut(&id3).push_children([6, 7]);
+    /// let [id4, id5] = tree.node_mut(id2).push_children([4, 5]);
+    /// let id8 = tree.node_mut(id4).push_child(8);
+    /// tree.node_mut(id3).push_children([6, 7]);
     ///
     /// // move subtree rooted at n8 (single node) as left sibling of n5
     /// let st8 = id8.into_subtree_within();
-    /// tree.node_mut(&id5)
+    /// tree.node_mut(id5)
     ///     .push_sibling_tree_within(Side::Left, st8);
     ///
     /// // move subtree rooted at n3 (n3, n6 & n7) as right sibling of n4
     /// let st3 = id3.into_subtree_within();
-    /// tree.node_mut(&id4)
+    /// tree.node_mut(id4)
     ///     .push_sibling_tree_within(Side::Right, st3);
     ///
     /// // validate the tree
@@ -1305,18 +1305,18 @@ where
     /// let mut tree = DynTree::<_>::new(1);
     ///
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [_, id5] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id5).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
+    /// let [_, id5] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id5).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
     ///
     /// // clone subtree rooted at n6 as left sibling of n5
     /// let st6 = id6.as_cloned_subtree_within();
-    /// tree.node_mut(&id5)
+    /// tree.node_mut(id5)
     ///     .push_sibling_tree_within(Side::Left, st6);
     ///
     /// // copy subtree rooted at n3 (n3, n6 & n7) as right sibling of n7
     /// let st3 = id3.as_cloned_subtree_within();
-    /// tree.node_mut(&id7)
+    /// tree.node_mut(id7)
     ///     .push_sibling_tree_within(Side::Right, st3);
     ///
     /// // validate the tree
@@ -1379,20 +1379,20 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// n3.push_children([4, 5]);
     ///
     /// // push parent (insert a node vertically)
     ///
     /// let id0 = tree.root_mut().push_parent(0);
-    /// let id6 = tree.node_mut(&id2).push_parent(6);
-    /// let id7 = tree.node_mut(&id3).push_parent(7);
+    /// let id6 = tree.node_mut(id2).push_parent(6);
+    /// let id7 = tree.node_mut(id3).push_parent(7);
     ///
     /// // test inserted parent indices
     ///
-    /// assert!(tree.node(&id0).is_root());
-    /// assert_eq!(tree.node(&id6).data(), &6);
-    /// assert_eq!(tree.node(&id7).data(), &7);
+    /// assert!(tree.node(id0).is_root());
+    /// assert_eq!(tree.node(id6).data(), &6);
+    /// assert_eq!(tree.node(id7).data(), &7);
     ///
     /// // validate the tree
     ///
@@ -1478,20 +1478,20 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// let id8 = tree.node_mut(&id4).push_child(8);
+    /// let id8 = tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // prune n4 (removes 4 and 8)
     ///
-    /// let data = tree.node_mut(&id4).prune();
+    /// let data = tree.node_mut(id4).prune();
     /// assert_eq!(data, 4);
     ///
     /// let values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
@@ -1502,7 +1502,7 @@ where
     ///
     /// // prune n3 (3, 6, 7, 9, 10, 11)
     ///
-    /// let data = tree.node_mut(&id3).prune();
+    /// let data = tree.node_mut(id3).prune();
     /// assert_eq!(data, 3);
     ///
     /// let values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
@@ -1600,20 +1600,20 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // take out n7
     ///
-    /// let d7 = tree.node_mut(&id7).take_out();
+    /// let d7 = tree.node_mut(id7).take_out();
     /// assert_eq!(d7, 7);
     /// assert_eq!(tree.try_node(&id7), Err(NodeIdxError::RemovedNode));
     ///
@@ -1622,7 +1622,7 @@ where
     ///
     /// // take out n2
     ///
-    /// let d2 = tree.node_mut(&id2).take_out();
+    /// let d2 = tree.node_mut(id2).take_out();
     /// assert_eq!(d2, 2);
     /// assert_eq!(tree.get_node(&id2), None);
     ///
@@ -1685,14 +1685,14 @@ where
     /// // 8     9 10  11
     /// let mut tree = DynTree::new(1);
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // let's remove children of node 3
-    /// tree.node_mut(&id3).remove_children();
+    /// tree.node_mut(id3).remove_children();
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 4, 5, 8]);
@@ -1754,8 +1754,8 @@ where
     ///
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
-    /// tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id3).push_children([6, 7]);
+    /// tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id3).push_children([6, 7]);
     ///
     /// let mut root = tree.root_mut();
     /// for (i, x) in root.custom_walk_mut(next_node).enumerate() {
@@ -2012,18 +2012,18 @@ where
     ///
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// n2.push_children([4, 5]);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(10);
-    /// tree.node_mut(&id7).push_children([711, 712]);
+    /// tree.node_mut(id6).push_child(10);
+    /// tree.node_mut(id7).push_children([711, 712]);
     ///
     /// // push nodes 8 and 9 using children_mut of node 2
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// for mut child in n2.children_mut() {
     ///     let child_val = *child.data(); // 4 & 5
     ///     child.push_child(child_val + 4); // 8 & 9
@@ -2031,7 +2031,7 @@ where
     ///
     /// // update values using children_mut of node 7
     ///
-    /// let mut n7 = tree.node_mut(&id7);
+    /// let mut n7 = tree.node_mut(id7);
     /// for mut child in n7.children_mut() {
     ///     *child.data_mut() -= 700;
     /// }
@@ -2097,11 +2097,11 @@ where
     ///
     /// let mut tree = DynTree::new(1);
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // walk over mutable references of nodes of any subtree
     /// // rooted at a selected node with different traversals
@@ -2113,14 +2113,14 @@ where
     ///     assert_eq!(bfs.next(), Some(&mut 2)); // ...
     /// }
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// {
     ///     let mut dfs = n3.walk_mut::<Dfs>();
     ///     assert_eq!(dfs.next(), Some(&mut 3));
     ///     assert_eq!(dfs.next(), Some(&mut 6)); // ...
     /// }
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// {
     ///     let mut post_order = n2.walk_mut::<PostOrder>();
     ///     assert_eq!(post_order.next(), Some(&mut 8));
@@ -2172,16 +2172,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // create the traverser 'dfs' only once, use it many times
     /// // to walk over references, mutable references or removed values
@@ -2193,14 +2193,14 @@ where
     /// let values: Vec<_> = root.walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
     ///
-    /// let mut n7 = tree.node_mut(&id7);
+    /// let mut n7 = tree.node_mut(id7);
     /// for x in n7.walk_mut_with(&mut dfs) {
     ///     *x += 100;
     /// }
     /// let values: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 107, 110, 111]);
     ///
-    /// let n3 = tree.node_mut(&id3);
+    /// let n3 = tree.node_mut(id3);
     /// let removed: Vec<_> = n3.into_walk_with(&mut dfs).collect();
     /// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
     ///
@@ -2227,16 +2227,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // create the traverser 'bfs' iterator
     /// // to walk over nodes rather than data
@@ -2244,7 +2244,7 @@ where
     /// let mut bfs = Bfs::default().over_nodes();
     /// // OR: Bfs::<OverNode>::new();
     ///
-    /// let n7 = tree.node(&id7);
+    /// let n7 = tree.node(id7);
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
@@ -2255,7 +2255,7 @@ where
     /// let mut dfs = Dfs::default().with_depth().with_sibling_idx();
     /// // OR: Dfs::<OverDepthSiblingIdxData>::new()
     ///
-    /// let n3 = tree.node(&id3);
+    /// let n3 = tree.node(id3);
     /// let result: Vec<_> = n3
     ///     .walk_with(&mut dfs)
     ///     .map(|(depth, sibling_idx, data)| (depth, sibling_idx, *data))
@@ -2340,24 +2340,24 @@ where
     /// // keep indices valid during removals
     /// let mut tree = DynTree::new(1).into_lazy_reclaim();
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // remove any subtree rooted at a selected node
     /// // from the tree, and collect the node values
     /// // in the order of different traversals
     ///
-    /// let n4 = tree.node_mut(&id4);
+    /// let n4 = tree.node_mut(id4);
     /// let removed: Vec<_> = n4.into_walk::<PostOrder>().collect();
     /// assert_eq!(removed, [8, 4]);
     ///
     /// let remaining: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(remaining, [1, 2, 3, 5, 6, 7, 9, 10, 11]);
     ///
-    /// let n3 = tree.node_mut(&id3);
+    /// let n3 = tree.node_mut(id3);
     /// let removed: Vec<_> = n3.into_walk::<Dfs>().collect();
     /// assert_eq!(removed, [3, 6, 9, 7, 10, 11]);
     ///
@@ -2427,11 +2427,11 @@ where
     /// // keep indices valid during removals
     /// let mut tree = DynTree::new(1).into_lazy_reclaim();
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // create the traverser 'dfs' only once, use it many times
     /// // to walk over references, mutable references or removed values
@@ -2443,14 +2443,14 @@ where
     /// let values: Vec<_> = root.walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 7, 10, 11]);
     ///
-    /// let mut n7 = tree.node_mut(&id7);
+    /// let mut n7 = tree.node_mut(id7);
     /// for x in n7.walk_mut_with(&mut dfs) {
     ///     *x += 100;
     /// }
     /// let values: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
     /// assert_eq!(values, [1, 2, 4, 8, 5, 3, 6, 9, 107, 110, 111]);
     ///
-    /// let n3 = tree.node_mut(&id3);
+    /// let n3 = tree.node_mut(id3);
     /// let removed: Vec<_> = n3.into_walk_with(&mut dfs).collect();
     /// assert_eq!(removed, [3, 6, 9, 107, 110, 111]);
     ///
@@ -2477,16 +2477,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // create the traverser 'bfs' iterator
     /// // to walk over nodes rather than data
@@ -2494,7 +2494,7 @@ where
     /// let mut bfs = Bfs::default().over_nodes();
     /// // OR: Bfs::<OverNode>::new();
     ///
-    /// let n7 = tree.node(&id7);
+    /// let n7 = tree.node(id7);
     /// let mut iter = n7.walk_with(&mut bfs);
     /// let node = iter.next().unwrap();
     /// assert_eq!(node.num_children(), 2);
@@ -2505,7 +2505,7 @@ where
     /// let mut dfs = Dfs::default().with_depth().with_sibling_idx();
     /// // OR: Dfs::<OverDepthSiblingIdxData>::new()
     ///
-    /// let n3 = tree.node(&id3);
+    /// let n3 = tree.node(id3);
     /// let result: Vec<_> = n3
     ///     .walk_with(&mut dfs)
     ///     .map(|(depth, sibling_idx, data)| (depth, sibling_idx, *data))
@@ -2566,16 +2566,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // access the leaves in different orders that is determined by traversal
     ///
@@ -2589,12 +2589,12 @@ where
     ///
     /// // get the leaves from any node
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// for (l, leaf) in n3.leaves_mut::<PostOrder>().enumerate() {
     ///     *leaf -= 100 * l;
     /// }
     ///
-    /// let n3 = tree.node(&id3);
+    /// let n3 = tree.node(id3);
     /// let leaves: Vec<_> = n3.leaves::<PostOrder>().copied().collect();
     /// assert_eq!(leaves, [209, 210, 211]);
     /// ```
@@ -2656,8 +2656,8 @@ where
     ///
     /// let mut tree = DynTree::<_>::new(0);
     /// let [id1, id2] = tree.root_mut().push_children([0, 0]);
-    /// tree.node_mut(&id1).push_children([1, 3]);
-    /// tree.node_mut(&id2).push_children([7, 2, 4]);
+    /// tree.node_mut(id1).push_children([1, 3]);
+    /// tree.node_mut(id2).push_children([7, 2, 4]);
     /// //      0
     /// //     ╱ ╲
     /// //    ╱   ╲
@@ -2727,9 +2727,9 @@ where
     /// let [id1, id2] = tree
     ///     .root_mut()
     ///     .push_children([state(0.3, 0.0), state(0.7, 0.0)]);
-    /// tree.node_mut(&id1)
+    /// tree.node_mut(id1)
     ///     .push_children([state(0.2, 9.0), state(0.8, 2.0)]);
-    /// tree.node_mut(&id2)
+    /// tree.node_mut(id2)
     ///     .push_children([state(0.9, 5.0), state(0.1, 4.0)]);
     ///
     /// tree.root_mut()
@@ -2757,8 +2757,8 @@ where
     /// let equals = |a: f64, b: f64| (a - b).abs() < 1e-5;
     ///
     /// assert!(equals(tree.root().data().expected_value, 4.45));
-    /// assert!(equals(tree.node(&id1).data().expected_value, 3.40));
-    /// assert!(equals(tree.node(&id2).data().expected_value, 4.90));
+    /// assert!(equals(tree.node(id1).data().expected_value, 3.40));
+    /// assert!(equals(tree.node(id2).data().expected_value, 4.90));
     /// ```
     #[allow(clippy::missing_panics_doc)]
     pub fn recursive_set(&mut self, compute_data: impl Fn(&V::Item, &[&V::Item]) -> V::Item) {
@@ -2820,11 +2820,11 @@ where
     /// // 8     9 10  11
     /// let mut tree = DynTree::new(1).into_lazy_reclaim(); // ensure index validity
     /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-    /// tree.node_mut(&id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-    /// tree.node_mut(&id6).push_child(9);
-    /// tree.node_mut(&id7).push_children([10, 11]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // let's move subtree rooted at n2 into new tree: tree2
     /// //   2
@@ -2832,7 +2832,7 @@ where
     /// // 4   5
     /// // |
     /// // 8
-    /// let tree2: DynTree<_> = tree.node_mut(&id2).into_new_tree();
+    /// let tree2: DynTree<_> = tree.node_mut(id2).into_new_tree();
     /// let bfs: Vec<_> = tree2.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [2, 4, 5, 8]);
     ///
@@ -2841,7 +2841,7 @@ where
     /// //   7
     /// //  ╱ ╲
     /// // 10  11
-    /// let tree7: BinaryTree<_> = tree.node_mut(&id7).into_new_tree();
+    /// let tree7: BinaryTree<_> = tree.node_mut(id7).into_new_tree();
     /// let bfs: Vec<_> = tree7.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [7, 10, 11]);
     ///
@@ -3063,13 +3063,13 @@ where
     /// let mut root = tree.root_mut();
     /// let [id_a, id_b] = root.push_children(['a', 'b']);
     ///
-    /// let mut a = tree.node_mut(&id_a);
+    /// let mut a = tree.node_mut(id_a);
     /// a.push_children(['c', 'd', 'e']);
     ///
-    /// let mut b = tree.node_mut(&id_b);
+    /// let mut b = tree.node_mut(id_b);
     /// let [_, id_g] = b.push_children(['f', 'g']);
     ///
-    /// let mut g = tree.node_mut(&id_g);
+    /// let mut g = tree.node_mut(id_g);
     /// let mut b = g.parent_mut().unwrap();
     /// let mut root = b.parent_mut().unwrap();
     ///

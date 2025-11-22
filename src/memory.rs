@@ -73,11 +73,11 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut tree = DynTree::new(1);
 ///
 /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-/// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-/// let [id8] = tree.node_mut(&id4).push_children([8]);
-/// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-/// tree.node_mut(&id6).push_child(9);
-/// tree.node_mut(&id7).push_children([10, 11]);
+/// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+/// let [id8] = tree.node_mut(id4).push_children([8]);
+/// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+/// tree.node_mut(id6).push_child(9);
+/// tree.node_mut(id7).push_children([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
@@ -85,29 +85,29 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
 /// assert!(tree.get_node(&id4).is_some()); // get_node => Some(Node)
 /// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
-/// let _node7 = tree.node(&id7); // no panic
+/// let _node7 = tree.node(id7); // no panic
 ///
 /// // # 2 - SHRINK BUT WITHOUT A MEMORY RECLAIM
 ///
 /// // let's close two nodes (nodes 4 & 8)
 /// // this is not enough to trigger a memory reclaim
-/// tree.node_mut(&id4).prune();
+/// tree.node_mut(id4).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
 /// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
-/// let node7 = tree.node(&id7); // no panic
+/// let node7 = tree.node(id7); // no panic
 ///
 /// // what about id4 & id8 => invalidated due to RemovedNode
 /// assert!(!tree.is_node_idx_valid(&id4));
 /// assert!(tree.get_node(&id4).is_none());
 /// assert_eq!(tree.try_node(&id4), Err(NodeIdxError::RemovedNode));
-/// // let node4 = id4.node(&tree); // panics!!!
+/// // let node4 = id4.node(tree); // panics!!!
 ///
 /// // # 3 - SHRINK TRIGGERING MEMORY RECLAIM
 ///
 /// // let's close more nodes (7, 10, 11) to trigger the memory reclaim
-/// tree.node_mut(&id7).prune();
+/// tree.node_mut(id7).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // even node 2 is still on the tree;
@@ -124,7 +124,7 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let id2 = tree.root().get_child(0).unwrap().idx();
 /// assert!(tree.is_node_idx_valid(&id2));
 /// assert!(tree.try_node(&id2).is_ok());
-/// let n2 = tree.node(&id2);
+/// let n2 = tree.node(id2);
 /// assert_eq!(n2.data(), &2);
 /// ```
 ///
@@ -160,11 +160,11 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// let mut tree = DynTree::new(1).into_lazy_reclaim();
 ///
 /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
-/// let [id4, _] = tree.node_mut(&id2).push_children([4, 5]);
-/// let [id8] = tree.node_mut(&id4).push_children([8]);
-/// let [id6, id7] = tree.node_mut(&id3).push_children([6, 7]);
-/// tree.node_mut(&id6).push_child(9);
-/// tree.node_mut(&id7).push_children([10, 11]);
+/// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+/// let [id8] = tree.node_mut(id4).push_children([8]);
+/// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+/// tree.node_mut(id6).push_child(9);
+/// tree.node_mut(id7).push_children([10, 11]);
 ///
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 ///
@@ -172,35 +172,35 @@ use orx_selfref_col::{MemoryReclaimNever, MemoryReclaimOnThreshold, MemoryReclai
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
 /// assert!(tree.get_node(&id4).is_some()); // get_node => Some(Node)
 /// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
-/// let _node7 = tree.node(&id7); // no panic!
+/// let _node7 = tree.node(id7); // no panic!
 ///
 /// // # 2 - SHRINK, NO MEMORY RECLAIM
 ///
 /// // let's close two nodes (nodes 4 & 8)
-/// tree.node_mut(&id4).prune();
+/// tree.node_mut(id4).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 7, 9, 10, 11]);
 ///
 /// assert!(tree.is_node_idx_valid(&id2)); // is_valid_for => true
 /// assert!(tree.try_node(&id6).is_ok()); // try_get_node => Ok(Node)
-/// let node7 = tree.node(&id7); // no panic
+/// let node7 = tree.node(id7); // no panic
 ///
 /// // only id4 & id8 are affected (explicit) => invalidated due to RemovedNode
 /// assert!(!tree.is_node_idx_valid(&id4));
 /// assert!(tree.get_node(&id4).is_none());
 /// assert_eq!(tree.try_node(&id4), Err(NodeIdxError::RemovedNode));
-/// // let node4 = id4.node(&tree); // panics!
+/// // let node4 = id4.node(tree); // panics!
 ///
 /// // # 3 - SHRINK HEAVILY, STILL NO MEMORY RECLAIM
 ///
 /// // let's close more nodes (7, 10, 11)
 /// // this would've triggered memory reclaim in Auto policy, but not in Lazy policy
-/// tree.node_mut(&id7).prune();
+/// tree.node_mut(id7).prune();
 /// assert_eq!(bfs_values(&tree), [1, 2, 3, 5, 6, 9]);
 ///
 /// // all indices are still valid ✓
 /// assert!(tree.is_node_idx_valid(&id2));
 /// assert!(tree.try_node(&id2).is_ok());
-/// let n2 = tree.node(&id2);
+/// let n2 = tree.node(id2);
 /// assert_eq!(n2.data(), &2);
 ///
 /// // # 4 - END OF HEAVY MUTATIONS, RECLAIM THE MEMORY

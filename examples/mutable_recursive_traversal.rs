@@ -71,9 +71,9 @@ impl Instructions {
             InstructionNode::new(Instruction::AddI { val: 2.0 }, 0.0),
         ]);
         let _n3 = tree
-            .node_mut(&n1)
+            .node_mut(n1)
             .push_child(InstructionNode::new(Instruction::Input(0), 0.0));
-        let [_n4, _n5] = tree.node_mut(&n2).push_children([
+        let [_n4, _n5] = tree.node_mut(n2).push_children([
             InstructionNode::new(Instruction::Add, 0.0),
             InstructionNode::new(Instruction::AddI { val: 5.0 }, 0.0),
         ]);
@@ -153,7 +153,7 @@ fn recursive_traversal_over_indices(
     inputs: &[f32],
     node_idx: NodeIdx<Dyn<InstructionNode>>,
 ) -> f32 {
-    let node = tree.node(&node_idx);
+    let node = tree.node(node_idx);
 
     let children_ids: Vec<_> = node.children().map(|child| child.idx()).collect();
     let children: Vec<_> = children_ids
@@ -161,7 +161,7 @@ fn recursive_traversal_over_indices(
         .map(|node| recursive_traversal_over_indices(tree, inputs, node))
         .collect();
 
-    let mut node = tree.node_mut(&node_idx);
+    let mut node = tree.node_mut(node_idx);
 
     let new_value = match node.data().instruction {
         Instruction::Input(i) => inputs[i],

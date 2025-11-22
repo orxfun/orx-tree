@@ -35,16 +35,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id1, id2] = root.push_children([1, 2]);
     ///
-    /// let mut n1 = tree.node_mut(&id1);
+    /// let mut n1 = tree.node_mut(id1);
     /// let [id3, _] = n1.push_children([3, 4]);
     ///
-    /// tree.node_mut(&id3).push_child(7);
+    /// tree.node_mut(id3).push_child(7);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id5, id6] = n2.push_children([5, 6]);
     ///
-    /// tree.node_mut(&id5).push_child(8);
-    /// tree.node_mut(&id6).push_children([9, 10]);
+    /// tree.node_mut(id5).push_child(8);
+    /// tree.node_mut(id6).push_children([9, 10]);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -65,7 +65,7 @@ where
     /// assert_eq!(clone.get_node(&id2), None);
     /// assert_eq!(clone.try_node(&id2), Err(NodeIdxError::OutOfBounds));
     ///
-    /// assert_eq!(clone.node(&indices[2]).data(), &2);
+    /// assert_eq!(clone.node(indices[2]).data(), &2);
     /// ```
     fn clone(&self) -> Self {
         match self.get_root() {
