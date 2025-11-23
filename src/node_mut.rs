@@ -3304,3 +3304,53 @@ where
         self.node().prev().get().map(|p| NodeMut::new(self.col, p))
     }
 }
+
+#[cfg(test)]
+mod tst {
+    use std::println;
+    use std::string::ToString;
+
+    use crate::{traversal::traverser_core::TraverserCore, *};
+    use alloc::vec;
+    use alloc::vec::Vec;
+
+    #[test]
+    fn abc() {
+        //      1
+        //     ╱ ╲
+        //    ╱   ╲
+        //   2     3
+        //  ╱ ╲   ╱ ╲
+        // 4   5 6   7
+        // |     |  ╱ ╲
+        // 8     9 10  11
+
+        let mut tree = DynTree::new(1.to_string());
+
+        let mut root = tree.root_mut();
+        let [id2, id3] = root.push_children([2, 3].map(|x| x.to_string()));
+
+        let mut n2 = tree.node_mut(id2);
+        let [id4, _] = n2.push_children([4, 5].map(|x| x.to_string()));
+
+        tree.node_mut(id4).push_child(8.to_string());
+
+        let mut n3 = tree.node_mut(id3);
+        let [id6, id7] = n3.push_children([6, 7].map(|x| x.to_string()));
+
+        tree.node_mut(id6).push_child(9.to_string());
+        tree.node_mut(id7)
+            .push_children([10, 11].map(|x| x.to_string()));
+
+        // create the traverser 'bfs' (or others) only once, use it many times
+        // to walk over references, mutable references or removed values
+        // without additional allocation
+
+        let mut t = Dfs::default();
+
+        let leaves: Vec<_> = tree.root_mut().into_leaves_with(&mut t).collect();
+        println!("{leaves:?}");
+
+        assert_eq!(leaves.len(), 33);
+    }
+}
