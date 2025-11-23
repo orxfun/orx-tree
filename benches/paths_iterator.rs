@@ -10,7 +10,7 @@ fn build_tree(n: usize) -> DynTree<String> {
     while tree.len() < n {
         let root = tree.root();
         let x: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
-        for idx in x.iter() {
+        for idx in x {
             let count = tree.len();
             let mut node = tree.node_mut(idx);
             let num_children = 4;

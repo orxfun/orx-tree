@@ -37,7 +37,7 @@ where
     MO: NodeMutOrientation,
 {
     fn root_ptr(&self) -> NodePtr<V> {
-        self.node.node_ptr().clone()
+        self.node.node_ptr()
     }
 
     fn root_parent_ptr(&self) -> Option<NodePtr<V>> {

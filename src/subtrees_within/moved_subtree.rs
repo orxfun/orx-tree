@@ -28,23 +28,25 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
         MO: NodeMutOrientation,
     {
         let root_ptr = parent.root_ptr().expect("non-empty tree");
-        let ptr_parent = parent.node_ptr().clone();
+        let ptr_parent = parent.node_ptr();
         let ptr_child = parent
             .col()
-            .try_get_ptr(&self.idx.0)
+            .try_get_ptr(self.idx.0)
             .expect(INVALID_IDX_ERROR);
         assert!(
-            AncestorsIterPtr::new(root_ptr.clone(), ptr_parent.clone()).all(|x| x != ptr_child),
+            AncestorsIterPtr::new(root_ptr, ptr_parent).all(|x| x != ptr_child),
             "Node to be moved as a child of this node (with the given child_idx) is an ancestor of this tree. Cannot perform the move."
         );
 
         let node_child = unsafe { &mut *ptr_child.ptr_mut() };
 
-        if let Some(ptr_old_parent) = node_child.prev().get().cloned() {
+        if let Some(ptr_old_parent) = node_child.prev().get() {
             let old_parent = unsafe { &mut *ptr_old_parent.ptr_mut() };
-            old_parent.next_mut().remove(ptr_child.ptr() as usize);
+            old_parent
+                .next_mut()
+                .remove(unsafe { ptr_child.ptr() as usize });
         }
-        node_child.prev_mut().set_some(ptr_parent.clone());
+        node_child.prev_mut().set_some(ptr_parent);
 
         let node_parent = unsafe { &mut *ptr_parent.ptr_mut() };
         node_parent.next_mut().insert(child_position, ptr_child);

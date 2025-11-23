@@ -108,15 +108,12 @@ where
                 None => return None,
                 Some((ptr, child_idx)) => {
                     let node = unsafe { &*ptr.ptr() };
-                    let child_ptr = node.next().get_ptr(*child_idx).cloned();
+                    let child_ptr = node.next().get_ptr(*child_idx);
                     match child_ptr {
                         Some(child_ptr) => self.move_deeper(child_ptr),
                         None => {
-                            let output = Some(E::create_post_item(
-                                ptr.clone(),
-                                self.depth,
-                                self.states.get_ref(),
-                            ));
+                            let output =
+                                Some(E::create_post_item(*ptr, self.depth, self.states.get_ref()));
                             self.move_shallower();
                             return output;
                         }

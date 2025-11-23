@@ -103,7 +103,7 @@ where
     ///
     /// assert_eq!(tree.len(), 3);
     ///
-    /// let mut node = tree.node_mut(&idx);
+    /// let mut node = tree.node_mut(idx);
     /// node.push_child(7);
     ///
     /// assert_eq!(tree.len(), 4);
@@ -166,7 +166,7 @@ where
     /// root.push_child(4);
     /// let [idx] = root.push_children([2]);
     ///
-    /// let mut node = tree.node_mut(&idx);
+    /// let mut node = tree.node_mut(idx);
     /// node.push_child(7);
     ///
     /// assert_eq!(tree.len(), 4);
@@ -215,7 +215,6 @@ where
     /// ```
     pub fn root(&self) -> Node<'_, V, M, P> {
         self.root_ptr()
-            .cloned()
             .map(|p| Node::new(&self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
     }
@@ -255,12 +254,11 @@ where
     /// assert_eq!(root.data(), &'a');
     ///
     /// let [b, c] = root.push_children(['b', 'c']);
-    /// tree.node_mut(&b).push_child('d');
-    /// tree.node_mut(&c).push_children(['e', 'f']);
+    /// tree.node_mut(b).push_child('d');
+    /// tree.node_mut(c).push_children(['e', 'f']);
     /// ```
     pub fn root_mut(&mut self) -> NodeMut<'_, V, M, P> {
         self.root_ptr()
-            .cloned()
             .map(|p| NodeMut::new(&mut self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
     }
@@ -287,7 +285,7 @@ where
     /// assert_eq!(tree.root().data(), &'a');
     /// ```
     pub fn get_root(&self) -> Option<Node<'_, V, M, P>> {
-        self.root_ptr().cloned().map(|p| Node::new(&self.0, p))
+        self.root_ptr().map(|p| Node::new(&self.0, p))
     }
 
     /// Returns the root as a mutable node of the tree; None if the tree is empty.
@@ -312,9 +310,7 @@ where
     /// assert_eq!(tree.get_root_mut(), None);
     /// ```
     pub fn get_root_mut(&mut self) -> Option<NodeMut<'_, V, M, P>> {
-        self.root_ptr()
-            .cloned()
-            .map(|p| NodeMut::new(&mut self.0, p))
+        self.root_ptr().map(|p| NodeMut::new(&mut self.0, p))
     }
 
     // get nodes
@@ -336,7 +332,7 @@ where
     /// [`is_node_idx_valid`]: crate::Tree::is_node_idx_valid
     /// [`node_idx_error`]: crate::Tree::node_idx_error
     #[inline(always)]
-    pub fn is_node_idx_valid(&self, node_idx: &NodeIdx<V>) -> bool {
+    pub fn is_node_idx_valid(&self, node_idx: NodeIdx<V>) -> bool {
         node_idx.0.is_valid_for(&self.0)
     }
 
@@ -355,8 +351,8 @@ where
     ///
     /// [`is_node_idx_valid`]: crate::Tree::is_node_idx_valid
     /// [`node_idx_error`]: crate::Tree::node_idx_error
-    pub fn node_idx_error(&self, node_idx: &NodeIdx<V>) -> Option<NodeIdxError> {
-        self.0.node_idx_error(&node_idx.0)
+    pub fn node_idx_error(&self, node_idx: NodeIdx<V>) -> Option<NodeIdxError> {
+        self.0.node_idx_error(node_idx.0)
     }
 
     /// Returns the node with the given `node_idx`.
@@ -398,17 +394,17 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let n2 = tree.node(&id2);
+    /// let n2 = tree.node(id2);
     /// assert_eq!(n2.data(), &2);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
     /// ```
     #[inline(always)]
-    pub fn node(&self, node_idx: &NodeIdx<V>) -> Node<'_, V, M, P> {
+    pub fn node(&self, node_idx: NodeIdx<V>) -> Node<'_, V, M, P> {
         assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
         Node::new(&self.0, node_idx.0.node_ptr())
     }
@@ -452,17 +448,17 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let n2 = tree.node(&id2);
+    /// let n2 = tree.node(id2);
     /// assert_eq!(n2.data(), &2);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// n3.push_children([4, 5]);
     ///
     /// let bfs_values: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
     /// ```
     #[inline(always)]
-    pub fn node_mut(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<'_, V, M, P> {
+    pub fn node_mut(&mut self, node_idx: NodeIdx<V>) -> NodeMut<'_, V, M, P> {
         assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
@@ -485,7 +481,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn get_node(&self, node_idx: &NodeIdx<V>) -> Option<Node<'_, V, M, P>> {
+    pub fn get_node(&self, node_idx: NodeIdx<V>) -> Option<Node<'_, V, M, P>> {
         self.is_node_idx_valid(node_idx)
             .then(|| Node::new(&self.0, node_idx.0.node_ptr()))
     }
@@ -508,7 +504,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn get_node_mut(&mut self, node_idx: &NodeIdx<V>) -> Option<NodeMut<'_, V, M, P>> {
+    pub fn get_node_mut(&mut self, node_idx: NodeIdx<V>) -> Option<NodeMut<'_, V, M, P>> {
         self.is_node_idx_valid(node_idx)
             .then(|| NodeMut::new(&mut self.0, node_idx.0.node_ptr()))
     }
@@ -529,9 +525,9 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn try_node(&self, node_idx: &NodeIdx<V>) -> Result<Node<'_, V, M, P>, NodeIdxError> {
+    pub fn try_node(&self, node_idx: NodeIdx<V>) -> Result<Node<'_, V, M, P>, NodeIdxError> {
         self.0
-            .try_get_ptr(&node_idx.0)
+            .try_get_ptr(node_idx.0)
             .map(|ptr| Node::new(&self.0, ptr))
     }
 
@@ -553,10 +549,10 @@ where
     #[inline(always)]
     pub fn try_node_mut(
         &mut self,
-        node_idx: &NodeIdx<V>,
+        node_idx: NodeIdx<V>,
     ) -> Result<NodeMut<'_, V, M, P>, NodeIdxError> {
         self.0
-            .try_get_ptr(&node_idx.0)
+            .try_get_ptr(node_idx.0)
             .map(|ptr| NodeMut::new(&mut self.0, ptr))
     }
 
@@ -570,7 +566,7 @@ where
     /// [`node`]: Self::node
     /// [`is_node_idx_valid`]: Self::is_node_idx_valid
     #[inline(always)]
-    pub unsafe fn node_unchecked(&self, node_idx: &NodeIdx<V>) -> Node<'_, V, M, P> {
+    pub unsafe fn node_unchecked(&self, node_idx: NodeIdx<V>) -> Node<'_, V, M, P> {
         Node::new(&self.0, node_idx.0.node_ptr())
     }
 
@@ -584,7 +580,7 @@ where
     /// [`node_mut`]: Self::node_mut
     /// [`is_node_idx_valid`]: Self::is_node_idx_valid
     #[inline(always)]
-    pub unsafe fn node_mut_unchecked(&mut self, node_idx: &NodeIdx<V>) -> NodeMut<'_, V, M, P> {
+    pub unsafe fn node_mut_unchecked(&mut self, node_idx: NodeIdx<V>) -> NodeMut<'_, V, M, P> {
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
 
@@ -645,16 +641,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// let [_, _] = tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [_, _] = tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // we can swap n2 & n7
     /// //      1
@@ -668,12 +664,12 @@ where
     /// //         |
     /// //         8
     ///
-    /// tree.swap_subtrees(&id2, &id7);
+    /// tree.swap_subtrees(id2, id7);
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
     /// ```
-    pub fn swap_subtrees(&mut self, first_idx: &NodeIdx<V>, second_idx: &NodeIdx<V>) {
+    pub fn swap_subtrees(&mut self, first_idx: NodeIdx<V>, second_idx: NodeIdx<V>) {
         assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
         assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
         let ptr_root = self.root_ptr().expect("tree is not empty");
@@ -684,11 +680,11 @@ where
             true => {}
             false => {
                 assert!(
-                    AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).all(|x| x != ptr_q),
+                    AncestorsIterPtr::new(ptr_root, ptr_p).all(|x| x != ptr_q),
                     "Node with `second_idx` is an ancestor of the node with `first_idx`; cannot swap nodes."
                 );
                 assert!(
-                    AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).all(|x| x != ptr_p),
+                    AncestorsIterPtr::new(ptr_root, ptr_q).all(|x| x != ptr_p),
                     "Node with `first_idx` is an ancestor of the node with `second_idx`; cannot swap nodes."
                 );
                 // # SAFETY: all possible error cases are checked and handled
@@ -750,28 +746,28 @@ where
     /// let id1 = root.idx();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// let [id10, _] = tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [id10, _] = tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // cannot swap n3 & n10
     ///
     /// assert_eq!(
-    ///     tree.try_swap_nodes(&id3, &id10),
+    ///     tree.try_swap_nodes(id3, id10),
     ///     Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
     /// );
     ///
     /// // cannot swap n4 & n1 (root)
     ///
     /// assert_eq!(
-    ///     tree.try_swap_nodes(&id4, &id1),
+    ///     tree.try_swap_nodes(id4, id1),
     ///     Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
     /// );
     ///
@@ -787,7 +783,7 @@ where
     /// //         |
     /// //         8
     ///
-    /// let result = tree.try_swap_nodes(&id2, &id7);
+    /// let result = tree.try_swap_nodes(id2, id7);
     /// assert_eq!(result, Ok(()));
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
@@ -795,21 +791,21 @@ where
     /// ```
     pub fn try_swap_nodes(
         &mut self,
-        first_idx: &NodeIdx<V>,
-        second_idx: &NodeIdx<V>,
+        first_idx: NodeIdx<V>,
+        second_idx: NodeIdx<V>,
     ) -> Result<(), NodeSwapError> {
         let ptr_root = match self.root_ptr() {
             Some(x) => x,
             None => return Err(NodeSwapError::NodeIdxError(NodeIdxError::RemovedNode)),
         };
-        let ptr_p = self.0.try_get_ptr(&first_idx.0)?;
-        let ptr_q = self.0.try_get_ptr(&second_idx.0)?;
+        let ptr_p = self.0.try_get_ptr(first_idx.0)?;
+        let ptr_q = self.0.try_get_ptr(second_idx.0)?;
 
         if ptr_p == ptr_q {
             Ok(())
-        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_p.clone()).any(|x| x == ptr_q) {
+        } else if AncestorsIterPtr::new(ptr_root, ptr_p).any(|x| x == ptr_q) {
             Err(NodeSwapError::SecondNodeIsAncestorOfFirst)
-        } else if AncestorsIterPtr::new(ptr_root.clone(), ptr_q.clone()).any(|x| x == ptr_p) {
+        } else if AncestorsIterPtr::new(ptr_root, ptr_q).any(|x| x == ptr_p) {
             Err(NodeSwapError::FirstNodeIsAncestorOfSecond)
         } else {
             // # SAFETY: all possible error cases are checked and handled
@@ -868,16 +864,16 @@ where
     /// let mut root = tree.root_mut();
     /// let [id2, id3] = root.push_children([2, 3]);
     ///
-    /// let mut n2 = tree.node_mut(&id2);
+    /// let mut n2 = tree.node_mut(id2);
     /// let [id4, _] = n2.push_children([4, 5]);
     ///
-    /// tree.node_mut(&id4).push_child(8);
+    /// tree.node_mut(id4).push_child(8);
     ///
-    /// let mut n3 = tree.node_mut(&id3);
+    /// let mut n3 = tree.node_mut(id3);
     /// let [id6, id7] = n3.push_children([6, 7]);
     ///
-    /// tree.node_mut(&id6).push_child(9);
-    /// let [_, _] = tree.node_mut(&id7).push_children([10, 11]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [_, _] = tree.node_mut(id7).push_children([10, 11]);
     ///
     /// // we can swap n2 & n5
     /// //      1
@@ -891,15 +887,15 @@ where
     /// //         |
     /// //         8
     ///
-    /// unsafe { tree.swap_subtrees_unchecked(&id2, &id7) };
+    /// unsafe { tree.swap_subtrees_unchecked(id2, id7) };
     ///
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 7, 3, 10, 11, 6, 2, 9, 4, 5, 8]);
     /// ```
     pub unsafe fn swap_subtrees_unchecked(
         &mut self,
-        first_idx: &NodeIdx<V>,
-        second_idx: &NodeIdx<V>,
+        first_idx: NodeIdx<V>,
+        second_idx: NodeIdx<V>,
     ) {
         assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
         assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
@@ -914,13 +910,13 @@ where
         let p = unsafe { &mut *ptr_p.ptr_mut() };
         let q = unsafe { &mut *ptr_q.ptr_mut() };
 
-        let parent_p = p.prev().get().cloned();
-        let parent_q = q.prev().get().cloned();
+        let parent_p = p.prev().get();
+        let parent_q = q.prev().get();
 
         match parent_p {
             Some(parent_ptr_p) => {
                 let parent_p = unsafe { &mut *parent_ptr_p.ptr_mut() };
-                parent_p.next_mut().replace_with(&ptr_p, ptr_q.clone());
+                parent_p.next_mut().replace_with(ptr_p, ptr_q);
 
                 q.prev_mut().set_some(parent_ptr_p);
             }
@@ -932,7 +928,7 @@ where
         match parent_q {
             Some(parent_ptr_q) => {
                 let parent_q = unsafe { &mut *parent_ptr_q.ptr_mut() };
-                parent_q.next_mut().replace_with(&ptr_q, ptr_p);
+                parent_q.next_mut().replace_with(ptr_q, ptr_p);
 
                 p.prev_mut().set_some(parent_ptr_q);
             }
@@ -984,7 +980,7 @@ where
     ///     let leaves: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
     ///     for idx in leaves {
     ///         let count = tree.len();
-    ///         let mut node = tree.node_mut(&idx);
+    ///         let mut node = tree.node_mut(idx);
     ///         for j in 0..num_children {
     ///             node.push_child((count + j).to_string());
     ///         }
@@ -1062,7 +1058,7 @@ where
     ///     let leaves: Vec<_> = root.leaves_with(&mut dfs).map(|x| x.idx()).collect();
     ///     for idx in leaves {
     ///         let count = tree.len();
-    ///         let mut node = tree.node_mut(&idx);
+    ///         let mut node = tree.node_mut(idx);
     ///         for j in 0..num_children {
     ///             node.push_child((count + j).to_string());
     ///         }
@@ -1122,7 +1118,7 @@ where
     }
 
     /// Returns the pointer to the root; None if empty.
-    fn root_ptr(&self) -> Option<&NodePtr<V>> {
+    fn root_ptr(&self) -> Option<NodePtr<V>> {
         self.0.ends().get()
     }
 }

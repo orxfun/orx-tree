@@ -50,7 +50,7 @@ where
         match node.prev().get() {
             Some(parent) => {
                 let parent = unsafe { &mut *parent.ptr_mut() };
-                let sibling_idx = parent.next_mut().remove(root_ptr.ptr() as usize);
+                let sibling_idx = parent.next_mut().remove(unsafe { root_ptr.ptr() as usize });
                 debug_assert!(sibling_idx.is_some());
 
                 node.prev_mut().clear();
@@ -71,7 +71,7 @@ where
     fn take_element(&mut self, element: E::Item<NodePtr<V>>) -> E::Item<V::Item> {
         E::map_node_data(element, |ptr| {
             let col = unsafe { &mut *(self.col as *mut Col<V, M, P>) };
-            col.close(&ptr)
+            col.close(ptr)
         })
     }
 }
@@ -103,6 +103,6 @@ where
         while let Some(element) = self.iter.next() {
             self.take_element(element);
         }
-        self.col.reclaim_from_closed_node(&self.root_ptr);
+        self.col.reclaim_from_closed_node(self.root_ptr);
     }
 }

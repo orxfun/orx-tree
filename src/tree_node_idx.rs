@@ -73,7 +73,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// let id3 = root.push_child(3);
 ///
 /// // use id3 to directly access node 3
-/// let n3 = tree.node(&id3);
+/// let n3 = tree.node(id3);
 /// assert_eq!(n3.data(), &3);
 /// ```
 ///
@@ -115,8 +115,8 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// // indices are collected into a vec
 /// let indices: Vec<_> = root.extend_children(2..6).collect();
 ///
-/// let id5 = &indices[3];
-/// let n5 = tree.node(&id5);
+/// let id5 = indices[3];
+/// let n5 = tree.node(id5);
 /// assert_eq!(n5.data(), &5);
 /// ```
 ///
@@ -146,7 +146,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 ///
 /// let [id2, _] = root.push_children([2, 3]);
 ///
-/// let mut n2 = tree.node_mut(&id2);
+/// let mut n2 = tree.node_mut(id2);
 /// n2.push_children([4, 5]);
 ///
 /// // task: access node 5 and get its index
@@ -156,9 +156,9 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// let id5 = n5.idx();
 ///
 /// // now we can use idx5 to directly access node 5
-/// let n5 = tree.node(&id5);
+/// let n5 = tree.node(id5);
 /// assert_eq!(n5.data(), &5);
-/// assert_eq!(n5.parent(), Some(tree.node(&id2)));
+/// assert_eq!(n5.parent(), Some(tree.node(id2)));
 /// ```
 ///
 /// Since we can traverse the node in various ways and access the nodes in various orders,
@@ -180,7 +180,7 @@ Specifically, see the example in the following chapter to prevent invalid indice
 ///
 /// let [id2, _] = root.push_children([2, 3]);
 ///
-/// let mut n2 = tree.node_mut(&id2);
+/// let mut n2 = tree.node_mut(id2);
 /// n2.push_children([4, 5]);
 ///
 /// // task: collect all indices in breadth first order
@@ -192,10 +192,10 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// let indices: Vec<_> = root.indices::<Bfs>().collect();
 ///
 /// // now we can use indices to directly access nodes
-/// let id5 = &indices[4];
-/// let n5 = tree.node(&id5);
+/// let id5 = indices[4];
+/// let n5 = tree.node(id5);
 /// assert_eq!(n5.data(), &5);
-/// assert_eq!(n5.parent(), Some(tree.node(&id2)));
+/// assert_eq!(n5.parent(), Some(tree.node(id2)));
 /// ```
 ///
 /// # Validity of Node Indices
@@ -205,8 +205,8 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// * is valid for the tree the node belongs to,
 /// * is invalid for any other tree:
 ///   * `idx.is_valid_for(&other_tree)` => false
-///   * `idx.node(&other_tree)` => panics!!!
-///   * `idx.get_node(&other_tree)` => None
+///   * `idx.node(other_tree)` => panics!!!
+///   * `idx.get_node(other_tree)` => None
 ///   * `idx.try_get_node(&other_tree)` => Err([`OutOfBounds`])
 ///
 /// However, it might later become invalid for the original tree due to two reasons.
@@ -215,16 +215,16 @@ Specifically, see the example in the following chapter to prevent invalid indice
 /// If the node is removed from the tree, directly or due to removal of any of its ancestors,
 /// the corresponding index becomes invalid:
 /// * `idx.is_valid_for(&correct_tree)` => false
-/// * `idx.node(&correct_tree)` => panics!!!
-/// * `idx.get_node(&correct_tree)` => None
+/// * `idx.node(correct_tree)` => panics!!!
+/// * `idx.get_node(correct_tree)` => None
 /// * `idx.try_get_node(&correct_tree)` => Err([`RemovedNode`])
 ///
 /// The second reason is implicit and closely related to [`MemoryPolicy`].
 /// If removals from the tree triggers a memory reclaim operation which reorganizes the nodes of
 /// the tree, all indices cached prior to the reorganization becomes invalid:
 /// * `idx.is_valid_for(&correct_tree)` => false
-/// * `idx.node(&correct_tree)` => panics!!!
-/// * `idx.get_node(&correct_tree)` => None
+/// * `idx.node(correct_tree)` => panics!!!
+/// * `idx.get_node(correct_tree)` => None
 /// * `idx.try_get_node(&correct_tree)` => Err([`ReorganizedCollection`])
 ///
 /// The implicit invalidation is not desirable and can be avoided by using memory policies,
