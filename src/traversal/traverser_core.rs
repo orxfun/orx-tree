@@ -82,7 +82,6 @@ where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage;
-
     fn iter_mut_with_storage<'a, V, M, P, MO>(
         node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,
@@ -145,6 +144,19 @@ where
         P: PinnedStorage,
         MO: NodeMutOrientation,
         O: Over;
+
+    fn into_iter_with_storage_filtered<'a, V, M, P, MO, F>(
+        node_mut: NodeMut<'a, V, M, P, MO>,
+        storage: impl SoM<Self::Storage<V>>,
+        filter: F,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        MO: NodeMutOrientation,
+        O: Over,
+        F: Fn(&<O::Enumeration as Enumeration>::Item<NodePtr<V>>) -> bool;
 
     /// Returns an iterator which:
     ///
