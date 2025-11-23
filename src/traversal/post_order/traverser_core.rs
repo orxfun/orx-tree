@@ -11,6 +11,7 @@ use crate::{
         enumeration::Enumeration,
         over::OverItem,
         over_mut::{OverItemInto, OverItemMut},
+        post_order::into_iter_filtered::PostOrderIterIntoFiltered,
         traverser_core::TraverserCore,
     },
 };
@@ -125,5 +126,25 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
         let (col, root) = node_mut.into_inner();
         let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { PostOrderIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+    }
+
+    fn into_iter_with_storage_filtered<'a, V, M, P, MO, F>(
+        node_mut: NodeMut<'a, V, M, P, MO>,
+        storage: impl SoM<Self::Storage<V>>,
+        filter: F,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        MO: NodeMutOrientation,
+        O: Over,
+        F: Fn(&<<O as Over>::Enumeration as Enumeration>::Item<NodePtr<V>>) -> bool,
+    {
+        let (col, root) = node_mut.into_inner();
+        let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root));
+        unsafe {
+            PostOrderIterIntoFiltered::<V, M, P, _, _, _>::from((col, iter_ptr, root), filter)
+        }
     }
 }
