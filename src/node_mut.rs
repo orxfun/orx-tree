@@ -2755,6 +2755,28 @@ where
             })
     }
 
+    pub fn into_leaves_with<T, O>(
+        self,
+        traverser: &'a mut T,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        O: OverMut,
+        T: Traverser<O>,
+    {
+        // T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
+        //     .filter(|x| {
+        //         let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
+        //         unsafe { &*ptr.ptr() }.next().is_empty()
+        //     })
+        //     .map(|x| {
+        //         O::Enumeration::from_element_ptr_mut::<'a, V, M, P, O::NodeItemMut<'a, V, M, P>>(
+        //             self.col(),
+        //             x,
+        //         )
+        //     })
+        core::iter::empty()
+    }
+
     // recursive
 
     /// Recursively sets the data of all nodes belonging to the subtree rooted at this node using the `compute_data`

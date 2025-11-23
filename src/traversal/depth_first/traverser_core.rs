@@ -126,4 +126,26 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
         unsafe { DfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
     }
+
+    fn into_iter_with_storage_filtered<'a, V, M, P, MO, F>(
+        node_mut: NodeMut<'a, V, M, P, MO>,
+        storage: impl SoM<Self::Storage<V>>,
+        filter: F,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+    where
+        V: TreeVariant + 'a,
+        M: MemoryPolicy,
+        P: PinnedStorage,
+        MO: NodeMutOrientation,
+        O: Over,
+        F: Fn(&<<O as Over>::Enumeration as Enumeration>::Item<NodePtr<V>>) -> bool,
+    {
+        let (col, root) = node_mut.into_inner();
+        let mut iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
+        let x = iter_ptr.next().unwrap();
+        let ptr = <O::Enumeration as Enumeration>::node_data(&x);
+
+        let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
+        unsafe { DfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+    }
 }

@@ -1,0 +1,124 @@
+use super::DepthFirstEnumeration;
+use super::iter_ptr::DfsIterPtr;
+use super::stack::Item;
+use crate::TreeVariant;
+use crate::aliases::Col;
+use crate::memory::MemoryPolicy;
+use crate::pinned_storage::PinnedStorage;
+use alloc::vec::Vec;
+use orx_self_or::SoM;
+use orx_selfref_col::{NodePtr, Refs};
+
+pub struct DfsIterIntoFiltered<'a, V, M, P, E, S, F>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    E: DepthFirstEnumeration,
+    S: SoM<Vec<Item<V, E>>>,
+    F: Fn(&E::Item<NodePtr<V>>) -> bool,
+{
+    col: &'a mut Col<V, M, P>,
+    root_ptr: NodePtr<V>,
+    iter: DfsIterPtr<V, E, S>,
+    filter: F,
+}
+
+impl<'a, V, M, P, E, S, F> DfsIterIntoFiltered<'a, V, M, P, E, S, F>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    E: DepthFirstEnumeration,
+    S: SoM<Vec<Item<V, E>>>,
+    F: Fn(&E::Item<NodePtr<V>>) -> bool,
+{
+    /// # Safety
+    ///
+    /// We are creating a mutable iterator over nodes of the collection `col`.
+    /// This is safe only when the second argument `iter` makes sure that there exists only one mutable
+    /// reference to the collection.
+    ///
+    /// This is the case how this method is used, as follows:
+    /// * Mutable iterators are created through the `Dfs` traverser's `TraverserMut::iter_mut` method.
+    /// * This method requires a mutable reference to a mutable node `NodeMut` which is guaranteed to
+    ///   be the only reference to the collection.
+    /// * Finally, this iterator's lifetime is equal to the borrow duration of the mutable node.
+    #[allow(clippy::type_complexity)]
+    pub(crate) unsafe fn from(
+        (col, iter, root_ptr): (&'a mut Col<V, M, P>, DfsIterPtr<V, E, S>, NodePtr<V>),
+        filter: F,
+    ) -> Self {
+        let node = unsafe { &mut *root_ptr.ptr_mut() };
+
+        match node.prev().get() {
+            Some(parent) => {
+                let parent = unsafe { &mut *parent.ptr_mut() };
+                let sibling_idx = parent.next_mut().remove(unsafe { root_ptr.ptr() as usize });
+                debug_assert!(sibling_idx.is_some());
+
+                node.prev_mut().clear();
+            }
+            None => {
+                // node_ptr points to the root node
+                col.ends_mut().clear();
+            }
+        }
+
+        Self {
+            col,
+            root_ptr,
+            iter,
+            filter,
+        }
+    }
+
+    fn take_element(&mut self, element: E::Item<NodePtr<V>>) -> E::Item<V::Item> {
+        E::map_node_data(element, |ptr| {
+            let col = unsafe { &mut *(self.col as *mut Col<V, M, P>) };
+            col.close(ptr)
+        })
+    }
+}
+
+impl<V, M, P, E, S, F> Iterator for DfsIterIntoFiltered<'_, V, M, P, E, S, F>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    E: DepthFirstEnumeration,
+    S: SoM<Vec<Item<V, E>>>,
+    F: Fn(&E::Item<NodePtr<V>>) -> bool,
+{
+    type Item = E::Item<V::Item>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.iter.next() {
+                Some(ptr) => {
+                    if (self.filter)(&ptr) {
+                        return Some(self.take_element(ptr));
+                    }
+                }
+                None => return None,
+            }
+        }
+    }
+}
+
+impl<V, M, P, E, S, F> Drop for DfsIterIntoFiltered<'_, V, M, P, E, S, F>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    E: DepthFirstEnumeration,
+    S: SoM<Vec<Item<V, E>>>,
+    F: Fn(&E::Item<NodePtr<V>>) -> bool,
+{
+    fn drop(&mut self) {
+        while let Some(element) = self.iter.next() {
+            self.take_element(element);
+        }
+        self.col.reclaim_from_closed_node(self.root_ptr);
+    }
+}
