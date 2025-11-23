@@ -3421,17 +3421,11 @@ mod tst {
         tree.node_mut(id6).push_child(9);
         tree.node_mut(id7).push_children([10, 11]);
 
-        // create the traverser 'dfs' only once, use it many times
-        // to walk over references, mutable references or removed values
-        // without additional allocation
-
-        let mut dfs = Dfs::default();
-
         // keep indices valid during removals
         let mut tree = tree.into_lazy_reclaim();
 
         let n3 = tree.node_mut(id3);
-        let leaves: Vec<_> = n3.into_leaves_with(&mut dfs).collect();
+        let leaves: Vec<_> = n3.into_leaves::<Dfs>().collect();
         assert_eq!(leaves, [9, 10, 11]);
 
         //      1
@@ -3442,10 +3436,10 @@ mod tst {
         // 4   5
         // |
         // 8
-        let remaining: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
+        let remaining: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
         assert_eq!(remaining, [1, 2, 4, 8, 5]);
 
-        let leaves: Vec<_> = tree.root_mut().into_leaves_with(&mut dfs).collect();
+        let leaves: Vec<_> = tree.root_mut().into_leaves::<Dfs>().collect();
         assert_eq!(leaves, [8, 5]);
 
         assert!(tree.is_empty());
