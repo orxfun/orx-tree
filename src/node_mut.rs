@@ -11,7 +11,6 @@ use crate::{
         Over, OverData, OverMut,
         enumeration::Enumeration,
         enumerations::Val,
-        node_item::NodeItem,
         over::OverPtr,
         over_mut::{OverItemInto, OverItemMut},
         post_order::iter_ptr::PostOrderIterPtr,
@@ -2756,6 +2755,91 @@ where
             })
     }
 
+    /// Creates an iterator that yields owned (removed) data of all leaves of the subtree rooted at this node.
+    ///
+    /// Note that once the returned iterator is dropped, regardless of whether it is completely used up or not,
+    /// the subtree rooted at this node will be **removed** from the tree it belongs to.
+    /// If this node is the root of the tree, the tree will be left empty.
+    ///
+    /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// See also [`leaves`] and [`leaves_mut`] for iterators over shared and mutable references, respectively.
+    ///
+    /// Note that tree traversing methods typically allocate a temporary data structure that is dropped once the
+    /// iterator is dropped.
+    /// In use cases where we repeatedly iterate using any of the **leaves** methods over different nodes or different
+    /// trees, we can avoid the allocation by creating the traverser only once and using [`leaves_with`], [`leaves_mut_with`]
+    /// and [`into_leaves_with`] methods instead.
+    /// These methods additionally allow for iterating over nodes rather than data; and yielding node depths and sibling
+    /// indices in addition to node data.
+    ///
+    /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
+    /// > cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// > for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// > section presents a convenient way that allows us to make sure that the indices are valid.
+    ///
+    /// [`Auto`]: crate::Auto
+    /// [`Lazy`]: crate::Lazy
+    /// [`MemoryPolicy`]: crate::MemoryPolicy
+    ///
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    /// [`leaves`]: crate::NodeRef::leaves
+    /// [`leaves_mut`]: crate::NodeMut::walk_mut
+    /// [`leaves_with`]: crate::NodeRef::leaves_with
+    /// [`leaves_mut_with`]: crate::NodeMut::leaves_mut_with
+    /// [`into_leaves_with`]: crate::NodeMut::into_leaves_with
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
+    ///
+    /// // keep indices valid during removals
+    /// let mut tree = tree.into_lazy_reclaim();
+    ///
+    /// let n3 = tree.node_mut(id3);
+    /// let leaves: Vec<_> = n3.into_leaves::<Dfs>().collect();
+    /// assert_eq!(leaves, [9, 10, 11]);
+    ///
+    /// //      1
+    /// //     ╱
+    /// //    ╱
+    /// //   2
+    /// //  ╱ ╲
+    /// // 4   5
+    /// // |
+    /// // 8
+    /// let remaining: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
+    /// assert_eq!(remaining, [1, 2, 4, 8, 5]);
+    ///
+    /// let leaves: Vec<_> = tree.root_mut().into_leaves::<Dfs>().collect();
+    /// assert_eq!(leaves, [8, 5]);
+    ///
+    /// assert!(tree.is_empty());
+    /// ```
     pub fn into_leaves<T>(self) -> impl Iterator<Item = V::Item>
     where
         T: Traverser<OverData>,
@@ -3394,54 +3478,5 @@ where
     /// ```
     pub fn into_parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
         self.node().prev().get().map(|p| NodeMut::new(self.col, p))
-    }
-}
-
-#[cfg(test)]
-mod tst {
-    use crate::*;
-    use alloc::vec::Vec;
-
-    #[test]
-    fn abc() {
-        //      1
-        //     ╱ ╲
-        //    ╱   ╲
-        //   2     3
-        //  ╱ ╲   ╱ ╲
-        // 4   5 6   7
-        // |     |  ╱ ╲
-        // 8     9 10  11
-
-        let mut tree = DynTree::new(1);
-        let [id2, id3] = tree.root_mut().push_children([2, 3]);
-        let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
-        tree.node_mut(id4).push_child(8);
-        let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
-        tree.node_mut(id6).push_child(9);
-        tree.node_mut(id7).push_children([10, 11]);
-
-        // keep indices valid during removals
-        let mut tree = tree.into_lazy_reclaim();
-
-        let n3 = tree.node_mut(id3);
-        let leaves: Vec<_> = n3.into_leaves::<Dfs>().collect();
-        assert_eq!(leaves, [9, 10, 11]);
-
-        //      1
-        //     ╱
-        //    ╱
-        //   2
-        //  ╱ ╲
-        // 4   5
-        // |
-        // 8
-        let remaining: Vec<_> = tree.root().walk::<Dfs>().copied().collect();
-        assert_eq!(remaining, [1, 2, 4, 8, 5]);
-
-        let leaves: Vec<_> = tree.root_mut().into_leaves::<Dfs>().collect();
-        assert_eq!(leaves, [8, 5]);
-
-        assert!(tree.is_empty());
     }
 }
