@@ -2941,7 +2941,7 @@ where
         T: Traverser<O>,
     {
         T::into_iter_with_storage_filtered(self, traverser.storage_mut(), |x| {
-            let ptr = <O::Enumeration as Enumeration>::node_data(&x);
+            let ptr = <O::Enumeration as Enumeration>::node_data(x);
             unsafe { &*ptr.ptr() }.next().is_empty()
         })
     }
