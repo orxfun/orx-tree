@@ -41,6 +41,22 @@ serde = ["dep:serde"]
 name = "walk_iterator"
 harness = false
 
+[[bench]]
+name = "children_iterator"
+harness = false
+
+[[bench]]
+name = "parallelization_owned"
+harness = false
+
+[[bench]]
+name = "parallelization_ref"
+harness = false
+
+[[bench]]
+name = "paths_iterator"
+harness = false
+
 # Lints that apply to all files and targets
 [lints.clippy]
 uninlined_format_args = "warn"
