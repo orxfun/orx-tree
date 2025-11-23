@@ -8,7 +8,8 @@ use crate::{
     subtrees::{MovedSubTree, SubTreeCore},
     subtrees_within::SubTreeWithin,
     traversal::{
-        OverData, OverMut,
+        Over, OverData, OverMut,
+        enumeration::Enumeration,
         enumerations::Val,
         over::OverPtr,
         over_mut::{OverItemInto, OverItemMut},
@@ -2533,6 +2534,88 @@ where
         T: Traverser<O>,
     {
         traverser.into_iter(self)
+    }
+
+    // traversal shorthands
+
+    /// Returns an iterator of mutable references to data of leaves of the subtree rooted at this node.
+    ///
+    /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(&id2);
+    /// let [id4, _] = n2.push_children([4, 5]);
+    ///
+    /// tree.node_mut(&id4).push_child(8);
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// let [id6, id7] = n3.push_children([6, 7]);
+    ///
+    /// tree.node_mut(&id6).push_child(9);
+    /// tree.node_mut(&id7).push_children([10, 11]);
+    ///
+    /// // access the leaves in different orders that is determined by traversal
+    ///
+    /// let mut root = tree.root_mut();
+    /// for (l, leaf) in root.leaves_mut::<Bfs>().enumerate() {
+    ///     *leaf += 100 * l;
+    /// }
+    ///
+    /// let bfs_leaves: Vec<_> = tree.root().leaves::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_leaves, [5, 108, 209, 310, 411]);
+    ///
+    /// // get the leaves from any node
+    ///
+    /// let mut n3 = tree.node_mut(&id3);
+    /// for (l, leaf) in n3.leaves_mut::<PostOrder>().enumerate() {
+    ///     *leaf -= 100 * l;
+    /// }
+    ///
+    /// let n3 = tree.node(&id3);
+    /// let leaves: Vec<_> = n3.leaves::<PostOrder>().copied().collect();
+    /// assert_eq!(leaves, [209, 210, 211]);
+    /// ```
+    pub fn leaves_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
+    where
+        T: Traverser<OverData>,
+    {
+        T::iter_ptr_with_owned_storage(self.node_ptr().clone())
+                .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
+                .map(|x: NodePtr<V>| {
+                    <OverData as Over>::Enumeration::from_element_ptr_mut::<
+                        'a,
+                        V,
+                        M,
+                        P,
+                        &'a mut V::Item,
+                    >(self.col(), x)
+                })
     }
 
     // recursive
