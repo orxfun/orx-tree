@@ -96,8 +96,10 @@ where
         loop {
             match self.iter.next() {
                 Some(ptr) => {
-                    if (self.filter)(&ptr) {
-                        return Some(self.take_element(ptr));
+                    let included = (self.filter)(&ptr);
+                    let element = self.take_element(ptr);
+                    if included {
+                        return Some(element);
                     }
                 }
                 None => return None,
