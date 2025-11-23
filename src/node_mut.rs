@@ -2143,7 +2143,7 @@ where
     /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
-    /// As opposed to [`walk_mut`], this method does require internal allocation.
+    /// As opposed to [`walk_mut`], this method does not require internal allocation.
     /// Furthermore, it allows to attach node depths or sibling indices to the yield values.
     /// Please see the examples below.
     ///
@@ -2372,7 +2372,7 @@ where
     /// assert!(tree.is_empty());
     /// assert_eq!(tree.get_root(), None);
     /// ```
-    pub fn into_walk<T>(self) -> impl Iterator<Item = V::Item> + use<'a, T, V, M, P, MO>
+    pub fn into_walk<T>(self) -> impl Iterator<Item = V::Item>
     where
         T: Traverser<OverData>,
     {
@@ -2391,7 +2391,7 @@ where
     /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
-    /// As opposed to [`into_walk`], this method does require internal allocation.
+    /// As opposed to [`into_walk`], this method does not require internal allocation.
     /// Furthermore, it allows to attach node depths or sibling indices to the yield values.
     /// Please see the examples below.
     ///
@@ -2624,7 +2624,7 @@ where
     /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
     ///
-    /// As opposed to [`leaves_mut`], this method does require internal allocation.
+    /// As opposed to [`leaves_mut`], this method does not require internal allocation.
     /// Furthermore, it allows to attach node depths or sibling indices to the yield values.
     /// Please see the examples below.
     ///
@@ -2756,6 +2756,98 @@ where
             })
     }
 
+    pub fn into_leaves<T>(self) -> impl Iterator<Item = V::Item>
+    where
+        T: Traverser<OverData>,
+    {
+        let storage = T::Storage::<V>::default();
+        T::into_iter_with_storage_filtered(self, storage, |x| {
+            let ptr = <<OverData as Over>::Enumeration as Enumeration>::node_data(&x);
+            unsafe { &*ptr.ptr() }.next().is_empty()
+        })
+    }
+
+    /// Creates an iterator that yields owned (removed) data of all leaves of the subtree rooted at this node.
+    ///
+    /// Note that once the returned iterator is dropped, regardless of whether it is completely used up or not,
+    /// the subtree rooted at this node will be **removed** from the tree it belongs to.
+    /// If this node is the root of the tree, the tree will be left empty.
+    ///
+    /// The order of the elements is determined by the type of the `traverser` which implements [`Traverser`].
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// As opposed to [`into_leaves`], this method does not require internal allocation.
+    /// Furthermore, it allows to attach node depths or sibling indices to the yield values.
+    /// Please see the examples below.
+    ///
+    /// [`into_leaves`]: crate::NodeMut::into_leaves
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// > **(!)** As a method that removes nodes from the tree, this method might result in invalidating indices that are
+    /// > cached earlier in the [`Auto`] mode, but not in the [`Lazy`] mode. Please see the documentation of [MemoryPolicy]
+    /// > for details of node index validity. Specifically, the examples in the "Lazy Memory Claim: Preventing Invalid Indices"
+    /// > section presents a convenient way that allows us to make sure that the indices are valid.
+    ///
+    /// [`Auto`]: crate::Auto
+    /// [`Lazy`]: crate::Lazy
+    /// [`MemoryPolicy`]: crate::MemoryPolicy
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
+    ///
+    /// // create the traverser 'dfs' only once, use it many times
+    /// // to walk over references, mutable references or removed values
+    /// // without additional allocation
+    ///
+    /// let mut dfs = Dfs::default();
+    ///
+    /// // keep indices valid during removals
+    /// let mut tree = tree.into_lazy_reclaim();
+    ///
+    /// let n3 = tree.node_mut(id3);
+    /// let leaves: Vec<_> = n3.into_leaves_with(&mut dfs).collect();
+    /// assert_eq!(leaves, [9, 10, 11]);
+    ///
+    /// //      1
+    /// //     ╱
+    /// //    ╱
+    /// //   2
+    /// //  ╱ ╲
+    /// // 4   5
+    /// // |
+    /// // 8
+    /// let remaining: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
+    /// assert_eq!(remaining, [1, 2, 4, 8, 5]);
+    ///
+    /// let leaves: Vec<_> = tree.root_mut().into_leaves_with(&mut dfs).collect();
+    /// assert_eq!(leaves, [8, 5]);
+    ///
+    /// assert!(tree.is_empty());
+    /// ```
     pub fn into_leaves_with<T, O>(
         self,
         traverser: &'a mut T,
@@ -3307,11 +3399,7 @@ where
 
 #[cfg(test)]
 mod tst {
-    use std::println;
-    use std::string::ToString;
-
-    use crate::{traversal::traverser_core::TraverserCore, *};
-    use alloc::vec;
+    use crate::*;
     use alloc::vec::Vec;
 
     #[test]
@@ -3325,32 +3413,41 @@ mod tst {
         // |     |  ╱ ╲
         // 8     9 10  11
 
-        let mut tree = DynTree::new(1.to_string());
+        let mut tree = DynTree::new(1);
+        let [id2, id3] = tree.root_mut().push_children([2, 3]);
+        let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+        tree.node_mut(id4).push_child(8);
+        let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+        tree.node_mut(id6).push_child(9);
+        tree.node_mut(id7).push_children([10, 11]);
 
-        let mut root = tree.root_mut();
-        let [id2, id3] = root.push_children([2, 3].map(|x| x.to_string()));
-
-        let mut n2 = tree.node_mut(id2);
-        let [id4, _] = n2.push_children([4, 5].map(|x| x.to_string()));
-
-        tree.node_mut(id4).push_child(8.to_string());
-
-        let mut n3 = tree.node_mut(id3);
-        let [id6, id7] = n3.push_children([6, 7].map(|x| x.to_string()));
-
-        tree.node_mut(id6).push_child(9.to_string());
-        tree.node_mut(id7)
-            .push_children([10, 11].map(|x| x.to_string()));
-
-        // create the traverser 'bfs' (or others) only once, use it many times
+        // create the traverser 'dfs' only once, use it many times
         // to walk over references, mutable references or removed values
         // without additional allocation
 
-        let mut t = Dfs::default();
+        let mut dfs = Dfs::default();
 
-        let leaves: Vec<_> = tree.root_mut().into_leaves_with(&mut t).collect();
-        println!("{leaves:?}");
+        // keep indices valid during removals
+        let mut tree = tree.into_lazy_reclaim();
 
-        assert_eq!(leaves.len(), 33);
+        let n3 = tree.node_mut(id3);
+        let leaves: Vec<_> = n3.into_leaves_with(&mut dfs).collect();
+        assert_eq!(leaves, [9, 10, 11]);
+
+        //      1
+        //     ╱
+        //    ╱
+        //   2
+        //  ╱ ╲
+        // 4   5
+        // |
+        // 8
+        let remaining: Vec<_> = tree.root().walk_with(&mut dfs).copied().collect();
+        assert_eq!(remaining, [1, 2, 4, 8, 5]);
+
+        let leaves: Vec<_> = tree.root_mut().into_leaves_with(&mut dfs).collect();
+        assert_eq!(leaves, [8, 5]);
+
+        assert!(tree.is_empty());
     }
 }
