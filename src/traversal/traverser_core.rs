@@ -155,10 +155,7 @@ where
         P: PinnedStorage,
         MO: NodeMutOrientation,
         O: Over,
-        F: Fn(&<O::Enumeration as Enumeration>::Item<NodePtr<V>>) -> bool,
-    {
-        core::iter::empty()
-    }
+        F: Fn(&<O::Enumeration as Enumeration>::Item<NodePtr<V>>) -> bool;
 
     /// Returns an iterator which:
     ///
