@@ -2615,6 +2615,146 @@ where
                 })
     }
 
+    /// Creates an iterator of mutable references to leaves of the subtree rooted at this node.
+    ///
+    /// The order of the leaves is determined by the type of the `traverser` which implements [`Traverser`].
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// As opposed to [`leaves_mut`], this method does require internal allocation.
+    /// Furthermore, it allows to attach node depths or sibling indices to the yield values.
+    /// Please see the examples below.
+    ///
+    /// [`leaves_mut`]: crate::NodeMut::leaves_mut
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
+    /// [`PostOrder`]: crate::PostOrder
+    ///
+    /// # Examples
+    ///
+    /// ## Examples - Repeated Iterations without Allocation
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(id2);
+    /// let [id4, _] = n2.push_children([4, 5]);
+    ///
+    /// tree.node_mut(id4).push_child(8);
+    ///
+    /// let mut n3 = tree.node_mut(id3);
+    /// let [id6, id7] = n3.push_children([6, 7]);
+    ///
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
+    ///
+    /// // create the traverser 'bfs' (or others) only once, use it many times
+    /// // to walk over references, mutable references or removed values
+    /// // without additional allocation
+    ///
+    /// let mut t = Bfs::default();
+    ///
+    /// for (l, leaf) in tree.root_mut().leaves_mut_with(&mut t).enumerate() {
+    ///     *leaf += 100 * l;
+    /// }
+    ///
+    /// let bfs_leaves: Vec<_> = tree.root().leaves_with(&mut t).copied().collect();
+    /// assert_eq!(bfs_leaves, [5, 108, 209, 310, 411]);
+    ///
+    /// // get the leaves from any node
+    ///
+    /// let mut n3 = tree.node_mut(id3);
+    /// for (l, leaf) in n3.leaves_mut_with(&mut t).enumerate() {
+    ///     *leaf -= 100 * l;
+    /// }
+    ///
+    /// let n3 = tree.node(id3);
+    /// let leaves: Vec<_> = n3.leaves_with(&mut t).copied().collect();
+    /// assert_eq!(leaves, [209, 210, 211]);
+    /// ```
+    ///
+    /// ## Examples - Yielding Different Items
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    ///
+    /// let mut n2 = tree.node_mut(id2);
+    /// let [id4, _] = n2.push_children([4, 5]);
+    ///
+    /// tree.node_mut(id4).push_child(8);
+    ///
+    /// let mut n3 = tree.node_mut(id3);
+    /// let [id6, id7] = n3.push_children([6, 7]);
+    ///
+    /// tree.node_mut(id6).push_child(9);
+    /// tree.node_mut(id7).push_children([10, 11]);
+    ///
+    /// // create the traverser 'bfs' iterator which additionally
+    /// // yields depths (or sibling_idx)
+    ///
+    /// let mut bfs = Traversal.bfs().with_depth();
+    ///
+    /// for (depth, x) in tree.root_mut().leaves_mut_with(&mut bfs) {
+    ///     *x += 100 * depth;
+    /// }
+    ///
+    /// let root = tree.root();
+    /// let leaves: Vec<_> = root.leaves_with(&mut bfs).collect();
+    /// assert_eq!(
+    ///     leaves,
+    ///     [(2, &205), (3, &308), (3, &309), (3, &310), (3, &311)]
+    /// );
+    /// ```
+    pub fn leaves_mut_with<T, O>(
+        &'a mut self,
+        traverser: &'a mut T,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    where
+        O: OverMut,
+        T: Traverser<O>,
+    {
+        T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
+            .filter(|x| {
+                let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
+                unsafe { &*ptr.ptr() }.next().is_empty()
+            })
+            .map(|x| {
+                O::Enumeration::from_element_ptr_mut::<'a, V, M, P, O::NodeItemMut<'a, V, M, P>>(
+                    self.col(),
+                    x,
+                )
+            })
+    }
+
     // recursive
 
     /// Recursively sets the data of all nodes belonging to the subtree rooted at this node using the `compute_data`
