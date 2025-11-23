@@ -8,6 +8,7 @@ use crate::{
     pinned_storage::PinnedStorage,
     traversal::{
         Over, OverMut,
+        depth_first::into_iter_filtered::DfsIterIntoFiltered,
         enumeration::Enumeration,
         over::OverItem,
         over_mut::{OverItemInto, OverItemMut},
@@ -141,11 +142,7 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         F: Fn(&<<O as Over>::Enumeration as Enumeration>::Item<NodePtr<V>>) -> bool,
     {
         let (col, root) = node_mut.into_inner();
-        let mut iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
-        let x = iter_ptr.next().unwrap();
-        let ptr = <O::Enumeration as Enumeration>::node_data(&x);
-
         let iter_ptr = DfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
-        unsafe { DfsIterInto::<V, M, P, _, _>::from((col, iter_ptr, root)) }
+        unsafe { DfsIterIntoFiltered::<V, M, P, _, _, _>::from((col, iter_ptr, root), filter) }
     }
 }
