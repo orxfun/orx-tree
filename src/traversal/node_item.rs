@@ -13,7 +13,6 @@ where
 {
     fn from_ptr(col: &'a Col<V, M, P>, node_ptr: NodePtr<V>) -> Self;
 
-    #[cfg(test)]
     fn node_data(&self) -> &V::Item;
 }
 
@@ -28,7 +27,6 @@ where
         Node::new(col, node_ptr)
     }
 
-    #[cfg(test)]
     #[inline(always)]
     fn node_data(&self) -> &V::Item {
         use crate::NodeRef;
@@ -48,7 +46,6 @@ where
         node.data().expect("active tree node has data")
     }
 
-    #[cfg(test)]
     #[inline(always)]
     fn node_data(&self) -> &V::Item {
         self
@@ -66,7 +63,6 @@ where
         node_ptr
     }
 
-    #[cfg(test)]
     #[inline(always)]
     fn node_data(&self) -> &V::Item {
         unsafe { &*self.ptr() }

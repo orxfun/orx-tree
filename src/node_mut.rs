@@ -11,6 +11,7 @@ use crate::{
         Over, OverData, OverMut,
         enumeration::Enumeration,
         enumerations::Val,
+        node_item::NodeItem,
         over::OverPtr,
         over_mut::{OverItemInto, OverItemMut},
         post_order::iter_ptr::PostOrderIterPtr,
@@ -2763,18 +2764,10 @@ where
         O: OverMut,
         T: Traverser<O>,
     {
-        // T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
-        //     .filter(|x| {
-        //         let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
-        //         unsafe { &*ptr.ptr() }.next().is_empty()
-        //     })
-        //     .map(|x| {
-        //         O::Enumeration::from_element_ptr_mut::<'a, V, M, P, O::NodeItemMut<'a, V, M, P>>(
-        //             self.col(),
-        //             x,
-        //         )
-        //     })
-        core::iter::empty()
+        T::into_iter_with_storage_filtered(self, traverser.storage_mut(), |x| {
+            let ptr = <O::Enumeration as Enumeration>::node_data(&x);
+            unsafe { &*ptr.ptr() }.next().is_empty()
+        })
     }
 
     // recursive
