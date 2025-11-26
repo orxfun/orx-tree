@@ -190,6 +190,8 @@ pub enum DepthFirstSequenceError {
     },
 }
 
+impl<T, I> DepthFirstSequence<T, I> where I: IntoIterator<Item = (usize, T)> {}
+
 impl<I, V, M, P> TryFrom<DepthFirstSequence<V::Item, I>> for Tree<V, M, P>
 where
     V: TreeVariant,
@@ -215,19 +217,58 @@ where
             None => Ok(Tree::default()),
             Some((d, root)) => match d {
                 0 => {
-                    let mut tree = Tree::new_with_root(root);
-                    match tree.root_mut().try_append_subtree_as_child(iter, 0) {
-                        Ok(_) => Ok(tree),
-                        Err((depth, succeeding_depth)) => {
-                            Err(DepthFirstSequenceError::DepthIncreaseGreaterThanOne {
-                                depth,
-                                succeeding_depth,
-                            })
+                    let tree = Tree::new_with_root(root);
+
+                    // # SAFETY:
+                    // `push_dfs_under_root` panics if iter is empty. Therefore,
+                    //
+                    // * We first check if lower-bound(len) > 0, this allows us to directly use the iter
+                    //  which is faster.
+                    // * Otherwise, we use a peekable iterator to make sure that the iterator has at least
+                    //   one element.
+                    let (lb_len, _) = iter.size_hint();
+
+                    match lb_len > 0 {
+                        true => push_dfs_under_root(tree, iter),
+                        false => {
+                            let mut peekable = iter.peekable();
+                            match peekable.peek().is_some() {
+                                true => push_dfs_under_root(tree, peekable),
+                                false => Ok(tree),
+                            }
                         }
                     }
                 }
                 _ => Err(DepthFirstSequenceError::NonZeroRootDepth),
             },
+        }
+    }
+}
+
+/// # Panics
+///
+/// Panics
+///
+/// * If the `iter` is an empty iterator; it must contain at least one child node.
+/// * If the `tree` is empty, it must have at least the `root`.
+fn push_dfs_under_root<I, V, M, P>(
+    mut tree: Tree<V, M, P>,
+    iter: I,
+) -> Result<Tree<V, M, P>, DepthFirstSequenceError>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    P::PinnedVec<V>: Default,
+    I: IntoIterator<Item = (usize, V::Item)>,
+{
+    match tree.root_mut().try_append_subtree_as_child(iter, 0) {
+        Ok(_) => Ok(tree),
+        Err((depth, succeeding_depth)) => {
+            Err(DepthFirstSequenceError::DepthIncreaseGreaterThanOne {
+                depth,
+                succeeding_depth,
+            })
         }
     }
 }

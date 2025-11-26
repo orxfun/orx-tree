@@ -3264,6 +3264,10 @@ where
     /// greater than one.
     /// The method returns the (depth, succeeding_depth) pair as the error when this error
     /// is observed.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `subtree` is an empty iterator. It must contain at least one child node.
     #[allow(clippy::unwrap_in_result)]
     pub(crate) fn try_append_subtree_as_child(
         &mut self,
