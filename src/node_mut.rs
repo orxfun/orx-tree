@@ -90,55 +90,6 @@ where
     P: PinnedStorage,
     MO: NodeMutOrientation,
 {
-    /// Returns the mutable `root` node of the tree that this node belongs to.
-    ///
-    /// Note that if this node is the root of its tree, this method will return itself.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use orx_tree::*;
-    ///
-    /// //      1
-    /// //     ╱ ╲
-    /// //    ╱   ╲
-    /// //   2     3
-    /// //  ╱ ╲   ╱ ╲
-    /// // 4   5 6   7
-    /// // |     |  ╱ ╲
-    /// // 8     9 10  11
-    ///
-    /// let mut tree = DynTree::new(1);
-    ///
-    /// let mut root = tree.root_mut();
-    /// let [id2, id3] = root.push_children([2, 3]);
-    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
-    /// tree.node_mut(id4).push_child(8);
-    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
-    /// tree.node_mut(id6).push_child(9);
-    /// let [id10, _] = tree.node_mut(id7).push_children([10, 11]);
-    ///
-    /// // reach back to root from any node
-    ///
-    /// let mut n1 = tree.root_mut();
-    /// let mut root = n1.root_mut();
-    /// *root.data_mut() += 100;
-    /// assert_eq!(tree.root().data(), &101);
-    ///
-    /// let mut n4 = tree.node_mut(id4);
-    /// *n4.root_mut().data_mut() += 100;
-    /// assert_eq!(tree.root().data(), &201);
-    ///
-    /// let mut n10 = tree.node_mut(id10);
-    /// *n10.root_mut().data_mut() += 100;
-    /// assert_eq!(tree.root().data(), &301);
-    /// ```
-    pub fn root_mut(&'a mut self) -> NodeMut<'a, V, M, P, MO> {
-        let ends = self.col.ends_mut().get();
-        let root_ptr = ends.expect("Tree is not-empty, and hence, has a root");
-        NodeMut::new(&mut self.col, root_ptr)
-    }
-
     /// Returns a mutable reference to data of this node.
     ///
     /// # Examples
@@ -3412,6 +3363,104 @@ where
     M: MemoryPolicy,
     P: PinnedStorage,
 {
+    /// Returns the mutable `root` node of the tree that this node belongs to.
+    ///
+    /// Note that if this node is the root of its tree, this method will return itself.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [id10, _] = tree.node_mut(id7).push_children([10, 11]);
+    ///
+    /// // reach back to root from any node
+    ///
+    /// let mut n1 = tree.root_mut();
+    /// let mut root = n1.root_mut();
+    /// *root.data_mut() += 100;
+    /// assert_eq!(tree.root().data(), &101);
+    ///
+    /// let mut n4 = tree.node_mut(id4);
+    /// *n4.root_mut().data_mut() += 100;
+    /// assert_eq!(tree.root().data(), &201);
+    ///
+    /// let mut n10 = tree.node_mut(id10);
+    /// *n10.root_mut().data_mut() += 100;
+    /// assert_eq!(tree.root().data(), &301);
+    /// ```
+    pub fn root_mut(&'a mut self) -> NodeMut<'a, V, M, P> {
+        let ends = self.col.ends_mut().get();
+        let root_ptr = ends.expect("Tree is not-empty, and hence, has a root");
+        NodeMut::new(&mut self.col, root_ptr)
+    }
+
+    /// Consumes this mutable node and returns the mutable `root` node of the tree that this node belongs to.
+    ///
+    /// Note that if this node is the root of its tree, this method will return itself.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [id10, _] = tree.node_mut(id7).push_children([10, 11]);
+    ///
+    /// // reach back to root from any node
+    ///
+    /// let n1 = tree.root_mut();
+    /// let mut root = n1.into_root_mut();
+    /// *root.data_mut() += 100;
+    /// assert_eq!(tree.root().data(), &101);
+    ///
+    /// let n4 = tree.node_mut(id4);
+    /// *n4.into_root_mut().data_mut() += 100;
+    /// assert_eq!(tree.root().data(), &201);
+    ///
+    /// let n10 = tree.node_mut(id10);
+    /// *n10.into_root_mut().data_mut() += 100;
+    /// assert_eq!(tree.root().data(), &301);
+    /// ```
+    pub fn into_root_mut(self) -> NodeMut<'a, V, M, P> {
+        let ends = self.col.ends_mut().get();
+        let root_ptr = ends.expect("Tree is not-empty, and hence, has a root");
+        NodeMut::new(self.col, root_ptr)
+    }
+
     /// Returns the mutable node of this node's parent,
     /// returns None if this is the root node.
     ///
