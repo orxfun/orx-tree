@@ -88,6 +88,51 @@ where
         self.node().prev().get().is_none()
     }
 
+    /// Returns the `root` node of the tree that this node belongs to.
+    ///
+    /// Note that if this node is the root of its tree, this method will return itself.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1
+    /// //     ╱ ╲
+    /// //    ╱   ╲
+    /// //   2     3
+    /// //  ╱ ╲   ╱ ╲
+    /// // 4   5 6   7
+    /// // |     |  ╱ ╲
+    /// // 8     9 10  11
+    ///
+    /// let mut tree = DynTree::new(1);
+    ///
+    /// let mut root = tree.root_mut();
+    /// let [id2, id3] = root.push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    /// tree.node_mut(id6).push_child(9);
+    /// let [id10, _] = tree.node_mut(id7).push_children([10, 11]);
+    ///
+    /// // reach back to root from any node
+    ///
+    /// let n1 = tree.root();
+    /// assert_eq!(n1.root(), tree.root());
+    ///
+    /// let n4 = tree.node(id4);
+    /// assert_eq!(n4.root(), tree.root());
+    ///
+    /// let n10 = tree.node(id10);
+    /// assert_eq!(n10.root(), tree.root());
+    /// ```
+    fn root(&self) -> Node<'a, V, M, P> {
+        let ends = self.col().ends().get();
+        let root_ptr = ends.expect("Tree is not-empty, and hence, has a root");
+        Node::new(self.col(), root_ptr)
+    }
+
     /// Returns true if this is a leaf node; equivalently, if [`num_children`] is zero.
     ///
     /// [`num_children`]: NodeRef::num_children
