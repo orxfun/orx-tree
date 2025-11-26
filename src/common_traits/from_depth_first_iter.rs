@@ -216,14 +216,18 @@ where
             Some((d, root)) => match d {
                 0 => {
                     let mut tree = Tree::new_with_root(root);
-                    match tree.root_mut().try_append_subtree_as_child(iter, 0) {
-                        Ok(_) => Ok(tree),
-                        Err((depth, succeeding_depth)) => {
-                            Err(DepthFirstSequenceError::DepthIncreaseGreaterThanOne {
-                                depth,
-                                succeeding_depth,
-                            })
-                        }
+                    let mut peekable = iter.peekable();
+                    match peekable.peek().is_some() {
+                        true => match tree.root_mut().try_append_subtree_as_child(peekable, 0) {
+                            Ok(_) => Ok(tree),
+                            Err((depth, succeeding_depth)) => {
+                                Err(DepthFirstSequenceError::DepthIncreaseGreaterThanOne {
+                                    depth,
+                                    succeeding_depth,
+                                })
+                            }
+                        },
+                        false => Ok(tree),
                     }
                 }
                 _ => Err(DepthFirstSequenceError::NonZeroRootDepth),
