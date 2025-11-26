@@ -16,4 +16,10 @@ fn leaf_into_new_tree() {
         .nth(0)
         .unwrap()
         .into_new_tree();
+
+    assert_eq!(tree2.len(), 1);
+    assert_eq!(
+        tree2.root().walk::<Dfs>().copied().collect::<Vec<_>>(),
+        vec![1]
+    );
 }
