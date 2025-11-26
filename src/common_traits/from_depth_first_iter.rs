@@ -190,6 +190,8 @@ pub enum DepthFirstSequenceError {
     },
 }
 
+impl<T, I> DepthFirstSequence<T, I> where I: IntoIterator<Item = (usize, T)> {}
+
 impl<I, V, M, P> TryFrom<DepthFirstSequence<V::Item, I>> for Tree<V, M, P>
 where
     V: TreeVariant,
@@ -215,23 +217,45 @@ where
             None => Ok(Tree::default()),
             Some((d, root)) => match d {
                 0 => {
-                    let mut tree = Tree::new_with_root(root);
-                    let mut peekable = iter.peekable();
-                    match peekable.peek().is_some() {
-                        true => match tree.root_mut().try_append_subtree_as_child(peekable, 0) {
-                            Ok(_) => Ok(tree),
-                            Err((depth, succeeding_depth)) => {
-                                Err(DepthFirstSequenceError::DepthIncreaseGreaterThanOne {
-                                    depth,
-                                    succeeding_depth,
-                                })
+                    let tree = Tree::new_with_root(root);
+
+                    let (lb_len, _) = iter.size_hint();
+
+                    match lb_len > 0 {
+                        true => push_dfs_under_root(tree, iter),
+                        false => {
+                            let mut peekable = iter.peekable();
+                            match peekable.peek().is_some() {
+                                true => push_dfs_under_root(tree, peekable),
+                                false => Ok(tree),
                             }
-                        },
-                        false => Ok(tree),
+                        }
                     }
                 }
                 _ => Err(DepthFirstSequenceError::NonZeroRootDepth),
             },
+        }
+    }
+}
+
+fn push_dfs_under_root<I, V, M, P>(
+    mut tree: Tree<V, M, P>,
+    iter: I,
+) -> Result<Tree<V, M, P>, DepthFirstSequenceError>
+where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+    P::PinnedVec<V>: Default,
+    I: IntoIterator<Item = (usize, V::Item)>,
+{
+    match tree.root_mut().try_append_subtree_as_child(iter, 0) {
+        Ok(_) => Ok(tree),
+        Err((depth, succeeding_depth)) => {
+            Err(DepthFirstSequenceError::DepthIncreaseGreaterThanOne {
+                depth,
+                succeeding_depth,
+            })
         }
     }
 }
