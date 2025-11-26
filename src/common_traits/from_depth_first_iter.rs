@@ -219,6 +219,13 @@ where
                 0 => {
                     let tree = Tree::new_with_root(root);
 
+                    // # SAFETY:
+                    // `push_dfs_under_root` panics if iter is empty. Therefore,
+                    //
+                    // * We first check if lower-bound(len) > 0, this allows us to directly use the iter
+                    //  which is faster.
+                    // * Otherwise, we use a peekable iterator to make sure that the iterator has at least
+                    //   one element.
                     let (lb_len, _) = iter.size_hint();
 
                     match lb_len > 0 {
@@ -238,6 +245,9 @@ where
     }
 }
 
+/// # Panics
+///
+/// Panics if the `iter` is an empty iterator. It must contain at least one child node.
 fn push_dfs_under_root<I, V, M, P>(
     mut tree: Tree<V, M, P>,
     iter: I,
