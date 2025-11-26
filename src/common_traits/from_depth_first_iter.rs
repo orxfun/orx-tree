@@ -247,7 +247,10 @@ where
 
 /// # Panics
 ///
-/// Panics if the `iter` is an empty iterator. It must contain at least one child node.
+/// Panics
+///
+/// * If the `iter` is an empty iterator; it must contain at least one child node.
+/// * If the `tree` is empty, it must have at least the `root`.
 fn push_dfs_under_root<I, V, M, P>(
     mut tree: Tree<V, M, P>,
     iter: I,
