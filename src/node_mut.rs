@@ -3408,8 +3408,9 @@ where
     /// ```
     pub fn root_mut(&'a mut self) -> NodeMut<'a, V, M, P> {
         let ends = self.col.ends_mut().get();
+        #[allow(clippy::missing_panics_doc)]
         let root_ptr = ends.expect("Tree is not-empty, and hence, has a root");
-        NodeMut::new(&mut self.col, root_ptr)
+        NodeMut::new(self.col, root_ptr)
     }
 
     /// Consumes this mutable node and returns the mutable `root` node of the tree that this node belongs to.
@@ -3457,6 +3458,7 @@ where
     /// ```
     pub fn into_root_mut(self) -> NodeMut<'a, V, M, P> {
         let ends = self.col.ends_mut().get();
+        #[allow(clippy::missing_panics_doc)]
         let root_ptr = ends.expect("Tree is not-empty, and hence, has a root");
         NodeMut::new(self.col, root_ptr)
     }
