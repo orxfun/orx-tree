@@ -304,6 +304,8 @@ impl<V: TreeVariant> PartialEq for NodeIdx<V> {
     }
 }
 
+impl<V: TreeVariant> Eq for NodeIdx<V> {}
+
 impl<V: TreeVariant> Debug for NodeIdx<V> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{:?}", self.0)
