@@ -257,7 +257,7 @@ where
     /// tree.node_mut(b).push_child('d');
     /// tree.node_mut(c).push_children(['e', 'f']);
     /// ```
-    pub fn root_mut(&mut self) -> NodeMut<'_, V, M, P> {
+    pub fn root_mut<'a>(&'a mut self) -> NodeMut<'a, V, M, P> {
         self.root_ptr()
             .map(|p| NodeMut::new(&mut self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
@@ -309,7 +309,7 @@ where
     /// tree.clear();
     /// assert_eq!(tree.get_root_mut(), None);
     /// ```
-    pub fn get_root_mut(&mut self) -> Option<NodeMut<'_, V, M, P>> {
+    pub fn get_root_mut<'a>(&'a mut self) -> Option<NodeMut<'a, V, M, P>> {
         self.root_ptr().map(|p| NodeMut::new(&mut self.0, p))
     }
 
