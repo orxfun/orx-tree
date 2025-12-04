@@ -213,7 +213,7 @@ where
     /// tree.push_root('a');
     /// assert_eq!(tree.root().data(), &'a');
     /// ```
-    pub fn root(&self) -> Node<'_, V, M, P> {
+    pub fn root<'a>(&'a self) -> Node<'a, V, M, P> {
         self.root_ptr()
             .map(|p| Node::new(&self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
@@ -284,7 +284,7 @@ where
     /// tree.push_root('a');
     /// assert_eq!(tree.root().data(), &'a');
     /// ```
-    pub fn get_root(&self) -> Option<Node<'_, V, M, P>> {
+    pub fn get_root<'a>(&'a self) -> Option<Node<'a, V, M, P>> {
         self.root_ptr().map(|p| Node::new(&self.0, p))
     }
 
