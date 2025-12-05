@@ -1769,9 +1769,13 @@ where
     /// assert_eq!(all_values, [101, 202, 303, 4, 5, 406, 507]);
     /// ```
     #[allow(clippy::missing_panics_doc)]
-    pub fn custom_walk_mut<F>(&mut self, next_node: F) -> impl Iterator<Item = &'a mut V::Item>
+    pub fn custom_walk_mut<'t, F>(
+        &mut self,
+        next_node: F,
+    ) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
+        'a: 't,
     {
         let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr()), next_node);
         iter_ptr.map(|ptr| {
@@ -2048,9 +2052,8 @@ where
     /// ```
     pub fn children_mut(
         &mut self,
-    ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>>
-    + DoubleEndedIterator
-    + use<'_, 'a, V, M, P, MO> {
+    ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>> + DoubleEndedIterator
+    {
         ChildrenMutIter::new(self.col, unsafe { self.node_ptr.ptr() })
     }
 
@@ -2127,9 +2130,11 @@ where
     ///     assert_eq!(post_order.next(), Some(&mut 4)); // ...
     /// }
     /// ```
-    pub fn walk_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
+    pub fn walk_mut<'t, T>(&'t mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
         T: Traverser<OverData>,
+        T::Storage<V>: 't,
+        'a: 't,
     {
         T::iter_mut_with_owned_storage::<V, M, P, MO>(self)
     }

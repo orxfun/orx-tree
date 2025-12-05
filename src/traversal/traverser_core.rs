@@ -86,16 +86,18 @@ where
         P: PinnedStorage,
         'a: 't;
 
-    fn iter_mut_with_storage<'a, V, M, P, MO>(
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-        storage: impl SoM<Self::Storage<V>>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut_with_storage<'t, 'a, V, M, P, MO>(
+        node_mut: &mut NodeMut<'a, V, M, P, MO>,
+        storage: impl SoM<Self::Storage<V>> + 't,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
-        O: OverMut;
+        O: OverMut,
+        Self::Storage<V>: 't,
+        'a: 't;
 
     /// Returns a mutable iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
@@ -239,15 +241,17 @@ where
         Self::iter_with_storage(node, Self::Storage::default())
     }
 
-    fn iter_mut_with_owned_storage<'a, V, M, P, MO>(
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut_with_owned_storage<'t, 'a, V, M, P, MO>(
+        node_mut: &mut NodeMut<'a, V, M, P, MO>,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        Self::Storage<V>: 't,
         MO: NodeMutOrientation,
         O: OverMut,
+        'a: 't,
     {
         Self::iter_mut_with_storage(node_mut, Self::Storage::default())
     }

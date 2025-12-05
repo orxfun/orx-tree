@@ -99,16 +99,18 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
         Self::into_iter_with_storage(node_mut, states)
     }
 
-    fn iter_mut_with_storage<'a, V, M, P, MO>(
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-        storage: impl SoM<Self::Storage<V>>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut_with_storage<'t, 'a, V, M, P, MO>(
+        node_mut: &mut NodeMut<'a, V, M, P, MO>,
+        storage: impl SoM<Self::Storage<V>> + 't,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
         O: OverMut,
+        Self::Storage<V>: 't,
+        'a: 't,
     {
         let root = node_mut.node_ptr();
         let iter_ptr = PostOrderIterPtr::<V, O::Enumeration, _>::from((storage, root));

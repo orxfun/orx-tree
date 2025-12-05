@@ -261,6 +261,18 @@ where
     walker.find(|v| v == &predicate)
 }
 
+fn find_walk_mut<'a, V: TreeVariant>(
+    tree: &'a mut Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a mut V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let mut root = tree.get_root_mut()?;
+    let mut walker = root.walk_mut::<Dfs>();
+    walker.find(|v| v == &predicate)
+}
+
 fn find_leaves_mut<'a, V: TreeVariant>(
     tree: &'a mut Tree<V>,
     predicate: &V::Item,
@@ -298,5 +310,6 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_indices_with(&tree, &7), None);
 
     assert_eq!(find_custom_walk_mut(&mut tree, &7), None);
+    assert_eq!(find_walk_mut(&mut tree, &7), None);
     assert_eq!(find_leaves_mut(&mut tree, &7), None);
 }
