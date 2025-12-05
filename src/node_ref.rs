@@ -856,12 +856,13 @@ where
     /// let values: Vec<_> = tree.node(id3).custom_walk(next_node).copied().collect();
     /// assert_eq!(values, [3, 6, 7, 10, 11]);
     /// ```
-    fn custom_walk<F>(&self, next_node: F) -> impl Iterator<Item = &'a V::Item>
+    fn custom_walk<'t, F>(&self, next_node: F) -> impl Iterator<Item = &'a V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
+        'a: 't,
     {
         let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr()), next_node);
-        iter_ptr.map(|ptr| {
+        iter_ptr.map(move |ptr| {
             let node = unsafe { &*ptr.ptr() };
             node.data()
                 .expect("node is returned by next_node and is active")
@@ -880,10 +881,11 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn custom_walk_par<F>(&self, next_node: F) -> impl ParIter<Item = &'a V::Item>
+    fn custom_walk_par<'t, F>(&self, next_node: F) -> impl ParIter<Item = &'a V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.custom_walk(next_node)
             .collect::<alloc::vec::Vec<_>>()
