@@ -93,6 +93,16 @@ where
         .and_then(|mut x| x.next())
 }
 
+fn find_paths_par<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    root.paths_par::<Dfs>()
+        .find(|x| x.clone().collect::<Vec<_>>().contains(&predicate))
+        .and_then(|mut x| x.next())
+}
+
 fn find_leaves<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
 where
     V::Item: Eq + Sync + Send,
@@ -134,6 +144,7 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_walk_with(&tree, &7), None);
     assert_eq!(find_walk_with_par(&tree, &7), None);
     assert_eq!(find_paths(&tree, &7), None);
+    assert_eq!(find_paths_par(&tree, &7), None);
     assert_eq!(find_leaves(&tree, &7), None);
     assert_eq!(find_indices(&tree, &7), None);
 

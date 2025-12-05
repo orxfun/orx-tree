@@ -1387,10 +1387,11 @@ where
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
     #[cfg(feature = "parallel")]
-    fn paths_par<T>(&'a self) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone>
+    fn paths_par<'t, T>(&'t self) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone>
     where
         T: Traverser<OverData>,
         V::Item: Send + Sync,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         let node_ptrs: alloc::vec::Vec<_> = T::iter_ptr_with_owned_storage(node_ptr)
