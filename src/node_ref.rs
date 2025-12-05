@@ -856,9 +856,10 @@ where
     /// let values: Vec<_> = tree.node(id3).custom_walk(next_node).copied().collect();
     /// assert_eq!(values, [3, 6, 7, 10, 11]);
     /// ```
-    fn custom_walk<F>(&self, next_node: F) -> impl Iterator<Item = &'a V::Item>
+    fn custom_walk<'t, F>(&'t self, next_node: F) -> impl Iterator<Item = &'a V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
+        'a: 't,
     {
         let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr()), next_node);
         iter_ptr.map(|ptr| {

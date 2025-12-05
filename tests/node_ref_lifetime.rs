@@ -16,6 +16,19 @@ The methods must NOT fail to compile due to the following errors:
 These are temporary references. The output's lifetime must not depend on these temporary values.
 */
 
+fn find_custom_walk<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a V::Item>
+where
+    V::Item: Eq,
+{
+    let custom_walk = |node: Node<'a, V>| node.get_child(0);
+    let root_node = tree.get_root()?;
+    let mut walker = root_node.custom_walk(custom_walk);
+    walker.find(|v| v == &predicate)
+}
+
 fn find_walk<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
 where
     V::Item: Eq,
@@ -48,12 +61,8 @@ where
 fn node_ref_lifetime_tests() {
     let tree = DynTree::new(42);
 
-    let node = find_walk(&tree, &33);
-    assert_eq!(node, None);
-
-    let node = find_walk_par(&tree, &33);
-    assert_eq!(node, None);
-
-    let node = find_walk_with(&tree, &33);
-    assert_eq!(node, None);
+    assert_eq!(find_custom_walk(&tree, &33), None);
+    assert_eq!(find_walk(&tree, &33), None);
+    assert_eq!(find_walk_par(&tree, &33), None);
+    assert_eq!(find_walk_with(&tree, &33), None);
 }
