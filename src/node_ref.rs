@@ -1169,9 +1169,9 @@ where
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
     fn walk_with_par<'t, T, O>(
-        &'t self,
+        &self,
         traverser: &'t mut T,
-    ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
+    ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>> + 't
     where
         O: Over,
         T: Traverser<O>,
@@ -1285,9 +1285,7 @@ where
     ///     .unwrap();
     /// assert_eq!(max_label_path, vec![9, 6, 3, 1]);
     /// ```
-    fn paths<'t, T>(
-        &'t self,
-    ) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone> + 't
+    fn paths<'t, T>(&self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone> + 't
     where
         T: Traverser<OverData> + 't,
         <T as TraverserCore>::Storage<V>: 't,
@@ -1390,7 +1388,9 @@ where
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
     #[cfg(feature = "parallel")]
-    fn paths_par<'t, T>(&'t self) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone>
+    fn paths_par<'t, T>(
+        &self,
+    ) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone> + 't
     where
         T: Traverser<OverData>,
         V::Item: Send + Sync,
