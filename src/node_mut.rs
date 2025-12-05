@@ -2605,12 +2605,13 @@ where
     /// let leaves: Vec<_> = n3.leaves::<PostOrder>().copied().collect();
     /// assert_eq!(leaves, [209, 210, 211]);
     /// ```
-    pub fn leaves_mut<'t, T>(&'t mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
+    pub fn leaves_mut<'t, T>(&mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
         T: Traverser<OverData> + 't,
         <T as TraverserCore>::Storage<V>: 't,
         'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_owned_storage(self.node_ptr())
                 .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
                 .map(|x: NodePtr<V>| {
@@ -2620,7 +2621,7 @@ where
                         M,
                         P,
                         &'a mut V::Item,
-                    >(self.col(), x)
+                    >(col, x)
                 })
     }
 
