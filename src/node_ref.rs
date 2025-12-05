@@ -381,7 +381,7 @@ where
         self.node()
             .next()
             .children_ptr_par()
-            .map(|ptr| Node::new(self.col(), *ptr))
+            .map(|ptr| Node::new(self.col(), ptr))
     }
 
     /// Returns the `child-index`-th child of the node; returns None if out of bounds.

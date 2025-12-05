@@ -26,12 +26,11 @@ pub trait RefsChildren<V: Variant> {
 
     fn num_children(&self) -> usize;
 
-    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_>;
+    fn children_ptr<'a>(&'a self) -> Self::ChildrenPtrIter<'a>;
 
     #[cfg(feature = "parallel")]
-    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    fn children_ptr_par(&self) -> impl ParIter<Item = NodePtr<V>>
     where
-        V: 'a,
         V::Item: Send + Sync;
 
     fn get_ptr(&self, i: usize) -> Option<NodePtr<V>>;
@@ -59,17 +58,16 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     }
 
     #[inline(always)]
-    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
+    fn children_ptr<'a>(&'a self) -> Self::ChildrenPtrIter<'a> {
         self.iter().copied()
     }
 
     #[cfg(feature = "parallel")]
-    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    fn children_ptr_par(&self) -> impl ParIter<Item = NodePtr<V>>
     where
-        V: 'a,
         V::Item: Send + Sync,
     {
-        self.as_slice().par()
+        self.as_slice().par().copied()
     }
 
     #[inline(always)]
@@ -110,20 +108,22 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     }
 
     #[inline(always)]
-    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
+    fn children_ptr<'a>(&'a self) -> Self::ChildrenPtrIter<'a> {
         self.iter().copied()
     }
 
     #[cfg(feature = "parallel")]
-    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    fn children_ptr_par(&self) -> impl ParIter<Item = NodePtr<V>>
     where
-        V: 'a,
         V::Item: Send + Sync,
     {
-        self.as_slice().par().map(|x| {
-            x.as_ref()
-                .expect("all elements of RefsArrayLeftMost::as_slice are of Some variant")
-        })
+        self.as_slice()
+            .par()
+            .map(|x| {
+                x.as_ref()
+                    .expect("all elements of RefsArrayLeftMost::as_slice are of Some variant")
+            })
+            .copied()
     }
 
     #[inline(always)]
