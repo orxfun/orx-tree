@@ -985,12 +985,11 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn walk_par<'t, T>(&'t self) -> impl ParIter<Item = &'a V::Item>
+    fn walk_par<T>(&self) -> impl ParIter<Item = &'a V::Item>
     where
-        T: Traverser<OverData> + 't,
+        T: Traverser<OverData>,
         Self: Sized,
         V::Item: Send + Sync,
-        'a: 't,
     {
         self.walk::<T>().collect::<alloc::vec::Vec<_>>().into_par()
     }
