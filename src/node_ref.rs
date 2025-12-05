@@ -295,11 +295,15 @@ where
     ///
     /// assert_eq!(data, ['a', 'c', 'd', 'e', 'b']);
     /// ```
-    fn children(&self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> {
+    fn children<'t>(&self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> + 't
+    where
+        'a: 't,
+    {
+        let col = self.col();
         self.node()
             .next()
             .children_ptr()
-            .map(|ptr| Node::new(self.col(), ptr))
+            .map(move |ptr| Node::new(col, ptr))
     }
 
     /// Creates a **[parallel iterator]** of children nodes of this node.
