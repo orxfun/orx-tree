@@ -295,10 +295,7 @@ where
     ///
     /// assert_eq!(data, ['a', 'c', 'd', 'e', 'b']);
     /// ```
-    fn children<'t>(&'t self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> + 't
-    where
-        'a: 't,
-    {
+    fn children(&self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> {
         self.node()
             .next()
             .children_ptr()
@@ -376,11 +373,10 @@ where
     /// assert_eq!(seq_value, par_value_4t);
     /// ```
     #[cfg(feature = "parallel")]
-    fn children_par<'t>(&'t self) -> impl ParIter<Item = Node<'a, V, M, P>> + 't
+    fn children_par(&self) -> impl ParIter<Item = Node<'a, V, M, P>>
     where
         V::Item: Send + Sync,
         Self: Sync,
-        'a: 't,
     {
         self.node()
             .next()
