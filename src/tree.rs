@@ -405,7 +405,7 @@ where
     /// ```
     #[inline(always)]
     pub fn node(&self, node_idx: NodeIdx<V>) -> Node<'_, V, M, P> {
-        assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
+        assert!(self.is_node_idx_valid(node_idx), "{INVALID_IDX_ERROR}");
         Node::new(&self.0, node_idx.0.node_ptr())
     }
 
@@ -459,7 +459,7 @@ where
     /// ```
     #[inline(always)]
     pub fn node_mut(&mut self, node_idx: NodeIdx<V>) -> NodeMut<'_, V, M, P> {
-        assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
+        assert!(self.is_node_idx_valid(node_idx), "{INVALID_IDX_ERROR}");
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
 
