@@ -233,7 +233,7 @@ where
         .find(|v| v.data() == predicate)
 }
 
-fn find_indices<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<NodeIdx<V>>
+fn find_indices<V: TreeVariant>(tree: &Tree<V>, predicate: &V::Item) -> Option<NodeIdx<V>>
 where
     V::Item: Eq + Sync + Send,
 {
@@ -242,10 +242,7 @@ where
         .find(|v| tree.node(*v).data() == predicate)
 }
 
-fn find_indices_with<'a, V: TreeVariant>(
-    tree: &'a Tree<V>,
-    predicate: &V::Item,
-) -> Option<NodeIdx<V>>
+fn find_indices_with<V: TreeVariant>(tree: &Tree<V>, predicate: &V::Item) -> Option<NodeIdx<V>>
 where
     V::Item: Eq + Sync + Send,
 {
