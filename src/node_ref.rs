@@ -1166,15 +1166,15 @@ where
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
     fn walk_with_par<'t, T, O>(
-        &'a self,
+        &'t self,
         traverser: &'t mut T,
     ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
     where
         O: Over,
         T: Traverser<O>,
         Self: Sized,
-        't: 'a,
         OverItem<'a, V, O, M, P>: Send + Sync,
+        'a: 't,
     {
         self.walk_with(traverser)
             .collect::<alloc::vec::Vec<_>>()

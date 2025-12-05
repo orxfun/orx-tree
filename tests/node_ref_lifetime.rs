@@ -70,6 +70,19 @@ where
     walker.find(|v| v.data() == predicate)
 }
 
+fn find_walk_with_par<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<Node<'a, V>>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let mut traverser = Dfs::<OverNode>::new();
+    let root_node = tree.get_root()?;
+    let walker = root_node.walk_with_par(&mut traverser);
+    walker.find(|v| v.data() == predicate)
+}
+
 #[test]
 fn node_ref_lifetime_tests() {
     let tree = DynTree::new(42);
@@ -79,4 +92,5 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_walk(&tree, &33), None);
     assert_eq!(find_walk_par(&tree, &33), None);
     assert_eq!(find_walk_with(&tree, &33), None);
+    assert_eq!(find_walk_with_par(&tree, &33), None);
 }
