@@ -13,7 +13,7 @@ The methods must NOT fail to compile due to the following errors:
 * referencing local variable `traverser`, or
 * referencing local variable `root`.
 
-These are temporary references. The output's lifetime must not depend on these temporary values.
+These are temporary references, instead the output's lifetime must depend on the tree.
 */
 
 fn find_ancestors<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<Node<'a, V>>
