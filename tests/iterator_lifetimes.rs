@@ -138,4 +138,4 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_indices(&tree, &7), None);
 
     assert_eq!(find_leaves_mut(&mut tree, &7), None);
-
+}
