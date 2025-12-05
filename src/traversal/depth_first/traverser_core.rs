@@ -53,14 +53,15 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         DfsIterRef::<'_, _, M, P, _, _, _>::from((node.col(), iter))
     }
 
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter<'t, 'a, V, M, P>(
+        &'t mut self,
+        node: &'t impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        'a: 't,
     {
         let stack = self.stack.for_variant::<V>();
         Self::iter_with_storage(node, stack)

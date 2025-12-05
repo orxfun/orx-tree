@@ -16,6 +16,6 @@ where
     };
 
     // ERROR: cannot return value referencing local variable `traverser`
-    // return node;
+    return node;
     None
 }

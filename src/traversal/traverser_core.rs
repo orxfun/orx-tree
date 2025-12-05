@@ -74,14 +74,15 @@ where
     /// [`OverDepthNode`]: crate::traversal::OverDepthNode
     /// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
     /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter<'t, 'a, V, M, P>(
+        &'t mut self,
+        node: &'t impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
-        P: PinnedStorage;
+        P: PinnedStorage,
+        'a: 't;
 
     fn iter_mut_with_storage<'a, V, M, P, MO>(
         node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
