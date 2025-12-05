@@ -669,11 +669,15 @@ where
     /// let ancestors_data: Vec<_> = n4.ancestors().map(|x| *x.data()).collect();
     /// assert_eq!(ancestors_data, [2, 1]);
     /// ```
-    fn ancestors(&self) -> impl Iterator<Item = Node<'a, V, M, P>> {
+    fn ancestors<'t>(&self) -> impl Iterator<Item = Node<'a, V, M, P>> + 't
+    where
+        'a: 't,
+    {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty");
+        let col = self.col();
         AncestorsIterPtr::new(root_ptr, self.node_ptr())
             .skip(1)
-            .map(|ptr| Node::new(self.col(), ptr))
+            .map(|ptr| Node::new(col, ptr))
     }
 
     /// Creates a **[parallel iterator]** starting from this node moving upwards until the root:
