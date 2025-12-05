@@ -12,6 +12,20 @@ They are expected to compile.
 /// It must not fail to compile by due to errors:
 /// * referencing local variable `traverser`, or
 /// * referencing local variable `root_node`.
+fn find_walk<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
+where
+    V::Item: Eq,
+{
+    let root_node = tree.get_root()?;
+    let mut walker = root_node.walk::<Dfs>();
+    walker.find(|v| v == &predicate)
+}
+
+/// This method returns a Node that is referencing the `tree`.
+///
+/// It must not fail to compile by due to errors:
+/// * referencing local variable `traverser`, or
+/// * referencing local variable `root_node`.
 fn find_walk_with<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<Node<'a, V>>
 where
     V::Item: Eq,
@@ -25,6 +39,9 @@ where
 #[test]
 fn node_ref_lifetime_tests() {
     let tree = DynTree::new(42);
+
+    let node = find_walk(&tree, &33);
+    assert_eq!(node, None);
 
     let node = find_walk_with(&tree, &33);
     assert_eq!(node, None);
