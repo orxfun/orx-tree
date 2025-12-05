@@ -19,9 +19,7 @@ pub trait TreeVariant:
 // children
 
 pub trait RefsChildren<V: Variant> {
-    type ChildrenPtrIter<'a>: ExactSizeIterator<Item = &'a NodePtr<V>>
-        + DoubleEndedIterator
-        + Default
+    type ChildrenPtrIter<'a>: ExactSizeIterator<Item = NodePtr<V>> + DoubleEndedIterator + Default
     where
         V: 'a,
         Self: 'a;
@@ -50,7 +48,7 @@ pub trait RefsChildren<V: Variant> {
 
 impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     type ChildrenPtrIter<'a>
-        = core::slice::Iter<'a, NodePtr<V>>
+        = core::iter::Copied<core::slice::Iter<'a, NodePtr<V>>>
     where
         V: 'a,
         Self: 'a;
@@ -62,7 +60,7 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
 
     #[inline(always)]
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
-        self.iter()
+        self.iter().copied()
     }
 
     #[cfg(feature = "parallel")]
@@ -101,7 +99,7 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
 
 impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     type ChildrenPtrIter<'a>
-        = ArrayLeftMostPtrIter<'a, V>
+        = core::iter::Copied<ArrayLeftMostPtrIter<'a, V>>
     where
         V: 'a,
         Self: 'a;
@@ -113,7 +111,7 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
 
     #[inline(always)]
     fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
-        self.iter()
+        self.iter().copied()
     }
 
     #[cfg(feature = "parallel")]

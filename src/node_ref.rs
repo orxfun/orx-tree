@@ -299,7 +299,7 @@ where
         self.node()
             .next()
             .children_ptr()
-            .map(|ptr| Node::new(self.col(), *ptr))
+            .map(|ptr| Node::new(self.col(), ptr))
     }
 
     /// Creates a **[parallel iterator]** of children nodes of this node.
@@ -548,7 +548,7 @@ where
             .map(|parent| {
                 let ptr = self.node_ptr();
                 let mut children = parent.next().children_ptr();
-                children.position(|x| *x == ptr).expect("this node exists")
+                children.position(|x| x == ptr).expect("this node exists")
             })
             .unwrap_or(0)
     }

@@ -1645,13 +1645,13 @@ where
 
         match parent_ptr {
             None => {
-                let first_child = self.node().next().children_ptr().next().cloned();
+                let first_child = self.node().next().children_ptr().next();
                 self.col.ends_mut().set(first_child);
             }
             Some(parent_ptr) => {
                 let parent = unsafe { &mut *parent_ptr.ptr_mut() };
                 parent.next_mut().remove_at(sibling_idx);
-                for child_ptr in self.node().next().children_ptr().rev().cloned() {
+                for child_ptr in self.node().next().children_ptr().rev() {
                     parent.next_mut().insert(sibling_idx, child_ptr);
                 }
             }
