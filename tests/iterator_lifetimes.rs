@@ -16,6 +16,14 @@ The methods must NOT fail to compile due to the following errors:
 These are temporary references. The output's lifetime must not depend on these temporary values.
 */
 
+fn find_ancestors<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<Node<'a, V>>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    root.ancestors().find(|x| x.data() == predicate)
+}
+
 fn find_children<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<Node<'a, V>>
 where
     V::Item: Eq + Sync + Send,
@@ -244,6 +252,7 @@ where
 fn node_ref_lifetime_tests() {
     let mut tree = DynTree::new(42);
 
+    assert_eq!(find_ancestors(&tree, &7), None);
     assert_eq!(find_children(&tree, &7), None);
     assert_eq!(find_children_par(&tree, &7), None);
     assert_eq!(find_custom_walk(&tree, &7), None);

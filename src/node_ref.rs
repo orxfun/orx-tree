@@ -663,7 +663,7 @@ where
     /// let ancestors_data: Vec<_> = n4.ancestors().map(|x| *x.data()).collect();
     /// assert_eq!(ancestors_data, [2, 1]);
     /// ```
-    fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
+    fn ancestors(&self) -> impl Iterator<Item = Node<'a, V, M, P>> {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty");
         AncestorsIterPtr::new(root_ptr, self.node_ptr())
             .skip(1)
