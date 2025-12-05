@@ -29,6 +29,19 @@ where
     walker.find(|v| v == &predicate)
 }
 
+fn find_custom_walk_par<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let custom_walk = |node: Node<'a, V>| node.get_child(0);
+    let root_node = tree.get_root()?;
+    let walker = root_node.custom_walk_par(custom_walk);
+    walker.find(|v| v == &predicate)
+}
+
 fn find_walk<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
 where
     V::Item: Eq,
@@ -62,6 +75,7 @@ fn node_ref_lifetime_tests() {
     let tree = DynTree::new(42);
 
     assert_eq!(find_custom_walk(&tree, &33), None);
+    assert_eq!(find_custom_walk_par(&tree, &33), None);
     assert_eq!(find_walk(&tree, &33), None);
     assert_eq!(find_walk_par(&tree, &33), None);
     assert_eq!(find_walk_with(&tree, &33), None);

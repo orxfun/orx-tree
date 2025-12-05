@@ -881,10 +881,11 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn custom_walk_par<F>(&self, next_node: F) -> impl ParIter<Item = &'a V::Item>
+    fn custom_walk_par<'t, F>(&'t self, next_node: F) -> impl ParIter<Item = &'a V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.custom_walk(next_node)
             .collect::<alloc::vec::Vec<_>>()
