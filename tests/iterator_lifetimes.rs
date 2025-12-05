@@ -1,0 +1,141 @@
+use orx_tree::traversal::*;
+use orx_tree::*;
+
+/*
+These tests are created wrt the issue: https://github.com/orxfun/orx-tree/issues/188.
+
+They are expected to compile.
+
+The `find` methods below return a node referencing the `tree`, which must be independent
+of the root node or traverser if provided externally.
+
+The methods must NOT fail to compile due to the following errors:
+* referencing local variable `traverser`, or
+* referencing local variable `root`.
+
+These are temporary references. The output's lifetime must not depend on these temporary values.
+*/
+
+fn find_custom_walk<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a V::Item>
+where
+    V::Item: Eq,
+{
+    let custom_walk = |node: Node<'a, V>| node.get_child(0);
+    let root = tree.get_root()?;
+    let mut walker = root.custom_walk(custom_walk);
+    walker.find(|v| v == &predicate)
+}
+
+fn find_custom_walk_par<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let custom_walk = |node: Node<'a, V>| node.get_child(0);
+    let root = tree.get_root()?;
+    let walker = root.custom_walk_par(custom_walk);
+    walker.find(|v| v == &predicate)
+}
+
+fn find_walk<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
+where
+    V::Item: Eq,
+{
+    let root = tree.get_root()?;
+    let mut walker = root.walk::<Dfs>();
+    walker.find(|v| v == &predicate)
+}
+
+fn find_walk_par<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    let walker = root.walk_par::<Dfs>();
+    walker.find(|v| v == &predicate)
+}
+
+fn find_walk_with<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<Node<'a, V>>
+where
+    V::Item: Eq,
+{
+    let mut traverser = Dfs::<OverNode>::new();
+    let root = tree.get_root()?;
+    let mut walker = root.walk_with(&mut traverser);
+    walker.find(|v| v.data() == predicate)
+}
+
+fn find_walk_with_par<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<Node<'a, V>>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let mut traverser = Dfs::<OverNode>::new();
+    let root = tree.get_root()?;
+    let walker = root.walk_with_par(&mut traverser);
+    walker.find(|v| v.data() == predicate)
+}
+
+fn find_paths<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    root.paths::<Dfs>()
+        .find(|x| x.clone().collect::<Vec<_>>().contains(&predicate))
+        .and_then(|mut x| x.next())
+}
+
+fn find_leaves<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    root.leaves::<Dfs>().find(|v| v == &predicate)
+}
+
+fn find_indices<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<NodeIdx<V>>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    root.indices::<Dfs>()
+        .find(|v| tree.node(*v).data() == predicate)
+}
+
+// mut
+
+fn find_leaves_mut<'a, V: TreeVariant>(
+    tree: &'a mut Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a mut V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let mut root = tree.get_root_mut()?;
+    root.leaves_mut::<Dfs>().find(|v| v == &predicate)
+}
+
+#[test]
+fn node_ref_lifetime_tests() {
+    let mut tree = DynTree::new(42);
+
+    assert_eq!(find_custom_walk(&tree, &7), None);
+    assert_eq!(find_custom_walk_par(&tree, &7), None);
+    assert_eq!(find_walk(&tree, &7), None);
+    assert_eq!(find_walk_par(&tree, &7), None);
+    assert_eq!(find_walk_with(&tree, &7), None);
+    assert_eq!(find_walk_with_par(&tree, &7), None);
+    assert_eq!(find_paths(&tree, &7), None);
+    assert_eq!(find_leaves(&tree, &7), None);
+    assert_eq!(find_indices(&tree, &7), None);
+
+    assert_eq!(find_leaves_mut(&mut tree, &7), None);
+

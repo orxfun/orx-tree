@@ -1282,9 +1282,13 @@ where
     ///     .unwrap();
     /// assert_eq!(max_label_path, vec![9, 6, 3, 1]);
     /// ```
-    fn paths<T>(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone>
+    fn paths<'t, T>(
+        &'t self,
+    ) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone> + 't
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 't,
+        <T as TraverserCore>::Storage<V>: 't,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         T::iter_ptr_with_owned_storage(node_ptr)
@@ -1762,9 +1766,11 @@ where
     ///     .collect();
     /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);
     /// ```
-    fn leaves<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
+    fn leaves<'t, T>(&'t self) -> impl Iterator<Item = &'a V::Item> + 't
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 't,
+        <T as TraverserCore>::Storage<V>: 't,
+        'a: 't,
     {
         T::iter_ptr_with_owned_storage(self.node_ptr())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
@@ -1983,10 +1989,12 @@ where
     /// assert_eq!(a.node(dfs_indices[2]).data(), &3);
     /// assert_eq!(a.node(dfs_indices[3]).data(), &7);
     /// ```
-    fn indices<T>(&self) -> impl Iterator<Item = NodeIdx<V>>
+    fn indices<'t, T>(&'t self) -> impl Iterator<Item = NodeIdx<V>> + 't
     where
-        T: Traverser<OverData>,
-        V: 'static,
+        T: Traverser<OverData> + 't,
+        <T as TraverserCore>::Storage<V>: 't,
+        V: 't,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();

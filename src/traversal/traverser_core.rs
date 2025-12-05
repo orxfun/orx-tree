@@ -21,12 +21,12 @@ where
 
     fn storage_mut<V: TreeVariant>(&mut self) -> &mut Self::Storage<V>;
 
-    fn iter_ptr_with_storage<'a, V>(
+    fn iter_ptr_with_storage<'t, V>(
         node_ptr: NodePtr<V>,
-        storage: impl SoM<Self::Storage<V>>,
+        storage: impl SoM<Self::Storage<V>> + 't,
     ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodePtr<V>>>
     where
-        V: TreeVariant + 'a;
+        V: TreeVariant + 't;
 
     fn iter_with_storage<'t, 'a, V, M, P>(
         node: &'t impl NodeRef<'a, V, M, P>,
@@ -214,11 +214,12 @@ where
 
     // provided
 
-    fn iter_ptr_with_owned_storage<'a, V>(
+    fn iter_ptr_with_owned_storage<'t, V>(
         node_ptr: NodePtr<V>,
     ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodePtr<V>>>
     where
-        V: TreeVariant + 'a,
+        V: TreeVariant + 't,
+        <Self as TraverserCore<O>>::Storage<V>: 't,
     {
         Self::iter_ptr_with_storage(node_ptr, Self::Storage::default())
     }
