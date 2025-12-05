@@ -686,7 +686,7 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn ancestors_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
+    fn ancestors_par(&self) -> impl ParIter<Item = Node<'a, V, M, P>>
     where
         V::Item: Send + Sync,
     {
