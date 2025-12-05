@@ -39,7 +39,7 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         DfsIterPtr::<_, O::Enumeration, _>::from((storage, node_ptr))
     }
 
-    fn iter_with_storage<'a, V, M, P>(
+    fn iter_with_storage<'t, 'a, V, M, P>(
         node: &impl NodeRef<'a, V, M, P>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
@@ -47,6 +47,8 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        Self::Storage<V>: 't,
+        'a: 't,
     {
         let root = node.node_ptr();
         let iter = DfsIterPtr::<_, O::Enumeration, _>::from((storage, root));

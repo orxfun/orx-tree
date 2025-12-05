@@ -28,14 +28,16 @@ where
     where
         V: TreeVariant + 't;
 
-    fn iter_with_storage<'a, V, M, P>(
+    fn iter_with_storage<'t, 'a, V, M, P>(
         node: &impl NodeRef<'a, V, M, P>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
-        P: PinnedStorage;
+        P: PinnedStorage,
+        Self::Storage<V>: 't,
+        'a: 't;
 
     /// Returns an iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
@@ -224,13 +226,15 @@ where
         Self::iter_ptr_with_storage(node_ptr, Self::Storage::default())
     }
 
-    fn iter_with_owned_storage<'a, V, M, P>(
+    fn iter_with_owned_storage<'t, 'a, V, M, P>(
         node: &impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        Self::Storage<V>: 't,
+        'a: 't,
     {
         Self::iter_with_storage(node, Self::Storage::default())
     }
