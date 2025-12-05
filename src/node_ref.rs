@@ -377,15 +377,17 @@ where
     /// assert_eq!(seq_value, par_value_4t);
     /// ```
     #[cfg(feature = "parallel")]
-    fn children_par(&self) -> impl ParIter<Item = Node<'a, V, M, P>>
+    fn children_par<'t>(&self) -> impl ParIter<Item = Node<'a, V, M, P>> + 't
     where
         V::Item: Send + Sync,
-        Self: Sync,
+        <P as PinnedStorage>::PinnedVec<V>: Sync,
+        'a: 't,
     {
+        let col = self.col();
         self.node()
             .next()
             .children_ptr_par()
-            .map(|ptr| Node::new(self.col(), ptr))
+            .map(move |ptr| Node::new(col, ptr))
     }
 
     /// Returns the `child-index`-th child of the node; returns None if out of bounds.
