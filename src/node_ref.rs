@@ -1681,7 +1681,7 @@ where
     /// let bfs: Vec<_> = clone.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [2, 5, 6, 8, 9, 10]);
     /// ```
-    fn clone_as_tree<V2>(&'a self) -> Tree<V2, M, P>
+    fn clone_as_tree<V2>(&self) -> Tree<V2, M, P>
     where
         V2: TreeVariant<Item = V::Item> + 'a,
         P::PinnedVec<V2>: Default,
