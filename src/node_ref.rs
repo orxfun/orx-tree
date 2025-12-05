@@ -376,10 +376,11 @@ where
     /// assert_eq!(seq_value, par_value_4t);
     /// ```
     #[cfg(feature = "parallel")]
-    fn children_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
+    fn children_par<'t>(&'t self) -> impl ParIter<Item = Node<'a, V, M, P>> + 't
     where
         V::Item: Send + Sync,
         Self: Sync,
+        'a: 't,
     {
         self.node()
             .next()

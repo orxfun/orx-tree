@@ -18,10 +18,21 @@ These are temporary references. The output's lifetime must not depend on these t
 
 fn find_children<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<Node<'a, V>>
 where
-    V::Item: Eq,
+    V::Item: Eq + Sync + Send,
 {
     let root = tree.get_root()?;
     root.children().find(|x| x.data() == predicate)
+}
+
+fn find_children_par<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<Node<'a, V>>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    root.children_par().find(|x| x.data() == predicate)
 }
 
 fn find_custom_walk<'a, V: TreeVariant>(
@@ -29,7 +40,7 @@ fn find_custom_walk<'a, V: TreeVariant>(
     predicate: &V::Item,
 ) -> Option<&'a V::Item>
 where
-    V::Item: Eq,
+    V::Item: Eq + Sync + Send,
 {
     let custom_walk = |node: Node<'a, V>| node.get_child(0);
     let root = tree.get_root()?;
@@ -52,7 +63,7 @@ where
 
 fn find_walk<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
 where
-    V::Item: Eq,
+    V::Item: Eq + Sync + Send,
 {
     let root = tree.get_root()?;
     let mut walker = root.walk::<Dfs>();
@@ -70,7 +81,7 @@ where
 
 fn find_walk_with<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<Node<'a, V>>
 where
-    V::Item: Eq,
+    V::Item: Eq + Sync + Send,
 {
     let mut traverser = Dfs::<OverNode>::new();
     let root = tree.get_root()?;
@@ -234,6 +245,7 @@ fn node_ref_lifetime_tests() {
     let mut tree = DynTree::new(42);
 
     assert_eq!(find_children(&tree, &7), None);
+    assert_eq!(find_children_par(&tree, &7), None);
     assert_eq!(find_custom_walk(&tree, &7), None);
     assert_eq!(find_custom_walk_par(&tree, &7), None);
     assert_eq!(find_walk(&tree, &7), None);
