@@ -2,7 +2,7 @@ use crate::{TreeVariant, aliases::N};
 use orx_split_vec::{PinnedVec, Recursive, SplitVec};
 
 /// Trait defining the underlying pinned vector storage of the tree.
-pub trait PinnedStorage: 'static {
+pub trait PinnedStorage: 'static + Sync {
     /// The pinned vector for the given variant `V`.
     type PinnedVec<V>: PinnedVec<N<V>>
     where

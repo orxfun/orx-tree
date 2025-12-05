@@ -1620,7 +1620,6 @@ where
         T: Traverser<O>,
         V::Item: Send + Sync,
         Self: Sync,
-        <M as MemoryPolicy>::MemoryReclaimPolicy<V>: Sync,
         <P as PinnedStorage>::PinnedVec<V>: Sync,
         'a: 't,
     {
