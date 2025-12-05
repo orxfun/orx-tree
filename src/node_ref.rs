@@ -962,7 +962,7 @@ where
     /// let post_order: Vec<_> = n2.walk::<PostOrder>().copied().collect();
     /// assert_eq!(post_order, [8, 4, 5, 2]);
     /// ```
-    fn walk<'t, T>(&self) -> impl Iterator<Item = &'a V::Item>
+    fn walk<'t, T>(&self) -> impl Iterator<Item = &'a V::Item> + 't
     where
         T: Traverser<OverData>,
         T::Storage<V>: 't,

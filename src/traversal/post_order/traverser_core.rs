@@ -41,8 +41,8 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
 
     fn iter_with_storage<'t, 'a, V, M, P>(
         node: &impl NodeRef<'a, V, M, P>,
-        storage: impl SoM<Self::Storage<V>>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+        storage: impl SoM<Self::Storage<V>> + 't,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
