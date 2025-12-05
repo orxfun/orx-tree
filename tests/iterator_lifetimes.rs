@@ -248,6 +248,19 @@ where
 
 // mut
 
+fn find_custom_walk_mut<'a, V: TreeVariant>(
+    tree: &'a mut Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a mut V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let custom_walk = |node: Node<'a, V>| node.get_child(0);
+    let mut root = tree.get_root_mut()?;
+    let mut walker = root.custom_walk_mut(custom_walk);
+    walker.find(|v| v == &predicate)
+}
+
 fn find_leaves_mut<'a, V: TreeVariant>(
     tree: &'a mut Tree<V>,
     predicate: &V::Item,
@@ -284,5 +297,6 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_indices(&tree, &7), None);
     assert_eq!(find_indices_with(&tree, &7), None);
 
+    assert_eq!(find_custom_walk_mut(&mut tree, &7), None);
     assert_eq!(find_leaves_mut(&mut tree, &7), None);
 }
