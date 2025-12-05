@@ -28,8 +28,8 @@ where
     where
         V: TreeVariant + 'a;
 
-    fn iter_with_storage<'a, V, M, P>(
-        node: &impl NodeRef<'a, V, M, P>,
+    fn iter_with_storage<'t, 'a, V, M, P>(
+        node: &'t impl NodeRef<'a, V, M, P>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
@@ -223,13 +223,15 @@ where
         Self::iter_ptr_with_storage(node_ptr, Self::Storage::default())
     }
 
-    fn iter_with_owned_storage<'a, V, M, P>(
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter_with_owned_storage<'t, 'a, V, M, P>(
+        node: &'t impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        'a: 't,
+        Self: 't,
     {
         Self::iter_with_storage(node, Self::Storage::default())
     }

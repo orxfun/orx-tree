@@ -962,10 +962,11 @@ where
     /// let post_order: Vec<_> = n2.walk::<PostOrder>().copied().collect();
     /// assert_eq!(post_order, [8, 4, 5, 2]);
     /// ```
-    fn walk<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
+    fn walk<'t, T>(&'t self) -> impl Iterator<Item = &'a V::Item> + 't
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 'a,
         Self: Sized,
+        'a: 't,
     {
         T::iter_with_owned_storage::<V, M, P>(self)
     }
@@ -985,11 +986,12 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn walk_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
+    fn walk_par<'t, T>(&'t self) -> impl ParIter<Item = &'a V::Item>
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 'a,
         Self: Sized,
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.walk::<T>().collect::<alloc::vec::Vec<_>>().into_par()
     }
