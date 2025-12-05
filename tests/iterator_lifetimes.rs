@@ -24,6 +24,7 @@ where
     root.ancestors().find(|x| x.data() == predicate)
 }
 
+#[cfg(feature = "parallel")]
 fn find_ancestors_par<'a, V: TreeVariant>(
     tree: &'a Tree<V>,
     predicate: &V::Item,
@@ -43,6 +44,7 @@ where
     root.children().find(|x| x.data() == predicate)
 }
 
+#[cfg(feature = "parallel")]
 fn find_children_par<'a, V: TreeVariant>(
     tree: &'a Tree<V>,
     predicate: &V::Item,
@@ -67,6 +69,7 @@ where
     walker.find(|v| v == &predicate)
 }
 
+#[cfg(feature = "parallel")]
 fn find_custom_walk_par<'a, V: TreeVariant>(
     tree: &'a Tree<V>,
     predicate: &V::Item,
@@ -89,6 +92,7 @@ where
     walker.find(|v| v == &predicate)
 }
 
+#[cfg(feature = "parallel")]
 fn find_walk_par<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
 where
     V::Item: Eq + Sync + Send,
@@ -108,6 +112,7 @@ where
     walker.find(|v| v.data() == predicate)
 }
 
+#[cfg(feature = "parallel")]
 fn find_walk_with_par<'a, V: TreeVariant>(
     tree: &'a Tree<V>,
     predicate: &V::Item,
@@ -150,6 +155,7 @@ where
         .and_then(|mut x| x.next())
 }
 
+#[cfg(feature = "parallel")]
 fn find_paths_with_par<'a, V: TreeVariant>(
     tree: &'a Tree<V>,
     predicate: &V::Item,
@@ -169,6 +175,7 @@ where
         .and_then(|mut x| x.next())
 }
 
+#[cfg(feature = "parallel")]
 fn find_paths_par<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<&'a V::Item>
 where
     V::Item: Eq + Sync + Send,
@@ -187,6 +194,7 @@ where
     root.leaves::<Dfs>().find(|v| v == &predicate)
 }
 
+#[cfg(feature = "parallel")]
 fn find_leaves_par<'a, V: TreeVariant>(
     tree: &'a Tree<V>,
     predicate: &V::Item,
@@ -211,6 +219,7 @@ where
         .find(|v| v.data() == predicate)
 }
 
+#[cfg(feature = "parallel")]
 fn find_leaves_with_par<'a, V: TreeVariant>(
     tree: &'a Tree<V>,
     predicate: &V::Item,
@@ -302,25 +311,28 @@ fn node_ref_lifetime_tests() {
     let mut tree = DynTree::new(42);
 
     assert_eq!(find_ancestors(&tree, &7), None);
-    assert_eq!(find_ancestors_par(&tree, &7), None);
     assert_eq!(find_children(&tree, &7), None);
-    assert_eq!(find_children_par(&tree, &7), None);
     assert_eq!(find_custom_walk(&tree, &7), None);
-    assert_eq!(find_custom_walk_par(&tree, &7), None);
     assert_eq!(find_walk(&tree, &7), None);
-    assert_eq!(find_walk_par(&tree, &7), None);
     assert_eq!(find_walk_with(&tree, &7), None);
-    assert_eq!(find_walk_with_par(&tree, &7), None);
     assert_eq!(find_paths(&tree, &7), None);
-    assert_eq!(find_paths_par(&tree, &7), None);
     assert_eq!(find_paths_with(&tree, &7), None);
-    assert_eq!(find_paths_with_par(&tree, &7), None);
     assert_eq!(find_leaves(&tree, &7), None);
-    assert_eq!(find_leaves_par(&tree, &7), None);
     assert_eq!(find_leaves_with(&tree, &7), None);
-    assert_eq!(find_leaves_with_par(&tree, &7), None);
     assert_eq!(find_indices(&tree, &7), None);
     assert_eq!(find_indices_with(&tree, &7), None);
+    #[cfg(feature = "parallel")]
+    {
+        assert_eq!(find_ancestors_par(&tree, &7), None);
+        assert_eq!(find_children_par(&tree, &7), None);
+        assert_eq!(find_custom_walk_par(&tree, &7), None);
+        assert_eq!(find_walk_par(&tree, &7), None);
+        assert_eq!(find_walk_with_par(&tree, &7), None);
+        assert_eq!(find_paths_par(&tree, &7), None);
+        assert_eq!(find_paths_with_par(&tree, &7), None);
+        assert_eq!(find_leaves_par(&tree, &7), None);
+        assert_eq!(find_leaves_with_par(&tree, &7), None);
+    }
 
     assert_eq!(find_custom_walk_mut(&mut tree, &7), None);
     assert_eq!(find_walk_mut(&mut tree, &7), None);
