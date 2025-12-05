@@ -1797,10 +1797,11 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn leaves_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
+    fn leaves_par<'t, T>(&'t self) -> impl ParIter<Item = &'a V::Item> + 't
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 't,
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.leaves::<T>()
             .collect::<alloc::vec::Vec<_>>()

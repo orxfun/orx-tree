@@ -149,6 +149,17 @@ where
     root.leaves::<Dfs>().find(|v| v == &predicate)
 }
 
+fn find_leaves_par<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let root = tree.get_root()?;
+    root.leaves_par::<Dfs>().find(|v| v == &predicate)
+}
+
 fn find_indices<'a, V: TreeVariant>(tree: &'a Tree<V>, predicate: &V::Item) -> Option<NodeIdx<V>>
 where
     V::Item: Eq + Sync + Send,
@@ -186,6 +197,7 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_paths_with(&tree, &7), None);
     assert_eq!(find_paths_with_par(&tree, &7), None);
     assert_eq!(find_leaves(&tree, &7), None);
+    assert_eq!(find_leaves_par(&tree, &7), None);
     assert_eq!(find_indices(&tree, &7), None);
 
     assert_eq!(find_leaves_mut(&mut tree, &7), None);
