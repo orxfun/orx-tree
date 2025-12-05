@@ -295,7 +295,10 @@ where
     ///
     /// assert_eq!(data, ['a', 'c', 'd', 'e', 'b']);
     /// ```
-    fn children(&'a self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> {
+    fn children<'t>(&'t self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> + 't
+    where
+        'a: 't,
+    {
         self.node()
             .next()
             .children_ptr()
