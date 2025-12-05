@@ -10,7 +10,7 @@ pub trait TreeVariant:
     Variant<Ends = RefsSingle<Self>, Prev = RefsSingle<Self>, Next = Self::Children> + Sync
 {
     /// Memory reclaimer of the tree.
-    type Reclaimer: MemoryReclaimer<Self>;
+    type Reclaimer: MemoryReclaimer<Self> + Sync;
 
     /// Children references of the tree nodes.
     type Children: RefsChildren<Self> + Refs;
