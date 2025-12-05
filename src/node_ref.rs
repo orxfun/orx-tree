@@ -1608,15 +1608,16 @@ where
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
     #[cfg(feature = "parallel")]
-    fn paths_with_par<T, O>(
-        &'a self,
-        traverser: &'a mut T,
-    ) -> impl ParIter<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone>
+    fn paths_with_par<'t, T, O>(
+        &'t self,
+        traverser: &'t mut T,
+    ) -> impl ParIter<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
         O: Over<Enumeration = Val>,
-        T: Traverser<O>,
+        T: Traverser<O> + 't,
         V::Item: Send + Sync,
         Self: Sync,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
 
