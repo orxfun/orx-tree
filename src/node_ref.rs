@@ -1499,7 +1499,7 @@ where
     /// );
     /// ```
     fn paths_with<'t, T, O>(
-        &'t self,
+        &self,
         traverser: &'t mut T,
     ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
@@ -1508,6 +1508,7 @@ where
         'a: 't,
     {
         let node_ptr = self.node_ptr();
+        let col = self.col();
         T::iter_ptr_with_storage(node_ptr, TraverserCore::storage_mut(traverser))
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
@@ -1518,8 +1519,7 @@ where
                 let iter = AncestorsIterPtr::new(node_ptr, *ptr);
                 iter.map(|ptr: NodePtr<V>| {
                     O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
-                        self.col(),
-                        ptr,
+                        col, ptr,
                     )
                 })
             })
@@ -1612,7 +1612,7 @@ where
     /// ```
     #[cfg(feature = "parallel")]
     fn paths_with_par<'t, T, O>(
-        &'t self,
+        &self,
         traverser: &'t mut T,
     ) -> impl ParIter<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
@@ -1620,9 +1620,12 @@ where
         T: Traverser<O>,
         V::Item: Send + Sync,
         Self: Sync,
+        <M as MemoryPolicy>::MemoryReclaimPolicy<V>: Sync,
+        <P as PinnedStorage>::PinnedVec<V>: Sync,
         'a: 't,
     {
         let node_ptr = self.node_ptr();
+        let col = self.col();
 
         let node_ptrs: alloc::vec::Vec<_> =
             T::iter_ptr_with_storage(node_ptr, TraverserCore::storage_mut(traverser))
@@ -1631,10 +1634,7 @@ where
         node_ptrs.into_par().map(move |x| {
             let iter = AncestorsIterPtr::new(node_ptr, x);
             iter.map(|ptr: NodePtr<V>| {
-                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
-                    self.col(),
-                    ptr,
-                )
+                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(col, ptr)
             })
         })
     }

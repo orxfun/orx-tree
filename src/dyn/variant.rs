@@ -8,6 +8,16 @@ pub struct Dyn<T> {
     p: PhantomData<T>,
 }
 
+/// # SAFETY
+///
+/// Tree variants do not hold any data, safe to send or sync.
+unsafe impl<T> Sync for Dyn<T> {}
+
+/// # SAFETY
+///
+/// Tree variants do not hold any data, safe to send or sync.
+unsafe impl<T> Send for Dyn<T> {}
+
 impl<T> Variant for Dyn<T> {
     type Item = T;
 

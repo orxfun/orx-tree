@@ -7,7 +7,7 @@ use orx_selfref_col::{
 
 /// Variant of a tree.
 pub trait TreeVariant:
-    Variant<Ends = RefsSingle<Self>, Prev = RefsSingle<Self>, Next = Self::Children>
+    Variant<Ends = RefsSingle<Self>, Prev = RefsSingle<Self>, Next = Self::Children> + Sync
 {
     /// Memory reclaimer of the tree.
     type Reclaimer: MemoryReclaimer<Self>;
