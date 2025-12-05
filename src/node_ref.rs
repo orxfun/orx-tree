@@ -966,7 +966,7 @@ where
     /// ```
     fn walk<'t, T>(&'t self) -> impl Iterator<Item = &'a V::Item> + 't
     where
-        T: Traverser<OverData> + 'a,
+        T: Traverser<OverData> + 't,
         Self: Sized,
         'a: 't,
     {
@@ -990,7 +990,7 @@ where
     #[cfg(feature = "parallel")]
     fn walk_par<'t, T>(&'t self) -> impl ParIter<Item = &'a V::Item>
     where
-        T: Traverser<OverData> + 'a,
+        T: Traverser<OverData> + 't,
         Self: Sized,
         V::Item: Send + Sync,
         'a: 't,
@@ -1501,7 +1501,7 @@ where
     ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
         O: Over<Enumeration = Val>,
-        T: Traverser<O> + 't,
+        T: Traverser<O>,
         'a: 't,
     {
         let node_ptr = self.node_ptr();
@@ -1614,7 +1614,7 @@ where
     ) -> impl ParIter<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
         O: Over<Enumeration = Val>,
-        T: Traverser<O> + 't,
+        T: Traverser<O>,
         V::Item: Send + Sync,
         Self: Sync,
         'a: 't,
@@ -1799,7 +1799,7 @@ where
     #[cfg(feature = "parallel")]
     fn leaves_par<'t, T>(&'t self) -> impl ParIter<Item = &'a V::Item> + 't
     where
-        T: Traverser<OverData> + 't,
+        T: Traverser<OverData>,
         V::Item: Send + Sync,
         'a: 't,
     {
@@ -1887,13 +1887,14 @@ where
     /// assert_eq!(sibling_idx, 0);
     /// assert_eq!(leaf.data(), &8);
     /// ```
-    fn leaves_with<T, O>(
-        &'a self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn leaves_with<'t, T, O>(
+        &'t self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         O: Over,
         T: Traverser<O>,
+        'a: 't,
     {
         T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
             .filter(|x| {
@@ -1920,14 +1921,15 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn leaves_with_par<T, O>(
-        &'a self,
-        traverser: &'a mut T,
+    fn leaves_with_par<'t, T, O>(
+        &'t self,
+        traverser: &'t mut T,
     ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
     where
         O: Over,
         T: Traverser<O>,
         OverItem<'a, V, O, M, P>: Send + Sync,
+        'a: 't,
     {
         self.leaves_with(traverser)
             .collect::<alloc::vec::Vec<_>>()
