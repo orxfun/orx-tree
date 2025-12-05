@@ -195,6 +195,19 @@ where
         .find(|v| tree.node(*v).data() == predicate)
 }
 
+fn find_indices_with<'a, V: TreeVariant>(
+    tree: &'a Tree<V>,
+    predicate: &V::Item,
+) -> Option<NodeIdx<V>>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let mut traverser = Dfs::<OverNode>::new();
+    let root = tree.get_root()?;
+    root.indices_with(&mut traverser)
+        .find(|v| tree.node(*v).data() == predicate)
+}
+
 // mut
 
 fn find_leaves_mut<'a, V: TreeVariant>(
@@ -227,6 +240,7 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_leaves_with(&tree, &7), None);
     assert_eq!(find_leaves_with_par(&tree, &7), None);
     assert_eq!(find_indices(&tree, &7), None);
+    assert_eq!(find_indices_with(&tree, &7), None);
 
     assert_eq!(find_leaves_mut(&mut tree, &7), None);
 }

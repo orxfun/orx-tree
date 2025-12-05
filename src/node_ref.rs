@@ -1999,7 +1999,6 @@ where
     where
         T: Traverser<OverData> + 't,
         <T as TraverserCore>::Storage<V>: 't,
-        V: 't,
         'a: 't,
     {
         let node_ptr = self.node_ptr();
@@ -2028,15 +2027,15 @@ where
     /// This method additionally allow for yielding node depths and sibling indices in addition to node indices.
     ///
     /// [`indices_with`]: crate::NodeRef::indices_with
-    fn indices_with<T, O>(
-        &self,
-        traverser: &mut T,
-    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>>
+    fn indices_with<'t, T, O>(
+        &'t self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>> + 't
     where
         O: Over,
         T: Traverser<O>,
-        V: 'static,
         Self: Sized,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();
