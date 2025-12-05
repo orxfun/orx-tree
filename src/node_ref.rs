@@ -1771,18 +1771,18 @@ where
     ///     .collect();
     /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);
     /// ```
-    fn leaves<'t, T>(&'t self) -> impl Iterator<Item = &'a V::Item> + 't
+    fn leaves<'t, T>(&self) -> impl Iterator<Item = &'a V::Item> + 't
     where
         T: Traverser<OverData> + 't,
         <T as TraverserCore>::Storage<V>: 't,
         'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_owned_storage(self.node_ptr())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(|x: NodePtr<V>| {
                 <OverData as Over>::Enumeration::from_element_ptr::<'a, V, M, P, &'a V::Item>(
-                    self.col(),
-                    x,
+                    col, x,
                 )
             })
     }
@@ -1799,7 +1799,7 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn leaves_par<'t, T>(&'t self) -> impl ParIter<Item = &'a V::Item> + 't
+    fn leaves_par<'t, T>(&self) -> impl ParIter<Item = &'a V::Item> + 't
     where
         T: Traverser<OverData>,
         V::Item: Send + Sync,
@@ -1890,7 +1890,7 @@ where
     /// assert_eq!(leaf.data(), &8);
     /// ```
     fn leaves_with<'t, T, O>(
-        &'t self,
+        &self,
         traverser: &'t mut T,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
@@ -1898,16 +1898,14 @@ where
         T: Traverser<O>,
         'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
                 unsafe { &*ptr.ptr() }.next().is_empty()
             })
             .map(|x| {
-                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
-                    self.col(),
-                    x,
-                )
+                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(col, x)
             })
     }
 
@@ -1924,7 +1922,7 @@ where
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
     fn leaves_with_par<'t, T, O>(
-        &'t self,
+        &self,
         traverser: &'t mut T,
     ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
     where
@@ -1997,7 +1995,7 @@ where
     /// assert_eq!(a.node(dfs_indices[2]).data(), &3);
     /// assert_eq!(a.node(dfs_indices[3]).data(), &7);
     /// ```
-    fn indices<'t, T>(&'t self) -> impl Iterator<Item = NodeIdx<V>> + 't
+    fn indices<'t, T>(&self) -> impl Iterator<Item = NodeIdx<V>> + 't
     where
         T: Traverser<OverData> + 't,
         <T as TraverserCore>::Storage<V>: 't,
@@ -2030,7 +2028,7 @@ where
     ///
     /// [`indices_with`]: crate::NodeRef::indices_with
     fn indices_with<'t, T, O>(
-        &'t self,
+        &self,
         traverser: &'t mut T,
     ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>> + 't
     where
