@@ -57,7 +57,7 @@ impl<O: Over> TraverserCore<O> for PostOrder<O> {
 
     fn iter<'t, 'a, V, M, P>(
         &'t mut self,
-        node: &'t impl NodeRef<'a, V, M, P>,
+        node: &impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
