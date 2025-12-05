@@ -284,6 +284,19 @@ where
     root.leaves_mut::<Dfs>().find(|v| v == &predicate)
 }
 
+fn find_leaves_mut_with<'a, V: TreeVariant>(
+    tree: &'a mut Tree<V>,
+    predicate: &V::Item,
+) -> Option<&'a mut V::Item>
+where
+    V::Item: Eq + Sync + Send,
+{
+    let mut traverser = Dfs::<OverData>::new();
+    let mut root = tree.get_root_mut()?;
+    root.leaves_mut_with(&mut traverser)
+        .find(|v| v == &predicate)
+}
+
 #[test]
 fn node_ref_lifetime_tests() {
     let mut tree = DynTree::new(42);
@@ -312,4 +325,5 @@ fn node_ref_lifetime_tests() {
     assert_eq!(find_custom_walk_mut(&mut tree, &7), None);
     assert_eq!(find_walk_mut(&mut tree, &7), None);
     assert_eq!(find_leaves_mut(&mut tree, &7), None);
+    assert_eq!(find_leaves_mut_with(&mut tree, &7), None);
 }

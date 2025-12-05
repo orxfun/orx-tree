@@ -129,16 +129,17 @@ where
     /// [`OverDepthData`]: crate::traversal::OverDepthData
     /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
     /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
-    fn iter_mut<'a, V, M, P, MO>(
-        &'a mut self,
-        node: &'a mut NodeMut<'a, V, M, P, MO>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut<'t, 'a, V, M, P, MO>(
+        &'t mut self,
+        node: &mut NodeMut<'a, V, M, P, MO>,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
-        O: OverMut;
+        O: OverMut,
+        'a: 't;
 
     fn into_iter_with_storage<'a, V, M, P, MO>(
         node_mut: NodeMut<'a, V, M, P, MO>,

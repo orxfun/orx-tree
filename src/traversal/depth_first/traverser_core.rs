@@ -69,19 +69,20 @@ impl<O: Over> TraverserCore<O> for Dfs<O> {
         Self::iter_with_storage(node, stack)
     }
 
-    fn iter_mut<'a, V, M, P, MO>(
-        &'a mut self,
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut<'t, 'a, V, M, P, MO>(
+        &'t mut self,
+        node: &mut NodeMut<'a, V, M, P, MO>,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
         O: OverMut,
+        'a: 't,
     {
         let stack = self.stack.for_variant::<V>();
-        Self::iter_mut_with_storage(node_mut, stack)
+        Self::iter_mut_with_storage(node, stack)
     }
 
     fn into_iter<'a, V, M, P, MO>(

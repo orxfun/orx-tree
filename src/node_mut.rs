@@ -1770,7 +1770,7 @@ where
     /// ```
     #[allow(clippy::missing_panics_doc)]
     pub fn custom_walk_mut<'t, F>(
-        &mut self,
+        &'t mut self,
         next_node: F,
     ) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
@@ -2130,7 +2130,7 @@ where
     ///     assert_eq!(post_order.next(), Some(&mut 4)); // ...
     /// }
     /// ```
-    pub fn walk_mut<'t, T>(&'t mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
+    pub fn walk_mut<'t, T>(&mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
         T: Traverser<OverData>,
         T::Storage<V>: 't,
@@ -2277,13 +2277,14 @@ where
     ///     ]
     /// );
     /// ```
-    pub fn walk_mut_with<T, O>(
-        &'a mut self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    pub fn walk_mut_with<'t, T, O>(
+        &mut self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         O: OverMut,
         T: Traverser<O>,
+        'a: 't,
     {
         traverser.iter_mut(self)
     }
@@ -2527,13 +2528,14 @@ where
     ///     ]
     /// );
     /// ```
-    pub fn into_walk_with<T, O>(
+    pub fn into_walk_with<'t, T, O>(
         self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>> + 't
     where
         O: OverMut,
         T: Traverser<O>,
+        'a: 't,
     {
         traverser.into_iter(self)
     }
@@ -2741,14 +2743,17 @@ where
     ///     [(2, &205), (3, &308), (3, &309), (3, &310), (3, &311)]
     /// );
     /// ```
-    pub fn leaves_mut_with<T, O>(
-        &'a mut self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    pub fn leaves_mut_with<'t, T, O>(
+        &mut self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         O: OverMut,
         T: Traverser<O>,
+        <T as TraverserCore<O>>::Storage<V>: 't,
+        'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
@@ -2756,8 +2761,7 @@ where
             })
             .map(|x| {
                 O::Enumeration::from_element_ptr_mut::<'a, V, M, P, O::NodeItemMut<'a, V, M, P>>(
-                    self.col(),
-                    x,
+                    col, x,
                 )
             })
     }
@@ -3590,4 +3594,30 @@ where
     pub fn into_parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
         self.node().prev().get().map(|p| NodeMut::new(self.col, p))
     }
+}
+
+#[test]
+fn abc() {
+    use crate::*;
+
+    let mut tree = DynTree::new(1);
+    let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    tree.node_mut(id4).push_child(8);
+    let [id6, id7] = tree.node_mut(id3).push_children([6, 7]);
+    tree.node_mut(id6).push_child(9);
+    tree.node_mut(id7).push_children([10, 11]);
+
+    // let's remove children of node 3
+    let mut n3 = tree.node_mut(id3);
+    n3.remove_children();
+    n3.push_children([6, 7]);
+    let n6 = n3.walk_mut::<Bfs>().next().unwrap();
+    for x in n3.children_mut() {
+        x.prune();
+    }
+    // *n6.data_mut() = 12;
+
+    let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    assert_eq!(bfs, [1, 2, 3, 4, 5, 8]);
 }
