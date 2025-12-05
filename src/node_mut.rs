@@ -1770,7 +1770,7 @@ where
     /// ```
     #[allow(clippy::missing_panics_doc)]
     pub fn custom_walk_mut<'t, F>(
-        &'t mut self,
+        &mut self,
         next_node: F,
     ) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
