@@ -1495,13 +1495,14 @@ where
     ///     ]
     /// );
     /// ```
-    fn paths_with<T, O>(
-        &'a self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone>
+    fn paths_with<'t, T, O>(
+        &'t self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
         O: Over<Enumeration = Val>,
-        T: Traverser<O>,
+        T: Traverser<O> + 't,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         T::iter_ptr_with_storage(node_ptr, TraverserCore::storage_mut(traverser))
