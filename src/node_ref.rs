@@ -1137,7 +1137,7 @@ where
     /// );
     /// ```
     fn walk_with<'t, T, O>(
-        &'a self,
+        &self,
         traverser: &'t mut T,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where

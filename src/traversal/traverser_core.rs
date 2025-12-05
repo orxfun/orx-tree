@@ -29,7 +29,7 @@ where
         V: TreeVariant + 'a;
 
     fn iter_with_storage<'a, V, M, P>(
-        node: &'a impl NodeRef<'a, V, M, P>,
+        node: &impl NodeRef<'a, V, M, P>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
@@ -76,12 +76,13 @@ where
     /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
     fn iter<'a, V, M, P>(
         &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
+        node: &impl NodeRef<'a, V, M, P>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage;
+
     fn iter_mut_with_storage<'a, V, M, P, MO>(
         node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,

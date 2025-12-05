@@ -6,8 +6,8 @@ where
     V::Item: Eq,
 {
     let mut traverser = Dfs::<OverNode>::new();
-    let root_node = tree.get_root().unwrap();
     let node = {
+        let root_node = tree.get_root().unwrap();
         let mut walker = root_node.walk_with(&mut traverser);
         let x = walker.find(|v| v.data() == predicate);
         // drop(walker);
