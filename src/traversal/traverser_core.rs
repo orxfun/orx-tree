@@ -28,8 +28,8 @@ where
     where
         V: TreeVariant + 't;
 
-    fn iter_with_storage<'t, 'a, V, M, P>(
-        node: &'t impl NodeRef<'a, V, M, P>,
+    fn iter_with_storage<'a, V, M, P>(
+        node: &impl NodeRef<'a, V, M, P>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
     where
