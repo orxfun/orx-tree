@@ -142,7 +142,7 @@ where
         'a: 't;
 
     fn into_iter_with_storage<'a, V, M, P, MO>(
-        node_mut: NodeMut<'a, V, M, P, MO>,
+        node: NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
@@ -153,7 +153,7 @@ where
         O: Over;
 
     fn into_iter_with_storage_filtered<'a, V, M, P, MO, F>(
-        node_mut: NodeMut<'a, V, M, P, MO>,
+        node: NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,
         filter: F,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
@@ -254,11 +254,11 @@ where
         O: OverMut,
         'a: 't,
     {
-        Self::iter_mut_with_storage(node_mut, Self::Storage::default())
+        Self::iter_mut_with_storage(node, Self::Storage::default())
     }
 
     fn into_iter_with_owned_storage<'a, V, M, P, MO>(
-        node_mut: NodeMut<'a, V, M, P, MO>,
+        node: NodeMut<'a, V, M, P, MO>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
         V: TreeVariant + 'a,
@@ -267,6 +267,6 @@ where
         MO: NodeMutOrientation,
         O: Over,
     {
-        Self::into_iter_with_storage(node_mut, Self::Storage::default())
+        Self::into_iter_with_storage(node, Self::Storage::default())
     }
 }
