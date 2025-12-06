@@ -87,7 +87,7 @@ where
         'a: 't;
 
     fn iter_mut_with_storage<'t, 'a, V, M, P, MO>(
-        node_mut: &mut NodeMut<'a, V, M, P, MO>,
+        node: &mut NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>> + 't,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
