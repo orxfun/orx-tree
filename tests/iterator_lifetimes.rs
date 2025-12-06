@@ -2,7 +2,7 @@ use orx_tree::traversal::*;
 use orx_tree::*;
 
 /*
-These tests are created wrt the issue: https://github.com/orxfun/orx-tree/issues/188.
+These tests are created with respect to the issue: https://github.com/orxfun/orx-tree/issues/188.
 
 They are expected to compile.
 

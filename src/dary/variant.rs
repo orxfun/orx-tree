@@ -8,9 +8,13 @@ pub struct Dary<const D: usize, T> {
     p: PhantomData<T>,
 }
 
+/// # SAFETY
+///
 /// Tree variants do not hold any data; and hence, safe to sync.
 unsafe impl<const D: usize, T> Sync for Dary<D, T> {}
 
+/// # SAFETY
+///
 /// Tree variants do not hold any data; and hence, safe to sync.
 unsafe impl<const D: usize, T> Send for Dary<D, T> {}
 
