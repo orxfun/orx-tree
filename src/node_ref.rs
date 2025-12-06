@@ -1299,7 +1299,6 @@ where
     fn paths<'t, T>(&self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone> + 't
     where
         T: Traverser<OverData> + 't,
-        <T as TraverserCore>::Storage<V>: 't,
         'a: 't,
     {
         let node_ptr = self.node_ptr();
@@ -1785,7 +1784,6 @@ where
     fn leaves<'t, T>(&self) -> impl Iterator<Item = &'a V::Item> + 't
     where
         T: Traverser<OverData> + 't,
-        <T as TraverserCore>::Storage<V>: 't,
         'a: 't,
     {
         let col = self.col();
@@ -2009,7 +2007,6 @@ where
     fn indices<'t, T>(&self) -> impl Iterator<Item = NodeIdx<V>> + 't
     where
         T: Traverser<OverData> + 't,
-        <T as TraverserCore>::Storage<V>: 't,
         'a: 't,
     {
         let node_ptr = self.node_ptr();
