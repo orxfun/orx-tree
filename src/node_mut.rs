@@ -1697,7 +1697,7 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 4, 5, 8]);
     /// ```
-    pub fn remove_children(&mut self) {
+    pub fn remove_children(&'a mut self) {
         for c in self.children_mut() {
             _ = c.prune();
         }
@@ -2051,8 +2051,8 @@ where
     /// assert_eq!(dfs, [1, 2, 4, 8, 5, 9, 3, 6, 10, 7, 11, 12]);
     /// ```
     pub fn children_mut(
-        &mut self,
-    ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>> + DoubleEndedIterator
+        &'a mut self,
+    ) -> impl ExactSizeIterator<Item = NodeMut<'a, V, M, P, NodeMutDown>> + DoubleEndedIterator
     {
         ChildrenMutIter::new(self.col, unsafe { self.node_ptr.ptr() })
     }
