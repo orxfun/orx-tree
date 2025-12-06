@@ -243,7 +243,7 @@ where
     }
 
     fn iter_mut_with_owned_storage<'t, 'a, V, M, P, MO>(
-        node_mut: &mut NodeMut<'a, V, M, P, MO>,
+        node: &mut NodeMut<'a, V, M, P, MO>,
     ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
