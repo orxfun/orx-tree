@@ -2608,7 +2608,6 @@ where
     pub fn leaves_mut<'t, T>(&mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
         T: Traverser<OverData> + 't,
-        <T as TraverserCore>::Storage<V>: 't,
         'a: 't,
     {
         let col = self.col();
@@ -2751,7 +2750,6 @@ where
     where
         O: OverMut,
         T: Traverser<O>,
-        <T as TraverserCore<O>>::Storage<V>: 't,
         'a: 't,
     {
         let col = self.col();
