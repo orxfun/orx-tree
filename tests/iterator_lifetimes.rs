@@ -132,7 +132,7 @@ where
 {
     let root = tree.get_root()?;
     root.paths::<Dfs>()
-        .find(|x| x.clone().collect::<Vec<_>>().contains(&predicate))
+        .find(|x| x.clone().any(|x| x == predicate))
         .and_then(|mut x| x.next())
 }
 
