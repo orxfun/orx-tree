@@ -72,7 +72,7 @@ where
         self.stack.get_mut().pop_front().inspect(|element| {
             let node_ptr = E::node_value(element);
             let parent = unsafe { &*node_ptr.ptr() };
-            let children_ptr = parent.next().children_ptr().cloned();
+            let children_ptr = parent.next().children_ptr();
             let children = E::children(element, children_ptr);
             self.stack.get_mut().extend(children);
         })

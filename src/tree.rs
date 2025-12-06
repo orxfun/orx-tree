@@ -213,7 +213,7 @@ where
     /// tree.push_root('a');
     /// assert_eq!(tree.root().data(), &'a');
     /// ```
-    pub fn root(&self) -> Node<'_, V, M, P> {
+    pub fn root<'a>(&'a self) -> Node<'a, V, M, P> {
         self.root_ptr()
             .map(|p| Node::new(&self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
@@ -257,7 +257,7 @@ where
     /// tree.node_mut(b).push_child('d');
     /// tree.node_mut(c).push_children(['e', 'f']);
     /// ```
-    pub fn root_mut(&mut self) -> NodeMut<'_, V, M, P> {
+    pub fn root_mut<'a>(&'a mut self) -> NodeMut<'a, V, M, P> {
         self.root_ptr()
             .map(|p| NodeMut::new(&mut self.0, p))
             .expect("Tree is empty and has no root. You may use `push_root` to add a root and/or `get_root` to safely access the root if it exists.")
@@ -284,7 +284,7 @@ where
     /// tree.push_root('a');
     /// assert_eq!(tree.root().data(), &'a');
     /// ```
-    pub fn get_root(&self) -> Option<Node<'_, V, M, P>> {
+    pub fn get_root<'a>(&'a self) -> Option<Node<'a, V, M, P>> {
         self.root_ptr().map(|p| Node::new(&self.0, p))
     }
 
@@ -309,7 +309,7 @@ where
     /// tree.clear();
     /// assert_eq!(tree.get_root_mut(), None);
     /// ```
-    pub fn get_root_mut(&mut self) -> Option<NodeMut<'_, V, M, P>> {
+    pub fn get_root_mut<'a>(&'a mut self) -> Option<NodeMut<'a, V, M, P>> {
         self.root_ptr().map(|p| NodeMut::new(&mut self.0, p))
     }
 
@@ -404,8 +404,8 @@ where
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
     /// ```
     #[inline(always)]
-    pub fn node(&self, node_idx: NodeIdx<V>) -> Node<'_, V, M, P> {
-        assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
+    pub fn node<'a>(&'a self, node_idx: NodeIdx<V>) -> Node<'a, V, M, P> {
+        assert!(self.is_node_idx_valid(node_idx), "{INVALID_IDX_ERROR}");
         Node::new(&self.0, node_idx.0.node_ptr())
     }
 
@@ -458,8 +458,8 @@ where
     /// assert_eq!(bfs_values, [1, 2, 3, 4, 5]);
     /// ```
     #[inline(always)]
-    pub fn node_mut(&mut self, node_idx: NodeIdx<V>) -> NodeMut<'_, V, M, P> {
-        assert!(self.is_node_idx_valid(node_idx), "{}", INVALID_IDX_ERROR);
+    pub fn node_mut<'a>(&'a mut self, node_idx: NodeIdx<V>) -> NodeMut<'a, V, M, P> {
+        assert!(self.is_node_idx_valid(node_idx), "{INVALID_IDX_ERROR}");
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
 
@@ -481,7 +481,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn get_node(&self, node_idx: NodeIdx<V>) -> Option<Node<'_, V, M, P>> {
+    pub fn get_node<'a>(&'a self, node_idx: NodeIdx<V>) -> Option<Node<'a, V, M, P>> {
         self.is_node_idx_valid(node_idx)
             .then(|| Node::new(&self.0, node_idx.0.node_ptr()))
     }
@@ -504,7 +504,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn get_node_mut(&mut self, node_idx: NodeIdx<V>) -> Option<NodeMut<'_, V, M, P>> {
+    pub fn get_node_mut<'a>(&'a mut self, node_idx: NodeIdx<V>) -> Option<NodeMut<'a, V, M, P>> {
         self.is_node_idx_valid(node_idx)
             .then(|| NodeMut::new(&mut self.0, node_idx.0.node_ptr()))
     }
@@ -525,7 +525,7 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn try_node(&self, node_idx: NodeIdx<V>) -> Result<Node<'_, V, M, P>, NodeIdxError> {
+    pub fn try_node<'a>(&'a self, node_idx: NodeIdx<V>) -> Result<Node<'a, V, M, P>, NodeIdxError> {
         self.0
             .try_get_ptr(node_idx.0)
             .map(|ptr| Node::new(&self.0, ptr))
@@ -547,10 +547,10 @@ where
     /// [`NodeIdxError::RemovedNode`]: crate::NodeIdxError::RemovedNode
     /// [`NodeIdxError::ReorganizedCollection`]: crate::NodeIdxError::ReorganizedCollection
     #[inline(always)]
-    pub fn try_node_mut(
-        &mut self,
+    pub fn try_node_mut<'a>(
+        &'a mut self,
         node_idx: NodeIdx<V>,
-    ) -> Result<NodeMut<'_, V, M, P>, NodeIdxError> {
+    ) -> Result<NodeMut<'a, V, M, P>, NodeIdxError> {
         self.0
             .try_get_ptr(node_idx.0)
             .map(|ptr| NodeMut::new(&mut self.0, ptr))
@@ -566,7 +566,7 @@ where
     /// [`node`]: Self::node
     /// [`is_node_idx_valid`]: Self::is_node_idx_valid
     #[inline(always)]
-    pub unsafe fn node_unchecked(&self, node_idx: NodeIdx<V>) -> Node<'_, V, M, P> {
+    pub unsafe fn node_unchecked<'a>(&'a self, node_idx: NodeIdx<V>) -> Node<'a, V, M, P> {
         Node::new(&self.0, node_idx.0.node_ptr())
     }
 
@@ -580,7 +580,10 @@ where
     /// [`node_mut`]: Self::node_mut
     /// [`is_node_idx_valid`]: Self::is_node_idx_valid
     #[inline(always)]
-    pub unsafe fn node_mut_unchecked(&mut self, node_idx: NodeIdx<V>) -> NodeMut<'_, V, M, P> {
+    pub unsafe fn node_mut_unchecked<'a>(
+        &'a mut self,
+        node_idx: NodeIdx<V>,
+    ) -> NodeMut<'a, V, M, P> {
         NodeMut::new(&mut self.0, node_idx.0.node_ptr())
     }
 
