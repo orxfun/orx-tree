@@ -147,10 +147,7 @@ where
     let root = tree.get_root()?;
     root.paths_with(&mut traverser)
         .find(|x| {
-            x.clone()
-                .map(|x| x.data())
-                .collect::<Vec<_>>()
-                .contains(&predicate)
+            x.clone().map(|x| x.data()).any(|x| x == predicate)
         })
         .and_then(|mut x| x.next())
 }
