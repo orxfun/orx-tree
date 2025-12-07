@@ -295,11 +295,15 @@ where
     ///
     /// assert_eq!(data, ['a', 'c', 'd', 'e', 'b']);
     /// ```
-    fn children(&'a self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> {
+    fn children<'t>(&self) -> impl ExactSizeIterator<Item = Node<'a, V, M, P>> + 't
+    where
+        'a: 't,
+    {
+        let col = self.col();
         self.node()
             .next()
             .children_ptr()
-            .map(|ptr| Node::new(self.col(), *ptr))
+            .map(move |ptr| Node::new(col, ptr))
     }
 
     /// Creates a **[parallel iterator]** of children nodes of this node.
@@ -373,15 +377,17 @@ where
     /// assert_eq!(seq_value, par_value_4t);
     /// ```
     #[cfg(feature = "parallel")]
-    fn children_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
+    fn children_par<'t>(&self) -> impl ParIter<Item = Node<'a, V, M, P>> + 't
     where
         V::Item: Send + Sync,
-        Self: Sync,
+        <P as PinnedStorage>::PinnedVec<V>: Sync,
+        'a: 't,
     {
+        let col = self.col();
         self.node()
             .next()
             .children_ptr_par()
-            .map(|ptr| Node::new(self.col(), *ptr))
+            .map(move |ptr| Node::new(col, ptr))
     }
 
     /// Returns the `child-index`-th child of the node; returns None if out of bounds.
@@ -548,7 +554,7 @@ where
             .map(|parent| {
                 let ptr = self.node_ptr();
                 let mut children = parent.next().children_ptr();
-                children.position(|x| *x == ptr).expect("this node exists")
+                children.position(|x| x == ptr).expect("this node exists")
             })
             .unwrap_or(0)
     }
@@ -663,11 +669,15 @@ where
     /// let ancestors_data: Vec<_> = n4.ancestors().map(|x| *x.data()).collect();
     /// assert_eq!(ancestors_data, [2, 1]);
     /// ```
-    fn ancestors(&'a self) -> impl Iterator<Item = Node<'a, V, M, P>> {
+    fn ancestors<'t>(&self) -> impl Iterator<Item = Node<'a, V, M, P>> + 't
+    where
+        'a: 't,
+    {
         let root_ptr = self.col().ends().get().expect("Tree is non-empty");
+        let col = self.col();
         AncestorsIterPtr::new(root_ptr, self.node_ptr())
             .skip(1)
-            .map(|ptr| Node::new(self.col(), ptr))
+            .map(|ptr| Node::new(col, ptr))
     }
 
     /// Creates a **[parallel iterator]** starting from this node moving upwards until the root:
@@ -686,9 +696,10 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn ancestors_par(&'a self) -> impl ParIter<Item = Node<'a, V, M, P>>
+    fn ancestors_par<'t>(&self) -> impl ParIter<Item = Node<'a, V, M, P>> + 't
     where
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.ancestors().collect::<alloc::vec::Vec<_>>().into_par()
     }
@@ -856,12 +867,13 @@ where
     /// let values: Vec<_> = tree.node(id3).custom_walk(next_node).copied().collect();
     /// assert_eq!(values, [3, 6, 7, 10, 11]);
     /// ```
-    fn custom_walk<F>(&self, next_node: F) -> impl Iterator<Item = &'a V::Item>
+    fn custom_walk<'t, F>(&self, next_node: F) -> impl Iterator<Item = &'a V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
+        'a: 't,
     {
         let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr()), next_node);
-        iter_ptr.map(|ptr| {
+        iter_ptr.map(move |ptr| {
             let node = unsafe { &*ptr.ptr() };
             node.data()
                 .expect("node is returned by next_node and is active")
@@ -880,10 +892,11 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn custom_walk_par<F>(&self, next_node: F) -> impl ParIter<Item = &'a V::Item>
+    fn custom_walk_par<'t, F>(&self, next_node: F) -> impl ParIter<Item = &'a V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.custom_walk(next_node)
             .collect::<alloc::vec::Vec<_>>()
@@ -962,10 +975,12 @@ where
     /// let post_order: Vec<_> = n2.walk::<PostOrder>().copied().collect();
     /// assert_eq!(post_order, [8, 4, 5, 2]);
     /// ```
-    fn walk<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
+    fn walk<'t, T>(&self) -> impl Iterator<Item = &'a V::Item> + 't
     where
         T: Traverser<OverData>,
+        T::Storage<V>: 't,
         Self: Sized,
+        'a: 't,
     {
         T::iter_with_owned_storage::<V, M, P>(self)
     }
@@ -985,11 +1000,13 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn walk_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
+    fn walk_par<'t, T>(&self) -> impl ParIter<Item = &'a V::Item> + 't
     where
         T: Traverser<OverData>,
+        T::Storage<V>: 't,
         Self: Sized,
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.walk::<T>().collect::<alloc::vec::Vec<_>>().into_par()
     }
@@ -1137,14 +1154,15 @@ where
     /// );
     /// ```
     fn walk_with<'t, T, O>(
-        &'a self,
+        &self,
         traverser: &'t mut T,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         O: Over,
         T: Traverser<O>,
+        T::Storage<V>: 't,
         Self: Sized,
-        't: 'a,
+        'a: 't,
     {
         traverser.iter(self)
     }
@@ -1162,15 +1180,15 @@ where
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
     fn walk_with_par<'t, T, O>(
-        &'a self,
+        &self,
         traverser: &'t mut T,
-    ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
+    ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>> + 't
     where
         O: Over,
         T: Traverser<O>,
         Self: Sized,
-        't: 'a,
         OverItem<'a, V, O, M, P>: Send + Sync,
+        'a: 't,
     {
         self.walk_with(traverser)
             .collect::<alloc::vec::Vec<_>>()
@@ -1278,9 +1296,10 @@ where
     ///     .unwrap();
     /// assert_eq!(max_label_path, vec![9, 6, 3, 1]);
     /// ```
-    fn paths<T>(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone>
+    fn paths<'t, T>(&self) -> impl Iterator<Item = impl Iterator<Item = &'a V::Item> + Clone> + 't
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 't,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         T::iter_ptr_with_owned_storage(node_ptr)
@@ -1379,10 +1398,13 @@ where
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
     #[cfg(feature = "parallel")]
-    fn paths_par<T>(&'a self) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone>
+    fn paths_par<'t, T>(
+        &self,
+    ) -> impl ParIter<Item = impl Iterator<Item = &'a V::Item> + Clone> + 't
     where
         T: Traverser<OverData>,
         V::Item: Send + Sync,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         let node_ptrs: alloc::vec::Vec<_> = T::iter_ptr_with_owned_storage(node_ptr)
@@ -1486,15 +1508,17 @@ where
     ///     ]
     /// );
     /// ```
-    fn paths_with<T, O>(
-        &'a self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone>
+    fn paths_with<'t, T, O>(
+        &self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
         O: Over<Enumeration = Val>,
         T: Traverser<O>,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
+        let col = self.col();
         T::iter_ptr_with_storage(node_ptr, TraverserCore::storage_mut(traverser))
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
@@ -1505,8 +1529,7 @@ where
                 let iter = AncestorsIterPtr::new(node_ptr, *ptr);
                 iter.map(|ptr: NodePtr<V>| {
                     O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
-                        self.col(),
-                        ptr,
+                        col, ptr,
                     )
                 })
             })
@@ -1598,17 +1621,20 @@ where
     /// assert_eq!(best_path, expected.iter().collect::<Vec<_>>());
     /// ```
     #[cfg(feature = "parallel")]
-    fn paths_with_par<T, O>(
-        &'a self,
-        traverser: &'a mut T,
-    ) -> impl ParIter<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone>
+    fn paths_with_par<'t, T, O>(
+        &self,
+        traverser: &'t mut T,
+    ) -> impl ParIter<Item = impl Iterator<Item = <O as Over>::NodeItem<'a, V, M, P>> + Clone> + 't
     where
         O: Over<Enumeration = Val>,
         T: Traverser<O>,
         V::Item: Send + Sync,
         Self: Sync,
+        <P as PinnedStorage>::PinnedVec<V>: Sync,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
+        let col = self.col();
 
         let node_ptrs: alloc::vec::Vec<_> =
             T::iter_ptr_with_storage(node_ptr, TraverserCore::storage_mut(traverser))
@@ -1617,10 +1643,7 @@ where
         node_ptrs.into_par().map(move |x| {
             let iter = AncestorsIterPtr::new(node_ptr, x);
             iter.map(|ptr: NodePtr<V>| {
-                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
-                    self.col(),
-                    ptr,
-                )
+                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(col, ptr)
             })
         })
     }
@@ -1668,7 +1691,7 @@ where
     /// let bfs: Vec<_> = clone.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [2, 5, 6, 8, 9, 10]);
     /// ```
-    fn clone_as_tree<V2>(&'a self) -> Tree<V2, M, P>
+    fn clone_as_tree<V2>(&self) -> Tree<V2, M, P>
     where
         V2: TreeVariant<Item = V::Item> + 'a,
         P::PinnedVec<V2>: Default,
@@ -1758,16 +1781,17 @@ where
     ///     .collect();
     /// assert_eq!(bfs_leaves, [5, 8, 9, 10, 11]);
     /// ```
-    fn leaves<T>(&'a self) -> impl Iterator<Item = &'a V::Item>
+    fn leaves<'t, T>(&self) -> impl Iterator<Item = &'a V::Item> + 't
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 't,
+        'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_owned_storage(self.node_ptr())
             .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
             .map(|x: NodePtr<V>| {
                 <OverData as Over>::Enumeration::from_element_ptr::<'a, V, M, P, &'a V::Item>(
-                    self.col(),
-                    x,
+                    col, x,
                 )
             })
     }
@@ -1784,10 +1808,11 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn leaves_par<T>(&'a self) -> impl ParIter<Item = &'a V::Item>
+    fn leaves_par<'t, T>(&self) -> impl ParIter<Item = &'a V::Item> + 't
     where
         T: Traverser<OverData>,
         V::Item: Send + Sync,
+        'a: 't,
     {
         self.leaves::<T>()
             .collect::<alloc::vec::Vec<_>>()
@@ -1873,24 +1898,23 @@ where
     /// assert_eq!(sibling_idx, 0);
     /// assert_eq!(leaf.data(), &8);
     /// ```
-    fn leaves_with<T, O>(
-        &'a self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn leaves_with<'t, T, O>(
+        &self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         O: Over,
         T: Traverser<O>,
+        'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
                 unsafe { &*ptr.ptr() }.next().is_empty()
             })
             .map(|x| {
-                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(
-                    self.col(),
-                    x,
-                )
+                O::Enumeration::from_element_ptr::<'a, V, M, P, O::NodeItem<'a, V, M, P>>(col, x)
             })
     }
 
@@ -1906,14 +1930,15 @@ where
     /// [`num_threads`]: orx_parallel::ParIter::num_threads
     /// [`chunk_size`]: orx_parallel::ParIter::chunk_size
     #[cfg(feature = "parallel")]
-    fn leaves_with_par<T, O>(
-        &'a self,
-        traverser: &'a mut T,
+    fn leaves_with_par<'t, T, O>(
+        &self,
+        traverser: &'t mut T,
     ) -> impl ParIter<Item = OverItem<'a, V, O, M, P>>
     where
         O: Over,
         T: Traverser<O>,
         OverItem<'a, V, O, M, P>: Send + Sync,
+        'a: 't,
     {
         self.leaves_with(traverser)
             .collect::<alloc::vec::Vec<_>>()
@@ -1979,10 +2004,10 @@ where
     /// assert_eq!(a.node(dfs_indices[2]).data(), &3);
     /// assert_eq!(a.node(dfs_indices[3]).data(), &7);
     /// ```
-    fn indices<T>(&self) -> impl Iterator<Item = NodeIdx<V>>
+    fn indices<'t, T>(&self) -> impl Iterator<Item = NodeIdx<V>> + 't
     where
-        T: Traverser<OverData>,
-        V: 'static,
+        T: Traverser<OverData> + 't,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();
@@ -2010,15 +2035,15 @@ where
     /// This method additionally allow for yielding node depths and sibling indices in addition to node indices.
     ///
     /// [`indices_with`]: crate::NodeRef::indices_with
-    fn indices_with<T, O>(
+    fn indices_with<'t, T, O>(
         &self,
-        traverser: &mut T,
-    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>>
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodeIdx<V>>> + 't
     where
         O: Over,
         T: Traverser<O>,
-        V: 'static,
         Self: Sized,
+        'a: 't,
     {
         let node_ptr = self.node_ptr();
         let state = self.col().memory_state();

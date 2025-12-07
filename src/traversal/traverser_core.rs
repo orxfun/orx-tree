@@ -21,21 +21,23 @@ where
 
     fn storage_mut<V: TreeVariant>(&mut self) -> &mut Self::Storage<V>;
 
-    fn iter_ptr_with_storage<'a, V>(
+    fn iter_ptr_with_storage<'t, V>(
         node_ptr: NodePtr<V>,
-        storage: impl SoM<Self::Storage<V>>,
+        storage: impl SoM<Self::Storage<V>> + 't,
     ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodePtr<V>>>
     where
-        V: TreeVariant + 'a;
+        V: TreeVariant + 't;
 
-    fn iter_with_storage<'a, V, M, P>(
-        node: &'a impl NodeRef<'a, V, M, P>,
-        storage: impl SoM<Self::Storage<V>>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter_with_storage<'t, 'a, V, M, P>(
+        node: &impl NodeRef<'a, V, M, P>,
+        storage: impl SoM<Self::Storage<V>> + 't,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
-        P: PinnedStorage;
+        P: PinnedStorage,
+        Self::Storage<V>: 't,
+        'a: 't;
 
     /// Returns an iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
@@ -74,24 +76,28 @@ where
     /// [`OverDepthNode`]: crate::traversal::OverDepthNode
     /// [`OverSiblingIdxNode`]: crate::traversal::OverSiblingIdxNode
     /// [`OverDepthSiblingIdxNode`]: crate::traversal::OverDepthSiblingIdxNode
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter<'t, 'a, V, M, P>(
+        &'t mut self,
+        node: &impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
-        P: PinnedStorage;
-    fn iter_mut_with_storage<'a, V, M, P, MO>(
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-        storage: impl SoM<Self::Storage<V>>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+        P: PinnedStorage,
+        'a: 't;
+
+    fn iter_mut_with_storage<'t, 'a, V, M, P, MO>(
+        node: &mut NodeMut<'a, V, M, P, MO>,
+        storage: impl SoM<Self::Storage<V>> + 't,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
-        O: OverMut;
+        O: OverMut,
+        Self::Storage<V>: 't,
+        'a: 't;
 
     /// Returns a mutable iterator which yields all nodes including the `node` and all its descendants; i.e.,
     /// all nodes of the subtree rooted at the given `node`.
@@ -123,19 +129,20 @@ where
     /// [`OverDepthData`]: crate::traversal::OverDepthData
     /// [`OverSiblingIdxData`]: crate::traversal::OverSiblingIdxData
     /// [`OverDepthSiblingIdxData`]: crate::traversal::OverDepthSiblingIdxData
-    fn iter_mut<'a, V, M, P, MO>(
-        &'a mut self,
-        node: &'a mut NodeMut<'a, V, M, P, MO>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut<'t, 'a, V, M, P, MO>(
+        &'t mut self,
+        node: &mut NodeMut<'a, V, M, P, MO>,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
-        O: OverMut;
+        O: OverMut,
+        'a: 't;
 
     fn into_iter_with_storage<'a, V, M, P, MO>(
-        node_mut: NodeMut<'a, V, M, P, MO>,
+        node: NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
@@ -146,7 +153,7 @@ where
         O: Over;
 
     fn into_iter_with_storage_filtered<'a, V, M, P, MO, F>(
-        node_mut: NodeMut<'a, V, M, P, MO>,
+        node: NodeMut<'a, V, M, P, MO>,
         storage: impl SoM<Self::Storage<V>>,
         filter: F,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
@@ -212,41 +219,46 @@ where
 
     // provided
 
-    fn iter_ptr_with_owned_storage<'a, V>(
+    fn iter_ptr_with_owned_storage<'t, V>(
         node_ptr: NodePtr<V>,
     ) -> impl Iterator<Item = <O::Enumeration as Enumeration>::Item<NodePtr<V>>>
     where
-        V: TreeVariant + 'a,
+        V: TreeVariant + 't,
+        <Self as TraverserCore<O>>::Storage<V>: 't,
     {
         Self::iter_ptr_with_storage(node_ptr, Self::Storage::default())
     }
 
-    fn iter_with_owned_storage<'a, V, M, P>(
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter_with_owned_storage<'t, 'a, V, M, P>(
+        node: &impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        Self::Storage<V>: 't,
+        'a: 't,
     {
         Self::iter_with_storage(node, Self::Storage::default())
     }
 
-    fn iter_mut_with_owned_storage<'a, V, M, P, MO>(
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut_with_owned_storage<'t, 'a, V, M, P, MO>(
+        node: &mut NodeMut<'a, V, M, P, MO>,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        Self::Storage<V>: 't,
         MO: NodeMutOrientation,
         O: OverMut,
+        'a: 't,
     {
-        Self::iter_mut_with_storage(node_mut, Self::Storage::default())
+        Self::iter_mut_with_storage(node, Self::Storage::default())
     }
 
     fn into_iter_with_owned_storage<'a, V, M, P, MO>(
-        node_mut: NodeMut<'a, V, M, P, MO>,
+        node: NodeMut<'a, V, M, P, MO>,
     ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
     where
         V: TreeVariant + 'a,
@@ -255,6 +267,6 @@ where
         MO: NodeMutOrientation,
         O: Over,
     {
-        Self::into_iter_with_storage(node_mut, Self::Storage::default())
+        Self::into_iter_with_storage(node, Self::Storage::default())
     }
 }

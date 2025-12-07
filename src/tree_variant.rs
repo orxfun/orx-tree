@@ -7,10 +7,10 @@ use orx_selfref_col::{
 
 /// Variant of a tree.
 pub trait TreeVariant:
-    Variant<Ends = RefsSingle<Self>, Prev = RefsSingle<Self>, Next = Self::Children>
+    Variant<Ends = RefsSingle<Self>, Prev = RefsSingle<Self>, Next = Self::Children> + Sync
 {
     /// Memory reclaimer of the tree.
-    type Reclaimer: MemoryReclaimer<Self>;
+    type Reclaimer: MemoryReclaimer<Self> + Sync;
 
     /// Children references of the tree nodes.
     type Children: RefsChildren<Self> + Refs;
@@ -19,21 +19,18 @@ pub trait TreeVariant:
 // children
 
 pub trait RefsChildren<V: Variant> {
-    type ChildrenPtrIter<'a>: ExactSizeIterator<Item = &'a NodePtr<V>>
-        + DoubleEndedIterator
-        + Default
+    type ChildrenPtrIter<'a>: ExactSizeIterator<Item = NodePtr<V>> + DoubleEndedIterator + Default
     where
         V: 'a,
         Self: 'a;
 
     fn num_children(&self) -> usize;
 
-    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_>;
+    fn children_ptr<'a>(&'a self) -> Self::ChildrenPtrIter<'a>;
 
     #[cfg(feature = "parallel")]
-    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    fn children_ptr_par(&self) -> impl ParIter<Item = NodePtr<V>>
     where
-        V: 'a,
         V::Item: Send + Sync;
 
     fn get_ptr(&self, i: usize) -> Option<NodePtr<V>>;
@@ -50,7 +47,7 @@ pub trait RefsChildren<V: Variant> {
 
 impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     type ChildrenPtrIter<'a>
-        = core::slice::Iter<'a, NodePtr<V>>
+        = core::iter::Copied<core::slice::Iter<'a, NodePtr<V>>>
     where
         V: 'a,
         Self: 'a;
@@ -61,17 +58,16 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
     }
 
     #[inline(always)]
-    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
-        self.iter()
+    fn children_ptr<'a>(&'a self) -> Self::ChildrenPtrIter<'a> {
+        self.iter().copied()
     }
 
     #[cfg(feature = "parallel")]
-    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    fn children_ptr_par(&self) -> impl ParIter<Item = NodePtr<V>>
     where
-        V: 'a,
         V::Item: Send + Sync,
     {
-        self.as_slice().par()
+        self.as_slice().par().copied()
     }
 
     #[inline(always)]
@@ -101,7 +97,7 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
 
 impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     type ChildrenPtrIter<'a>
-        = ArrayLeftMostPtrIter<'a, V>
+        = core::iter::Copied<ArrayLeftMostPtrIter<'a, V>>
     where
         V: 'a,
         Self: 'a;
@@ -112,20 +108,22 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
     }
 
     #[inline(always)]
-    fn children_ptr(&self) -> Self::ChildrenPtrIter<'_> {
-        self.iter()
+    fn children_ptr<'a>(&'a self) -> Self::ChildrenPtrIter<'a> {
+        self.iter().copied()
     }
 
     #[cfg(feature = "parallel")]
-    fn children_ptr_par<'a>(&'a self) -> impl ParIter<Item = &'a NodePtr<V>>
+    fn children_ptr_par(&self) -> impl ParIter<Item = NodePtr<V>>
     where
-        V: 'a,
         V::Item: Send + Sync,
     {
-        self.as_slice().par().map(|x| {
-            x.as_ref()
-                .expect("all elements of RefsArrayLeftMost::as_slice are of Some variant")
-        })
+        self.as_slice()
+            .par()
+            .map(|x| {
+                x.as_ref()
+                    .expect("all elements of RefsArrayLeftMost::as_slice are of Some variant")
+            })
+            .copied()
     }
 
     #[inline(always)]

@@ -1645,13 +1645,13 @@ where
 
         match parent_ptr {
             None => {
-                let first_child = self.node().next().children_ptr().next().cloned();
+                let first_child = self.node().next().children_ptr().next();
                 self.col.ends_mut().set(first_child);
             }
             Some(parent_ptr) => {
                 let parent = unsafe { &mut *parent_ptr.ptr_mut() };
                 parent.next_mut().remove_at(sibling_idx);
-                for child_ptr in self.node().next().children_ptr().rev().cloned() {
+                for child_ptr in self.node().next().children_ptr().rev() {
                     parent.next_mut().insert(sibling_idx, child_ptr);
                 }
             }
@@ -1697,7 +1697,7 @@ where
     /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs, [1, 2, 3, 4, 5, 8]);
     /// ```
-    pub fn remove_children(&mut self) {
+    pub fn remove_children(&'a mut self) {
         for c in self.children_mut() {
             _ = c.prune();
         }
@@ -1769,9 +1769,13 @@ where
     /// assert_eq!(all_values, [101, 202, 303, 4, 5, 406, 507]);
     /// ```
     #[allow(clippy::missing_panics_doc)]
-    pub fn custom_walk_mut<F>(&mut self, next_node: F) -> impl Iterator<Item = &'a mut V::Item>
+    pub fn custom_walk_mut<'t, F>(
+        &mut self,
+        next_node: F,
+    ) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
-        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>>,
+        F: Fn(Node<'a, V, M, P>) -> Option<Node<'a, V, M, P>> + 't,
+        'a: 't,
     {
         let iter_ptr = CustomWalkIterPtr::new(self.col(), Some(self.node_ptr()), next_node);
         iter_ptr.map(|ptr| {
@@ -2047,10 +2051,9 @@ where
     /// assert_eq!(dfs, [1, 2, 4, 8, 5, 9, 3, 6, 10, 7, 11, 12]);
     /// ```
     pub fn children_mut(
-        &mut self,
-    ) -> impl ExactSizeIterator<Item = NodeMut<'_, V, M, P, NodeMutDown>>
-    + DoubleEndedIterator
-    + use<'_, 'a, V, M, P, MO> {
+        &'a mut self,
+    ) -> impl ExactSizeIterator<Item = NodeMut<'a, V, M, P, NodeMutDown>> + DoubleEndedIterator
+    {
         ChildrenMutIter::new(self.col, unsafe { self.node_ptr.ptr() })
     }
 
@@ -2127,9 +2130,11 @@ where
     ///     assert_eq!(post_order.next(), Some(&mut 4)); // ...
     /// }
     /// ```
-    pub fn walk_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
+    pub fn walk_mut<'t, T>(&mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
         T: Traverser<OverData>,
+        T::Storage<V>: 't,
+        'a: 't,
     {
         T::iter_mut_with_owned_storage::<V, M, P, MO>(self)
     }
@@ -2272,13 +2277,14 @@ where
     ///     ]
     /// );
     /// ```
-    pub fn walk_mut_with<T, O>(
-        &'a mut self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    pub fn walk_mut_with<'t, T, O>(
+        &mut self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         O: OverMut,
         T: Traverser<O>,
+        'a: 't,
     {
         traverser.iter_mut(self)
     }
@@ -2522,13 +2528,14 @@ where
     ///     ]
     /// );
     /// ```
-    pub fn into_walk_with<T, O>(
+    pub fn into_walk_with<'t, T, O>(
         self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>> + 't
     where
         O: OverMut,
         T: Traverser<O>,
+        'a: 't,
     {
         traverser.into_iter(self)
     }
@@ -2598,10 +2605,12 @@ where
     /// let leaves: Vec<_> = n3.leaves::<PostOrder>().copied().collect();
     /// assert_eq!(leaves, [209, 210, 211]);
     /// ```
-    pub fn leaves_mut<T>(&'a mut self) -> impl Iterator<Item = &'a mut V::Item>
+    pub fn leaves_mut<'t, T>(&mut self) -> impl Iterator<Item = &'a mut V::Item> + 't
     where
-        T: Traverser<OverData>,
+        T: Traverser<OverData> + 't,
+        'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_owned_storage(self.node_ptr())
                 .filter(|x: &NodePtr<V>| unsafe { &*x.ptr() }.next().is_empty())
                 .map(|x: NodePtr<V>| {
@@ -2611,7 +2620,7 @@ where
                         M,
                         P,
                         &'a mut V::Item,
-                    >(self.col(), x)
+                    >(col, x)
                 })
     }
 
@@ -2734,14 +2743,16 @@ where
     ///     [(2, &205), (3, &308), (3, &309), (3, &310), (3, &311)]
     /// );
     /// ```
-    pub fn leaves_mut_with<T, O>(
-        &'a mut self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    pub fn leaves_mut_with<'t, T, O>(
+        &mut self,
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         O: OverMut,
         T: Traverser<O>,
+        'a: 't,
     {
+        let col = self.col();
         T::iter_ptr_with_storage(self.node_ptr(), traverser.storage_mut())
             .filter(|x| {
                 let ptr: &NodePtr<V> = O::Enumeration::node_data(x);
@@ -2749,8 +2760,7 @@ where
             })
             .map(|x| {
                 O::Enumeration::from_element_ptr_mut::<'a, V, M, P, O::NodeItemMut<'a, V, M, P>>(
-                    self.col(),
-                    x,
+                    col, x,
                 )
             })
     }
@@ -2932,13 +2942,14 @@ where
     ///
     /// assert!(tree.is_empty());
     /// ```
-    pub fn into_leaves_with<T, O>(
+    pub fn into_leaves_with<'t, T, O>(
         self,
-        traverser: &'a mut T,
-    ) -> impl Iterator<Item = OverItemInto<'a, V, O>>
+        traverser: &'t mut T,
+    ) -> impl Iterator<Item = OverItemInto<'a, V, O>> + 't
     where
         O: OverMut,
         T: Traverser<O>,
+        'a: 't,
     {
         T::into_iter_with_storage_filtered(self, traverser.storage_mut(), |x| {
             let ptr = <O::Enumeration as Enumeration>::node_data(x);

@@ -39,46 +39,50 @@ impl<O: Over> TraverserCore<O> for Bfs<O> {
         BfsIterPtr::<_, O::Enumeration, _>::from((storage, node_ptr))
     }
 
-    fn iter_with_storage<'a, V, M, P>(
-        node: &'a impl NodeRef<'a, V, M, P>,
-        storage: impl SoM<Self::Storage<V>>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter_with_storage<'t, 'a, V, M, P>(
+        node: &impl NodeRef<'a, V, M, P>,
+        storage: impl SoM<Self::Storage<V>> + 't,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        Self::Storage<V>: 't,
+        'a: 't,
     {
         let root = node.node_ptr();
         let iter = BfsIterPtr::<_, O::Enumeration, _>::from((storage, root));
         BfsIterRef::<'_, _, M, P, _, _, _>::from((node.col(), iter))
     }
 
-    fn iter<'a, V, M, P>(
-        &'a mut self,
-        node: &'a impl NodeRef<'a, V, M, P>,
-    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>>
+    fn iter<'t, 'a, V, M, P>(
+        &'t mut self,
+        node: &impl NodeRef<'a, V, M, P>,
+    ) -> impl Iterator<Item = OverItem<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
+        'a: 't,
     {
         let queue = self.queue.for_variant::<V>();
         Self::iter_with_storage(node, queue)
     }
 
-    fn iter_mut<'a, V, M, P, MO>(
-        &'a mut self,
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut<'t, 'a, V, M, P, MO>(
+        &'t mut self,
+        node: &mut NodeMut<'a, V, M, P, MO>,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
         O: OverMut,
+        'a: 't,
     {
         let queue = self.queue.for_variant::<V>();
-        Self::iter_mut_with_storage(node_mut, queue)
+        Self::iter_mut_with_storage(node, queue)
     }
 
     fn into_iter<'a, V, M, P, MO>(
@@ -96,16 +100,18 @@ impl<O: Over> TraverserCore<O> for Bfs<O> {
         Self::into_iter_with_storage(node_mut, queue)
     }
 
-    fn iter_mut_with_storage<'a, V, M, P, MO>(
-        node_mut: &'a mut NodeMut<'a, V, M, P, MO>,
-        storage: impl SoM<Self::Storage<V>>,
-    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>>
+    fn iter_mut_with_storage<'t, 'a, V, M, P, MO>(
+        node_mut: &mut NodeMut<'a, V, M, P, MO>,
+        storage: impl SoM<Self::Storage<V>> + 't,
+    ) -> impl Iterator<Item = OverItemMut<'a, V, O, M, P>> + 't
     where
         V: TreeVariant + 'a,
         M: MemoryPolicy,
         P: PinnedStorage,
         MO: NodeMutOrientation,
         O: OverMut,
+        Self::Storage<V>: 't,
+        'a: 't,
     {
         let root = node_mut.node_ptr();
         let iter_ptr = BfsIterPtr::<V, O::Enumeration, _>::from((storage, root));
