@@ -1045,7 +1045,7 @@ where
     /// b.node_mut(id6).push_child(8);
     /// b.node_mut(id7).push_children([9, 10]);
     ///
-    /// // clone b.subtree(n6) under a.n3
+    /// // clone b.subtree(n6) to the left of a.n4
     /// // clone b.subtree(n7) under a.n0
     /// //        a
     /// // -----------------------
@@ -1702,6 +1702,54 @@ where
             _ = c.prune();
         }
     }
+
+    // grow-and-shrink
+
+    pub fn replace<T, Vs>(mut self, subtree: impl SubTree<Vs>) -> impl Iterator<Item = V::Item>
+    where
+        T: Traverser<OverData>,
+        Vs: TreeVariant<Item = V::Item>,
+    {
+        let is_root = self.is_root();
+
+        let ptr_out = self.node_ptr;
+        let child_idx = self.num_children();
+
+        let idx_in = self.push_child_tree(subtree);
+        let ptr_in = idx_in.0.node_ptr();
+
+        let node_out = unsafe { ptr_out.node_mut() };
+        let ptr_parent_of_out = node_out.prev().get();
+        node_out.next_mut().remove_at(child_idx);
+        node_out.prev_mut().set_some(ptr_in);
+
+        let node_in = unsafe { ptr_in.node_mut() };
+        node_in.prev_mut().set(ptr_parent_of_out);
+        node_in.next_mut().push(ptr_out);
+
+        if let Some(ptr_parent_of_out) = ptr_parent_of_out {
+            let parent_of_out = unsafe { ptr_parent_of_out.node_mut() };
+            parent_of_out.next_mut().replace_with(ptr_out, ptr_in);
+        }
+
+        if is_root {
+            self.col.ends_mut().set_some(ptr_in);
+        }
+
+        let node_old = NodeMut::<_, M, P, MO>::new(self.col, ptr_out);
+        node_old.into_walk::<T>()
+    }
+
+    // pub fn replace_within<T>(
+    //     mut self,
+    //     subtree: impl SubTreeWithin<V>,
+    // ) -> impl Iterator<Item = V::Item>
+    // where
+    //     T: Traverser<OverData>,
+    // {
+    //     self.push_sibling_tree_within(Side::Left, subtree);
+    //     self.into_walk::<T>()
+    // }
 
     // traversal
 
