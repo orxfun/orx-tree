@@ -1705,6 +1705,203 @@ where
 
     // grow-and-shrink
 
+    /// Replaces the subtree rooted at this node with the given `subtree`,
+    /// and returns elements of the removed subtree as an iterator.
+    ///
+    /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// # Subtree Variants
+    ///
+    /// * **I.** Cloned / copied subtree
+    ///   * A subtree cloned or copied from another tree.
+    ///   * The source tree remains unchanged.
+    ///   * Can be created by [`as_cloned_subtree`] and [`as_copied_subtree`] methods.
+    ///   * ***O(n)***
+    /// * **II.** Subtree moved out of another tree
+    ///   * The subtree will be moved from the source tree to this tree.
+    ///   * Can be created by [`into_subtree`] method.
+    ///   * ***O(n)***
+    /// * **III.** Another entire tree
+    ///   * The other tree will be consumed and moved into this tree.
+    ///   * ***O(1)***
+    ///
+    /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
+    /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
+    /// [`into_subtree`]: crate::NodeMut::into_subtree
+    ///
+    /// # Examples
+    ///
+    /// ## I. Replace with Subtree cloned-copied from another Tree
+    ///
+    /// Remains the source tree unchanged.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::new(0);
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // x: create subtree by cloning b.subtree(n8)
+    /// // y: create a Dfs walk from node 1 of tree a
+    /// // replace y with x
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   8   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 10  11       9 10  11
+    ///
+    /// let x = b.node(b_id8).as_cloned_subtree();
+    /// let y = a.node_mut(a_id1).replace::<Dfs, _>(x);
+    ///
+    /// // y: removed nodes from a in Dfs order
+    /// let removed_values_dfs: Vec<_> = y.collect();
+    /// assert_eq!(removed_values_dfs, [1, 3, 5, 4]);
+    ///
+    /// // tree a with the inserted subtree x
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 8, 2, 10, 11]);
+    ///
+    /// // tree b is unchanged since we created subtree as a clone
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [6, 7, 8, 9, 10, 11]);
+    /// ```
+    ///
+    /// ## II. Replace with Subtree moved out of another Tree
+    ///
+    /// The source subtree rooted at the given node will be removed from the source
+    /// tree.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::<_>::new(0);
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // x: create subtree by moving b.subtree(n8) out of b
+    /// // y: create a Dfs walk from node 1 of tree a
+    /// // replace y with x
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱
+    /// //   8   2      7
+    /// //  ╱ ╲         |
+    /// // 10  11       9
+    ///
+    /// let x = b.node_mut(b_id8).into_subtree();
+    /// let y = a.node_mut(a_id1).replace::<Dfs, _>(x);
+    ///
+    /// // y: removed nodes from a in Dfs order
+    /// let removed_values_dfs: Vec<_> = y.collect();
+    /// assert_eq!(removed_values_dfs, [1, 3, 5, 4]);
+    ///
+    /// // tree a with the inserted subtree x
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 8, 2, 10, 11]);
+    ///
+    /// // tree b after subtree is moved out
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [6, 7, 9]);
+    /// ```
+    ///
+    /// ## III. Replace with another Tree
+    ///
+    /// The source tree will be moved into the target tree.
+    ///
+    /// Runs in ***O(1)*** time.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::<_>::new(0);
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // y: create a Dfs walk from node 1 of tree a
+    /// // replace y with tree b
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0
+    /// //    ╱ ╲
+    /// //   6   2
+    /// //  ╱ ╲
+    /// // 7   8
+    /// // |  ╱ ╲
+    /// // 9 10  11
+    ///
+    /// let y = a.node_mut(a_id1).replace::<Dfs, _>(b);
+    ///
+    /// // y: removed nodes from a in Dfs order
+    /// let removed_values_dfs: Vec<_> = y.collect();
+    /// assert_eq!(removed_values_dfs, [1, 3, 5, 4]);
+    ///
+    /// // tree a with subtree from node 1 replaced with subtree b
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 6, 2, 7, 8, 9, 10, 11]);
+    /// ```
     pub fn replace<T, Vs>(mut self, subtree: impl SubTree<Vs>) -> impl Iterator<Item = V::Item>
     where
         T: Traverser<OverData>,
@@ -1740,16 +1937,16 @@ where
         node_old.into_walk::<T>()
     }
 
-    // pub fn replace_within<T>(
-    //     mut self,
-    //     subtree: impl SubTreeWithin<V>,
-    // ) -> impl Iterator<Item = V::Item>
-    // where
-    //     T: Traverser<OverData>,
-    // {
-    //     self.push_sibling_tree_within(Side::Left, subtree);
-    //     self.into_walk::<T>()
-    // }
+    pub fn replace_within<T>(
+        mut self,
+        subtree: impl SubTreeWithin<V>,
+    ) -> impl Iterator<Item = V::Item>
+    where
+        T: Traverser<OverData>,
+    {
+        self.push_sibling_tree_within(Side::Left, subtree);
+        self.into_walk::<T>()
+    }
 
     // traversal
 
