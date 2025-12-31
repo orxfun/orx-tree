@@ -41,6 +41,11 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
         let node_child = unsafe { &mut *ptr_child.ptr_mut() };
 
         if let Some(ptr_old_parent) = node_child.prev().get() {
+            if ptr_old_parent == ptr_parent {
+                // move will lead to the same state; hence, not necessary
+                return self.idx;
+            }
+
             let old_parent = unsafe { &mut *ptr_old_parent.ptr_mut() };
             old_parent
                 .next_mut()
