@@ -1227,11 +1227,10 @@ where
     ///
     /// # Panics
     ///
-    /// * Panics if this node is the root; root node cannot have a sibling.
-    /// * Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
-    ///   the root of the subtree is an ancestor of this node.
-    ///   Notice that such a move would break structural properties of the tree.
-    ///   When we are not certain, we can test the relation using the the [`is_ancestor_of`] method.
+    /// Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
+    /// the root of the subtree is an ancestor of this node.
+    /// Notice that such a move would break structural properties of the tree.
+    /// When we are not certain, we can test the relation using the the [`is_ancestor_of`] method.
     ///
     /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
     /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
@@ -1937,6 +1936,105 @@ where
         node_old.into_walk::<T>()
     }
 
+    /// Replaces the subtree rooted at this node with the given `subtree` which is also a part of this tree,
+    /// and returns elements of the removed subtree as an iterator.
+    ///
+    /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// # Subtree Variants
+    ///
+    /// * **I.** Cloned / copied subtree
+    ///   * A subtree cloned or copied from another tree.
+    ///   * The source tree remains unchanged.
+    ///   * Can be created by [`as_cloned_subtree`] and [`as_copied_subtree`] methods.
+    ///   * ***O(n)***
+    /// * **II.** Subtree moved out of another tree
+    ///   * The subtree will be moved from the source tree to this tree.
+    ///   * Can be created by [`into_subtree`] method.
+    ///   * ***O(n)***
+    /// * **III.** Another entire tree
+    ///   * The other tree will be consumed and moved into this tree.
+    ///   * ***O(1)***
+    ///
+    /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
+    /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
+    /// [`into_subtree`]: crate::NodeMut::into_subtree
+    ///
+    /// # Examples
+    ///
+    /// ## I. Replace node with Subtree moved from another position of this tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1                1
+    /// //     ╱ ╲              ╱
+    /// //    ╱   ╲            ╱
+    /// //   2     3          2
+    /// //  ╱ ╲   ╱ ╲   =>   ╱ ╲
+    /// // 4   5 6   7      3   5
+    /// // |               ╱ ╲
+    /// // 8              6   7
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// tree.node_mut(id3).push_children([6, 7]);
+    ///
+    /// // move subtree rooted at n3 out, and replace with subtree rooted at n4
+    /// let st3 = id3.into_subtree_within();
+    /// let removed = tree.node_mut(id4).replace_within::<Dfs>(st3);
+    ///
+    /// // nodes of moved out subtree in Dfs order
+    /// let removed: Vec<_> = removed.collect();
+    /// assert_eq!(removed, [4, 8]);
+    ///
+    /// // tree after replacement
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 5, 6, 7]);
+    /// ```
+    ///
+    /// ## II. Replace node with Subtree cloned-copied from another position of this tree
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //      1                1
+    /// //     ╱ ╲              ╱ ╲
+    /// //    ╱   ╲            ╱   ╲
+    /// //   2     3          2     3
+    /// //  ╱ ╲   ╱ ╲   =>   ╱ ╲   ╱ ╲
+    /// // 4   5 6   7      3   5 6   7
+    /// // |               ╱ ╲
+    /// // 8              6   7
+    ///
+    /// let mut tree = DynTree::<_>::new(1);
+    ///
+    /// let [id2, id3] = tree.root_mut().push_children([2, 3]);
+    /// let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
+    /// tree.node_mut(id4).push_child(8);
+    /// tree.node_mut(id3).push_children([6, 7]);
+    ///
+    /// // copy subtree rooted at n3, and replace with subtree rooted at n4
+    /// let st3 = id3.as_copied_subtree_within();
+    /// let removed = tree.node_mut(id4).replace_within::<Dfs>(st3);
+    ///
+    /// // nodes of moved out subtree in Dfs order
+    /// let removed: Vec<_> = removed.collect();
+    /// assert_eq!(removed, [4, 8]);
+    ///
+    /// // tree after replacement
+    ///
+    /// let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs, [1, 2, 3, 3, 5, 6, 7, 6, 7]);
+    /// ```
     pub fn replace_within<T>(
         mut self,
         subtree: impl SubTreeWithin<V>,
@@ -3865,118 +3963,5 @@ where
     /// ```
     pub fn into_parent_mut(self) -> Option<NodeMut<'a, V, M, P>> {
         self.node().prev().get().map(|p| NodeMut::new(self.col, p))
-    }
-}
-
-#[cfg(test)]
-mod tsts {
-    use super::*;
-    use crate::*;
-    use alloc::vec::Vec;
-    use std::{dbg, println, string::ToString};
-
-    #[test]
-    fn def() {
-        //   ## I. Append Subtree moved from another position of this tree
-
-        //      1                1
-        //     ╱ ╲              ╱
-        //    ╱   ╲            ╱
-        //   2     3          2
-        //  ╱ ╲   ╱ ╲   =>   ╱ ╲
-        // 4   5 6   7      3   5
-        // |               ╱ ╲
-        // 8              6   7
-
-        let mut tree = DynTree::<_>::new(1);
-
-        let [id2, id3] = tree.root_mut().push_children([2, 3]);
-        let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
-        tree.node_mut(id4).push_child(8);
-        tree.node_mut(id3).push_children([6, 7]);
-
-        // move subtree rooted at n3 out, and replace with subtree rooted at n4
-        let st3 = id3.into_subtree_within();
-        tree.node_mut(id4).push_child_tree_within(st3);
-
-        println!("{tree}");
-        dbg!(tree.node(id3));
-        dbg!(tree.node(id4));
-
-        // move subtree rooted at n3 (n3, n6 & n7) as a child of n5
-        let st3 = id3.into_subtree_within();
-        let removed = tree.node_mut(id4).replace_within::<Dfs>(st3);
-
-        // nodes of moved out subtree in Dfs order
-        let removed: Vec<_> = removed.collect();
-        assert_eq!(removed, [4, 8]);
-
-        println!("{tree}");
-        assert_eq!(tree.len(), 33);
-    }
-
-    #[test]
-    fn abc() {
-        //   ## I. Replace node with Subtree moved from another position of this tree
-
-        //      1                1
-        //     ╱ ╲              ╱
-        //    ╱   ╲            ╱
-        //   2     3          2
-        //  ╱ ╲   ╱ ╲   =>   ╱ ╲
-        // 4   5 6   7      3   5
-        // |               ╱ ╲
-        // 8              6   7
-
-        let mut tree = DynTree::<_>::new(1);
-
-        let [id2, id3] = tree.root_mut().push_children([2, 3]);
-        let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
-        tree.node_mut(id4).push_child(8);
-        tree.node_mut(id3).push_children([6, 7]);
-
-        // move subtree rooted at n3 out, and replace with subtree rooted at n4
-        let st3 = id3.into_subtree_within();
-        let removed = tree.node_mut(id4).replace_within::<Dfs>(st3);
-
-        // nodes of moved out subtree in Dfs order
-        let removed: Vec<_> = removed.collect();
-        assert_eq!(removed, [4, 8]);
-
-        // tree after replacement
-
-        let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-        assert_eq!(bfs, [1, 2, 3, 5, 6, 7]);
-
-        //  ## II. Replace node with Subtree cloned-copied from another position of this tree
-
-        //      1                1
-        //     ╱ ╲              ╱ ╲
-        //    ╱   ╲            ╱   ╲
-        //   2     3          2     3
-        //  ╱ ╲   ╱ ╲   =>   ╱ ╲   ╱ ╲
-        // 4   5 6   7      3   5 6   7
-        // |               ╱ ╲
-        // 8              6   7
-
-        let mut tree = DynTree::<_>::new(1);
-
-        let [id2, id3] = tree.root_mut().push_children([2, 3]);
-        let [id4, _] = tree.node_mut(id2).push_children([4, 5]);
-        tree.node_mut(id4).push_child(8);
-        tree.node_mut(id3).push_children([6, 7]);
-
-        // copy subtree rooted at n3, and replace with subtree rooted at n4
-        let st3 = id3.as_copied_subtree_within();
-        let removed = tree.node_mut(id4).replace_within::<Dfs>(st3);
-
-        // nodes of moved out subtree in Dfs order
-        let removed: Vec<_> = removed.collect();
-        assert_eq!(removed, [4, 8]);
-
-        // tree after replacement
-
-        let bfs: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-        assert_eq!(bfs, [1, 2, 3, 3, 5, 6, 7, 6, 7]);
     }
 }
