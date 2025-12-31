@@ -646,6 +646,8 @@ where
     ///
     /// ## I. Append Subtree moved from another position of this tree
     ///
+    /// Runs in ***O(1)***.
+    ///
     /// ```
     /// use orx_tree::*;
     ///
@@ -685,8 +687,6 @@ where
     /// ```
     ///
     /// ## II. Append Subtree cloned-copied from another position of this tree
-    ///
-    /// Remains the source tree unchanged.
     ///
     /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
@@ -1241,6 +1241,8 @@ where
     ///
     /// ## I. Append Subtree moved from another position of this tree
     ///
+    /// Runs in ***O(1)***.
+    ///
     /// ```
     /// use orx_tree::*;
     ///
@@ -1282,8 +1284,6 @@ where
     /// ```
     ///
     /// ## II. Append Subtree cloned-copied from another position of this tree
-    ///
-    /// Remains the source tree unchanged.
     ///
     /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
@@ -1947,26 +1947,34 @@ where
     ///
     /// # Subtree Variants
     ///
-    /// * **I.** Cloned / copied subtree
+    /// * **I.** Subtree moved out of this tree
+    ///   * The subtree will be moved from its original to child of this node.
+    ///   * Can be created by [`into_subtree_within`] method.
+    ///   * **Panics** if the root of the subtree is an ancestor of this node.
+    ///   * ***O(1)***
+    /// * **II.** Cloned / copied subtree from this tree
     ///   * A subtree cloned or copied from another tree.
     ///   * The source tree remains unchanged.
-    ///   * Can be created by [`as_cloned_subtree`] and [`as_copied_subtree`] methods.
+    ///   * Can be created by [`as_cloned_subtree_within`] and [`as_copied_subtree_within`] methods.
     ///   * ***O(n)***
-    /// * **II.** Subtree moved out of another tree
-    ///   * The subtree will be moved from the source tree to this tree.
-    ///   * Can be created by [`into_subtree`] method.
-    ///   * ***O(n)***
-    /// * **III.** Another entire tree
-    ///   * The other tree will be consumed and moved into this tree.
-    ///   * ***O(1)***
     ///
-    /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
-    /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
-    /// [`into_subtree`]: crate::NodeMut::into_subtree
+    /// # Panics
+    ///
+    /// Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
+    /// the root of the subtree is an ancestor of this node.
+    /// Notice that such a move would break structural properties of the tree.
+    /// When we are not certain, we can test the relation using the the [`is_ancestor_of`] method.
+    ///
+    /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
+    /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
+    /// [`into_subtree_within`]: crate::NodeIdx::into_subtree_within
+    /// [`is_ancestor_of`]: crate::NodeRef::is_ancestor_of
     ///
     /// # Examples
     ///
     /// ## I. Replace node with Subtree moved from another position of this tree
+    ///
+    /// Runs in ***O(1)***.
     ///
     /// ```
     /// use orx_tree::*;
@@ -2002,6 +2010,8 @@ where
     /// ```
     ///
     /// ## II. Replace node with Subtree cloned-copied from another position of this tree
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
     /// ```
     /// use orx_tree::*;
