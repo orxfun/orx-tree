@@ -9,7 +9,7 @@ use std::vec::Vec;
 #[test]
 fn push_child_tree_cloned() {
     let tree = get_main_tree();
-    let initial_nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
+    let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree();
     let ids_other: Vec<_> = other.root().indices::<Bfs>().collect();
@@ -37,7 +37,7 @@ fn push_child_tree_cloned() {
 #[test]
 fn push_child_tree_copied() {
     let tree = get_main_tree_copy();
-    let initial_nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree_copy();
     let ids_other: Vec<_> = other.root().indices::<Bfs>().collect();
@@ -121,7 +121,7 @@ fn push_child_tree_within_cloned() {
 fn push_child_tree_within_copied() {
     let tree = get_main_tree_copy();
 
-    let initial_nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    let initial_nodes = collect_sorted_subtree(tree.root());
 
     for i in 0..tree.len() {
         for j in 0..tree.len() {
