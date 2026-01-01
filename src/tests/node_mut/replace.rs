@@ -11,8 +11,8 @@ fn expected_nodes<T: Clone + Eq + Ord>(
 ) -> Vec<T> {
     let mut expected_nodes: Vec<_> = initial_nodes
         .iter()
-        .cloned()
         .filter(|x| !expected_removed.contains(x))
+        .cloned()
         .collect();
 
     expected_nodes.extend_from_slice(expected_inserted);
