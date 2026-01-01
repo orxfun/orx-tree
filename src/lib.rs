@@ -17,6 +17,9 @@ extern crate std;
 
 extern crate alloc;
 
+#[cfg(test)]
+mod tests;
+
 /// Module defining iterators.
 pub mod iter;
 

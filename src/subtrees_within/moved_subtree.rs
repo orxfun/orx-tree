@@ -35,12 +35,17 @@ impl<V: TreeVariant> SubTreeWithinCore<V> for MovedSubTreeWithin<V> {
             .expect(INVALID_IDX_ERROR);
         assert!(
             AncestorsIterPtr::new(root_ptr, ptr_parent).all(|x| x != ptr_child),
-            "Node to be moved as a child of this node (with the given child_idx) is an ancestor of this tree. Cannot perform the move."
+            "Cannot move a subtree as a child/sibling of itself, or as a child/sibling of any descendant node belonging to the same subtree."
         );
 
         let node_child = unsafe { &mut *ptr_child.ptr_mut() };
 
         if let Some(ptr_old_parent) = node_child.prev().get() {
+            if ptr_old_parent == ptr_parent {
+                // move will lead to the same state; hence, not necessary
+                return self.idx;
+            }
+
             let old_parent = unsafe { &mut *ptr_old_parent.ptr_mut() };
             old_parent
                 .next_mut()
