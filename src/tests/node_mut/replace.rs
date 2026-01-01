@@ -3,6 +3,7 @@ use crate::tests::node_mut::utils::{
     to_str,
 };
 use crate::*;
+use std::dbg;
 use std::string::{String, ToString};
 use std::vec::Vec;
 use test_case::test_matrix;
@@ -106,6 +107,41 @@ fn replace_with_moved() {
 
             let subtree = other.node_mut(id_src).into_subtree();
             let removed = tree.node_mut(id_dst).replace::<Bfs, _>(subtree);
+            let removed: Vec<_> = removed.collect();
+
+            let nodes = collect_sorted_subtree(tree.root());
+            assert_eq!(nodes, expected_nodes);
+
+            assert_eq!(removed, expected_removed);
+        }
+    }
+}
+
+#[test]
+fn replace_within_with_moved() {
+    let tree = get_main_tree();
+    let initial_nodes = collect_sorted_subtree(tree.root());
+
+    for i in 0..tree.len() {
+        for j in 0..tree.len() {
+            let mut tree = tree.clone();
+            let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
+            let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
+
+            let node_src = tree.node(id_src);
+            let node_dst = tree.node(id_dst);
+            if id_src == id_dst
+                || node_src.is_ancestor_of(id_dst)
+                || node_dst.is_ancestor_of(id_src)
+            {
+                continue;
+            }
+
+            let expected_removed = collect_sorted_subtree(tree.node(id_dst));
+            let expected_nodes = expected_nodes(&initial_nodes, &expected_removed, &[]);
+
+            let subtree = id_src.into_subtree_within();
+            let removed = tree.node_mut(id_dst).replace_within::<Bfs>(subtree);
             let removed: Vec<_> = removed.collect();
 
             let nodes = collect_sorted_subtree(tree.root());
