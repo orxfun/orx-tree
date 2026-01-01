@@ -5,6 +5,7 @@ use crate::{
     memory::MemoryPolicy,
     pinned_storage::PinnedStorage,
     subtrees::{ClonedSubTree, CopiedSubTree},
+    subtrees_within::{ClonedSubTreeWithin, CopiedSubTreeWithin},
     traversal::{
         Over, OverData,
         enumeration::Enumeration,
@@ -2096,5 +2097,39 @@ where
         Self: Sized,
     {
         CopiedSubTree::new(self)
+    }
+
+    /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
+    /// to this node.
+    ///
+    /// Consuming the created subtree in methods such as [`push_child_tree_within`] or [`push_sibling_tree_within`] will create
+    /// the same subtree structure in the target position with cloned values.
+    /// This subtree remains unchanged.
+    ///
+    /// [`push_child_tree_within`]: crate::NodeMut::push_child_tree_within
+    /// [`push_sibling_tree_within`]: crate::NodeMut::push_sibling_tree_within
+    fn as_cloned_subtree_within(self) -> ClonedSubTreeWithin<V>
+    where
+        V::Item: Clone,
+        Self: Sized,
+    {
+        self.idx().as_cloned_subtree_within()
+    }
+
+    /// Creates a subtree view including this node as the root and all of its descendants with their orientation relative
+    /// to this node.
+    ///
+    /// Consuming the created subtree in methods such as [`push_child_tree_within`] or [`push_sibling_tree_within`] will create
+    /// the same subtree structure in the target position with copied values.
+    /// This subtree remains unchanged.
+    ///
+    /// [`push_child_tree_within`]: crate::NodeMut::push_child_tree_within
+    /// [`push_sibling_tree_within`]: crate::NodeMut::push_sibling_tree_within
+    fn as_copied_subtree_within(self) -> CopiedSubTreeWithin<V>
+    where
+        V::Item: Copy,
+        Self: Sized,
+    {
+        self.idx().as_copied_subtree_within()
     }
 }
