@@ -2108,6 +2108,7 @@ where
     ///
     /// [`push_child_tree_within`]: crate::NodeMut::push_child_tree_within
     /// [`push_sibling_tree_within`]: crate::NodeMut::push_sibling_tree_within
+    #[allow(clippy::wrong_self_convention)]
     fn as_cloned_subtree_within(self) -> ClonedSubTreeWithin<V>
     where
         V::Item: Clone,
@@ -2125,6 +2126,7 @@ where
     ///
     /// [`push_child_tree_within`]: crate::NodeMut::push_child_tree_within
     /// [`push_sibling_tree_within`]: crate::NodeMut::push_sibling_tree_within
+    #[allow(clippy::wrong_self_convention)]
     fn as_copied_subtree_within(self) -> CopiedSubTreeWithin<V>
     where
         V::Item: Copy,
