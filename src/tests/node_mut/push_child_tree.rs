@@ -1,42 +1,10 @@
+use crate::tests::node_mut::utils::{
+    collect_sorted_subtree, get_main_tree, get_main_tree_copy, get_other_tree, get_other_tree_copy,
+    to_str,
+};
 use crate::*;
-use std::string::{String, ToString};
+use std::string::ToString;
 use std::vec::Vec;
-
-pub(super) fn to_str<const N: usize>(values: [i32; N]) -> [String; N] {
-    values.map(|x| x.to_string())
-}
-
-pub(super) fn get_main_tree() -> DynTree<String> {
-    let mut tree = DynTree::new(0.to_string());
-    let [id1, id2] = tree.root_mut().push_children(to_str([1, 2]));
-    let [_id3, _id4, _id5] = tree.node_mut(id1).push_children(to_str([3, 4, 5]));
-    let [id6] = tree.node_mut(id2).push_children(to_str([6]));
-    let [_id7, _id8] = tree.node_mut(id6).push_children(to_str([7, 8]));
-    tree
-}
-
-pub(super) fn get_main_tree_copy() -> DynTree<i32> {
-    let mut tree = DynTree::new(0);
-    let [id1, id2] = tree.root_mut().push_children([1, 2]);
-    let [_id3, _id4, _id5] = tree.node_mut(id1).push_children([3, 4, 5]);
-    let [id6] = tree.node_mut(id2).push_children([6]);
-    let [_id7, _id8] = tree.node_mut(id6).push_children([7, 8]);
-    tree
-}
-
-pub(super) fn get_other_tree() -> DaryTree<4, String> {
-    let mut tree = DaryTree::new(10.to_string());
-    let [id11, _id12] = tree.root_mut().push_children(to_str([11, 12]));
-    let [_id13, _id14] = tree.node_mut(id11).push_children(to_str([13, 14]));
-    tree
-}
-
-pub(super) fn get_other_tree_copy() -> DaryTree<4, i32> {
-    let mut tree = DaryTree::new(10);
-    let [id11, _id12] = tree.root_mut().push_children([11, 12]);
-    let [_id13, _id14] = tree.node_mut(id11).push_children([13, 14]);
-    tree
-}
 
 #[test]
 fn push_child_tree_cloned() {
@@ -52,7 +20,7 @@ fn push_child_tree_cloned() {
             let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
 
             let mut expected_nodes = initial_nodes.clone();
-            expected_nodes.extend(other.node(id_src).walk::<Bfs>().cloned());
+            expected_nodes.extend(collect_sorted_subtree(other.node(id_src)));
             expected_nodes.sort();
 
             let subtree = other.node(id_src).as_cloned_subtree();
@@ -80,7 +48,7 @@ fn push_child_tree_copied() {
             let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
 
             let mut expected_nodes = initial_nodes.clone();
-            expected_nodes.extend(other.node(id_src).walk::<Bfs>().copied());
+            expected_nodes.extend(collect_sorted_subtree(other.node(id_src)));
             expected_nodes.sort();
 
             let subtree = other.node(id_src).as_copied_subtree();
@@ -108,7 +76,7 @@ fn push_child_tree_moved() {
             let id_src = other.root().indices::<Bfs>().nth(j).unwrap();
 
             let mut expected_nodes = initial_nodes.clone();
-            expected_nodes.extend(other.node(id_src).walk::<Bfs>().cloned());
+            expected_nodes.extend(collect_sorted_subtree(other.node(id_src)));
             expected_nodes.sort();
 
             let subtree = other.node_mut(id_src).into_subtree();
@@ -135,7 +103,7 @@ fn push_child_tree_within_cloned() {
             let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
 
             let mut expected_nodes = initial_nodes.clone();
-            expected_nodes.extend(tree.node(id_src).walk::<Bfs>().cloned());
+            expected_nodes.extend(collect_sorted_subtree(tree.node(id_src)));
             expected_nodes.sort();
 
             let subtree = tree.node(id_src).as_cloned_subtree_within();
@@ -162,7 +130,7 @@ fn push_child_tree_within_copied() {
             let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
 
             let mut expected_nodes = initial_nodes.clone();
-            expected_nodes.extend(tree.node(id_src).walk::<Bfs>().copied());
+            expected_nodes.extend(collect_sorted_subtree(tree.node(id_src)));
             expected_nodes.sort();
 
             let subtree = tree.node(id_src).as_cloned_subtree_within();

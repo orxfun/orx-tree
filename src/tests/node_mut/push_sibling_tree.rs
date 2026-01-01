@@ -1,4 +1,4 @@
-use crate::tests::node_mut::push_child_tree::{
+use crate::tests::node_mut::utils::{
     get_main_tree, get_main_tree_copy, get_other_tree, get_other_tree_copy, to_str,
 };
 use crate::*;
