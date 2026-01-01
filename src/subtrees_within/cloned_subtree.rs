@@ -61,7 +61,7 @@ where
     }
 }
 
-fn append_subtree_as_child<V, M, P, MO>(
+pub(super) fn append_subtree_as_child<V, M, P, MO>(
     parent: &mut NodeMut<V, M, P, MO>,
     child_position: usize,
     iter_ptr: impl Iterator<Item = (usize, NodePtr<V>)>,
