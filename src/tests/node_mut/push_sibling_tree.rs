@@ -150,3 +150,168 @@ fn push_sibling_tree_moved_to_root(side: Side) {
     let subtree = other.node_mut(id_src).into_subtree();
     tree.node_mut(id_dst).push_sibling_tree(side, subtree);
 }
+
+#[test]
+fn push_sibling_tree_within_cloned() {
+    let tree = get_main_tree();
+
+    let initial_nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
+
+    for i in 0..tree.len() {
+        for j in 0..tree.len() {
+            for side in [Side::Left, Side::Right] {
+                let mut tree = tree.clone();
+                let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
+                let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
+
+                if tree.node(id_dst).is_root() {
+                    continue;
+                }
+
+                let mut expected_nodes = initial_nodes.clone();
+                expected_nodes.extend(tree.node(id_src).walk::<Bfs>().cloned());
+                expected_nodes.sort();
+
+                let subtree = tree.node(id_src).as_cloned_subtree_within();
+                tree.node_mut(id_dst)
+                    .push_sibling_tree_within(side, subtree);
+
+                let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
+                nodes.sort();
+
+                assert_eq!(nodes, expected_nodes);
+            }
+        }
+    }
+}
+
+#[test_matrix([Side::Left, Side::Right])]
+#[should_panic]
+fn push_sibling_tree_within_cloned_to_root(side: Side) {
+    let mut tree = DynTree::new(0);
+    let [id1, _] = tree.root_mut().push_children([1, 2]);
+    let [_id3, _id4, _id5] = tree.node_mut(id1).push_children([3, 4, 5]);
+    let id_dst = tree.root().idx();
+
+    let mut other = DynTree::new(42);
+    let id_src = other.root().idx();
+
+    let subtree = other.node_mut(id_src).as_cloned_subtree_within();
+    tree.node_mut(id_dst)
+        .push_sibling_tree_within(side, subtree);
+}
+
+#[test]
+fn push_sibling_tree_within_copied() {
+    let tree = get_main_tree_copy();
+
+    let initial_nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+
+    for i in 0..tree.len() {
+        for j in 0..tree.len() {
+            for side in [Side::Left, Side::Right] {
+                let mut tree = tree.clone();
+                let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
+                let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
+
+                if tree.node(id_dst).is_root() {
+                    continue;
+                }
+
+                let mut expected_nodes = initial_nodes.clone();
+                expected_nodes.extend(tree.node(id_src).walk::<Bfs>().copied());
+                expected_nodes.sort();
+
+                let subtree = tree.node(id_src).as_cloned_subtree_within();
+                tree.node_mut(id_dst)
+                    .push_sibling_tree_within(side, subtree);
+
+                let mut nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+                nodes.sort();
+
+                assert_eq!(nodes, expected_nodes);
+            }
+        }
+    }
+}
+
+#[test_matrix([Side::Left, Side::Right])]
+#[should_panic]
+fn push_sibling_tree_within_copied_to_root(side: Side) {
+    let mut tree = DynTree::new(0);
+    let [id1, _] = tree.root_mut().push_children([1, 2]);
+    let [_id3, _id4, _id5] = tree.node_mut(id1).push_children([3, 4, 5]);
+    let id_dst = tree.root().idx();
+
+    let mut other = DynTree::new(42);
+    let id_src = other.root().idx();
+
+    let subtree = other.node_mut(id_src).as_copied_subtree_within();
+    tree.node_mut(id_dst)
+        .push_sibling_tree_within(side, subtree);
+}
+
+#[test]
+fn push_sibling_tree_within_moved() {
+    let tree = get_main_tree_copy();
+
+    let mut initial_nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+    initial_nodes.sort();
+
+    for i in 0..tree.len() {
+        for j in 0..tree.len() {
+            for side in [Side::Left, Side::Right] {
+                let mut tree = tree.clone();
+                let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
+                let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
+
+                let node_src = tree.node(id_src);
+                if tree.node(id_dst).is_root()
+                    || id_src == id_dst
+                    || node_src.is_ancestor_of(id_dst)
+                {
+                    continue;
+                }
+
+                let subtree = id_src.into_subtree_within();
+                tree.node_mut(id_dst)
+                    .push_sibling_tree_within(side, subtree);
+
+                let mut nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
+                nodes.sort();
+
+                assert_eq!(nodes, initial_nodes);
+            }
+        }
+    }
+}
+
+#[test_matrix([Side::Left, Side::Right])]
+#[should_panic]
+fn push_sibling_tree_within_moved_to_its_descendant(side: Side) {
+    let mut tree = DynTree::new(0.to_string());
+    let [id1, _] = tree.root_mut().push_children(to_str([1, 2]));
+    let [_id3, id4, _id5] = tree.node_mut(id1).push_children(to_str([3, 4, 5]));
+
+    let id_dst = id4;
+    let id_src = id1;
+
+    let subtree = id_src.into_subtree_within();
+    tree.node_mut(id_dst)
+        .push_sibling_tree_within(side, subtree);
+}
+
+#[test_matrix([Side::Left, Side::Right])]
+#[should_panic]
+fn push_sibling_tree_within_moved_to_root(side: Side) {
+    let mut tree = DynTree::new(0);
+    let [id1, _] = tree.root_mut().push_children([1, 2]);
+    let [_id3, _id4, _id5] = tree.node_mut(id1).push_children([3, 4, 5]);
+
+    let id_dst = tree.root().idx();
+    let id_src = id1;
+
+    let subtree = id_src.into_subtree_within();
+    tree.node_mut(id_dst)
+        .push_sibling_tree_within(side, subtree);
+}
