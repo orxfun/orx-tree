@@ -1,9 +1,6 @@
 use crate::*;
-use std::{
-    dbg,
-    string::{String, ToString},
-    vec::Vec,
-};
+use std::string::{String, ToString};
+use std::vec::Vec;
 
 fn to_str<const N: usize>(values: [i32; N]) -> [String; N] {
     values.map(|x| x.to_string())
@@ -96,8 +93,6 @@ fn push_child_tree_copied() {
     }
 }
 
-/// Subtrees can be pushed as child trees of any node when moved,
-/// no potential panic.
 #[test]
 fn push_child_tree_moved() {
     let tree = get_main_tree();
@@ -194,7 +189,7 @@ fn push_child_tree_within_moved() {
             let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
 
             let node_src = tree.node(id_src);
-            if i == j || node_src.is_ancestor_of(id_dst) {
+            if id_src == id_dst || node_src.is_ancestor_of(id_dst) {
                 continue;
             }
 
@@ -207,4 +202,32 @@ fn push_child_tree_within_moved() {
             assert_eq!(nodes, initial_nodes);
         }
     }
+}
+
+#[test]
+#[should_panic]
+fn push_child_tree_within_moved_to_itself() {
+    let mut tree = DynTree::new(0.to_string());
+    let [id1, _] = tree.root_mut().push_children(to_str([1, 2]));
+    let [_id3, _id4, _id5] = tree.node_mut(id1).push_children(to_str([3, 4, 5]));
+
+    let id_dst = id1;
+    let id_src = id1;
+
+    let subtree = id_src.into_subtree_within();
+    tree.node_mut(id_dst).push_child_tree_within(subtree);
+}
+
+#[test]
+#[should_panic]
+fn push_child_tree_within_moved_to_its_descendant() {
+    let mut tree = DynTree::new(0.to_string());
+    let [id1, _] = tree.root_mut().push_children(to_str([1, 2]));
+    let [_id3, id4, _id5] = tree.node_mut(id1).push_children(to_str([3, 4, 5]));
+
+    let id_dst = id4;
+    let id_src = id1;
+
+    let subtree = id_src.into_subtree_within();
+    tree.node_mut(id_dst).push_child_tree_within(subtree);
 }
