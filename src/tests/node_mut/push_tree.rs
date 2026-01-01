@@ -36,16 +36,16 @@ fn push_child_tree_cloned() {
     let ids_other: Vec<_> = other.root().indices::<Bfs>().collect();
 
     for i in 0..tree.len() {
-        for id_other in ids_other.iter().copied() {
+        for id_src in ids_other.iter().copied() {
             let mut tree = tree.clone();
-            let id = tree.root().indices::<Bfs>().nth(i).unwrap();
+            let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
 
             let mut expected_nodes = initial_nodes.clone();
-            expected_nodes.extend(other.node(id_other).walk::<Bfs>().cloned());
+            expected_nodes.extend(other.node(id_src).walk::<Bfs>().cloned());
             expected_nodes.sort();
 
-            let subtree = other.node(id_other).as_cloned_subtree();
-            tree.node_mut(id).push_child_tree(subtree);
+            let subtree = other.node(id_src).as_cloned_subtree();
+            tree.node_mut(id_dst).push_child_tree(subtree);
 
             let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
             nodes.sort();
@@ -67,15 +67,44 @@ fn push_child_tree_moved() {
         for j in 0..other.len() {
             let mut tree = tree.clone();
             let mut other = other.clone();
-            let id = tree.root().indices::<Bfs>().nth(i).unwrap();
-            let id_other = other.root().indices::<Bfs>().nth(j).unwrap();
+            let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
+            let id_src = other.root().indices::<Bfs>().nth(j).unwrap();
 
             let mut expected_nodes = initial_nodes.clone();
-            expected_nodes.extend(other.node(id_other).walk::<Bfs>().cloned());
+            expected_nodes.extend(other.node(id_src).walk::<Bfs>().cloned());
             expected_nodes.sort();
 
-            let subtree = other.node_mut(id_other).into_subtree();
-            tree.node_mut(id).push_child_tree(subtree);
+            let subtree = other.node_mut(id_src).into_subtree();
+            tree.node_mut(id_dst).push_child_tree(subtree);
+
+            let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
+            nodes.sort();
+
+            assert_eq!(nodes, expected_nodes);
+        }
+    }
+}
+
+/// Subtrees can be pushed as child trees of any node when cloned,
+/// no potential panic.
+#[test]
+fn push_child_tree_within_cloned() {
+    let tree = get_main_tree();
+
+    let initial_nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
+
+    for i in 0..tree.len() {
+        for j in 0..tree.len() {
+            let mut tree = tree.clone();
+            let id_dst = tree.root().indices::<Bfs>().nth(i).unwrap();
+            let id_src = tree.root().indices::<Bfs>().nth(j).unwrap();
+
+            let mut expected_nodes = initial_nodes.clone();
+            expected_nodes.extend(tree.node(id_src).walk::<Bfs>().cloned());
+            expected_nodes.sort();
+
+            let subtree = tree.node(id_src).as_cloned_subtree_within();
+            tree.node_mut(id_dst).push_child_tree_within(subtree);
 
             let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
             nodes.sort();
