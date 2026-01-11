@@ -26,8 +26,7 @@ fn push_child_tree_cloned() {
             let subtree = other.node(id_src).as_cloned_subtree();
             tree.node_mut(id_dst).push_child_tree(subtree);
 
-            let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
-            nodes.sort();
+            let nodes = collect_sorted_subtree(tree.root());
 
             assert_eq!(nodes, expected_nodes);
         }
@@ -54,8 +53,7 @@ fn push_child_tree_copied() {
             let subtree = other.node(id_src).as_copied_subtree();
             tree.node_mut(id_dst).push_child_tree(subtree);
 
-            let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
-            nodes.sort();
+            let nodes = collect_sorted_subtree(tree.root());
 
             assert_eq!(nodes, expected_nodes);
         }
@@ -82,8 +80,7 @@ fn push_child_tree_moved() {
             let subtree = other.node_mut(id_src).into_subtree();
             tree.node_mut(id_dst).push_child_tree(subtree);
 
-            let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
-            nodes.sort();
+            let nodes = collect_sorted_subtree(tree.root());
 
             assert_eq!(nodes, expected_nodes);
         }
@@ -109,8 +106,7 @@ fn push_child_tree_within_cloned() {
             let subtree = tree.node(id_src).as_cloned_subtree_within();
             tree.node_mut(id_dst).push_child_tree_within(subtree);
 
-            let mut nodes: Vec<_> = tree.root().walk::<Bfs>().cloned().collect();
-            nodes.sort();
+            let nodes = collect_sorted_subtree(tree.root());
 
             assert_eq!(nodes, expected_nodes);
         }
@@ -136,8 +132,7 @@ fn push_child_tree_within_copied() {
             let subtree = tree.node(id_src).as_cloned_subtree_within();
             tree.node_mut(id_dst).push_child_tree_within(subtree);
 
-            let mut nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-            nodes.sort();
+            let nodes = collect_sorted_subtree(tree.root());
 
             assert_eq!(nodes, expected_nodes);
         }
@@ -165,8 +160,7 @@ fn push_child_tree_within_moved() {
             let subtree = id_src.into_subtree_within();
             tree.node_mut(id_dst).push_child_tree_within(subtree);
 
-            let mut nodes: Vec<_> = tree.root().walk::<Bfs>().copied().collect();
-            nodes.sort();
+            let nodes = collect_sorted_subtree(tree.root());
 
             assert_eq!(nodes, initial_nodes);
         }
