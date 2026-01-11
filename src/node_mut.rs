@@ -1736,7 +1736,7 @@ where
     ///
     /// ## I. Replace with Subtree cloned/copied from another Tree
     ///
-    /// Remains the source tree unchanged.
+    /// The source tree remains unchanged.
     ///
     /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
