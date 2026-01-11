@@ -1909,7 +1909,7 @@ where
         let is_root = self.is_root();
 
         let ptr_out = self.node_ptr;
-        let child_idx = self.num_children();
+        let child_num = self.num_children();
 
         let idx_in = self.push_child_tree(subtree);
         let ptr_in = idx_in.0.node_ptr();
