@@ -223,7 +223,7 @@ fn push_sibling_tree_within_copied() {
                 expected_nodes.extend(tree.node(id_src).walk::<Bfs>().copied());
                 expected_nodes.sort();
 
-                let subtree = tree.node(id_src).as_cloned_subtree_within();
+                let subtree = tree.node(id_src).as_copied_subtree_within();
                 tree.node_mut(id_dst)
                     .push_sibling_tree_within(side, subtree);
 
