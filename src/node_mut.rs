@@ -1734,7 +1734,7 @@ where
     ///
     /// # Examples
     ///
-    /// ## I. Replace with Subtree cloned-copied from another Tree
+    /// ## I. Replace with Subtree cloned/copied from another Tree
     ///
     /// Remains the source tree unchanged.
     ///
