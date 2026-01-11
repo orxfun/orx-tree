@@ -1916,7 +1916,7 @@ where
 
         let node_out = unsafe { ptr_out.node_mut() };
         let ptr_parent_of_out = node_out.prev().get();
-        node_out.next_mut().remove_at(child_idx);
+        node_out.next_mut().remove_at(child_num);
         node_out.prev_mut().set_some(ptr_in);
 
         let node_in = unsafe { ptr_in.node_mut() };
