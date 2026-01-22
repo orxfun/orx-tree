@@ -1767,7 +1767,7 @@ where
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
     ///
-    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let mut b = DynTree::new(6);
     /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
     /// b.node_mut(b_id7).push_child(9);
     /// b.node_mut(b_id8).push_children([10, 11]);
@@ -1819,12 +1819,12 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
+    /// let mut a = DynTree::new(0).into_lazy_reclaim();
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
     ///
-    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let mut b = DynTree::new(6);
     /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
     /// b.node_mut(b_id7).push_child(9);
     /// b.node_mut(b_id8).push_children([10, 11]);
@@ -1875,12 +1875,12 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
+    /// let mut a = DynTree::new(0).into_lazy_reclaim();
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
     ///
-    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let mut b = DynTree::new(6);
     /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
     /// b.node_mut(b_id7).push_child(9);
     /// b.node_mut(b_id8).push_children([10, 11]);
