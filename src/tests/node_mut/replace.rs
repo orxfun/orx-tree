@@ -24,7 +24,7 @@ fn expected_nodes<T: Clone + Eq + Ord>(
 
 #[test]
 fn replace_with_cloned() {
-    let tree = get_main_tree();
+    let tree = get_main_tree().into_lazy_reclaim();
     let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree();
@@ -40,21 +40,23 @@ fn replace_with_cloned() {
             let expected_nodes =
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
+            let root_value = other.node(id_src).data().clone();
             let subtree = other.node(id_src).as_cloned_subtree();
-            let removed = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
+            let (idx, removed) = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
             let removed: Vec<_> = removed.collect();
 
             let nodes = collect_sorted_subtree(tree.root());
             assert_eq!(nodes, expected_nodes);
 
             assert_eq!(removed, expected_removed);
+            assert_eq!(tree.node(idx).data(), &root_value);
         }
     }
 }
 
 #[test]
 fn replace_with_copied() {
-    let tree = get_main_tree_copy();
+    let tree = get_main_tree_copy().into_lazy_reclaim();
     let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree_copy();
@@ -70,21 +72,23 @@ fn replace_with_copied() {
             let expected_nodes =
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
+            let root_value = other.node(id_src).data().clone();
             let subtree = other.node(id_src).as_copied_subtree();
-            let removed = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
+            let (idx, removed) = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
             let removed: Vec<_> = removed.collect();
 
             let nodes = collect_sorted_subtree(tree.root());
             assert_eq!(nodes, expected_nodes);
 
             assert_eq!(removed, expected_removed);
+            assert_eq!(tree.node(idx).data(), &root_value);
         }
     }
 }
 
 #[test]
 fn replace_with_moved() {
-    let tree = get_main_tree();
+    let tree = get_main_tree().into_lazy_reclaim();
     let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree();
@@ -101,14 +105,16 @@ fn replace_with_moved() {
             let expected_nodes =
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
+            let root_value = other.node(id_src).data().clone();
             let subtree = other.node_mut(id_src).into_subtree();
-            let removed = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
+            let (idx, removed) = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
             let removed: Vec<_> = removed.collect();
 
             let nodes = collect_sorted_subtree(tree.root());
             assert_eq!(nodes, expected_nodes);
 
             assert_eq!(removed, expected_removed);
+            assert_eq!(tree.node(idx).data(), &root_value);
         }
     }
 }

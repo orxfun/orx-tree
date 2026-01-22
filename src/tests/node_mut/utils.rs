@@ -38,9 +38,10 @@ pub(super) fn get_other_tree_copy() -> DaryTree<4, i32> {
     tree
 }
 
-pub(super) fn collect_sorted_subtree<V>(node: Node<V>) -> Vec<V::Item>
+pub(super) fn collect_sorted_subtree<V, M>(node: Node<V, M>) -> Vec<V::Item>
 where
     V: TreeVariant,
+    M: MemoryPolicy,
     V::Item: Clone + Ord,
 {
     let mut values: Vec<_> = node.walk::<Bfs>().cloned().collect();

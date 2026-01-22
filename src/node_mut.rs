@@ -1704,14 +1704,27 @@ where
 
     // grow-and-shrink
 
-    /// Replaces the subtree rooted at this node with the given `subtree`,
-    /// and returns elements of the removed subtree as an iterator.
+    /// Replaces the subtree rooted at this node with the given `subtree`, and returns the tuple of:
+    ///
+    /// * the node index of root of the inserted `subtree`, and
+    /// * elements of the removed subtree as an iterator.
     ///
     /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
     /// Available implementations are:
     /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
     /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
     /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// # Node Indices
+    ///
+    /// Importantly note that this method both pushes and removes nodes from the tree.
+    /// Just as any method removing nodes from the tree, this might lead to invalidating indices that are cached earlier.
+    ///
+    /// Furthermore, since removal of elements is lazy as the replaced subtree is returned as an iterator;
+    /// **node index of inserted subtree might already be invalidated** once the returned iterator is used.
+    ///
+    /// If we require the index to be valid with certainty, we can convert the memory management of the tree to [`Lazy`]
+    /// before the replacement, as demonstrated in the examples below.
     ///
     /// # Subtree Variants
     ///
@@ -1731,6 +1744,7 @@ where
     /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
     /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
     /// [`into_subtree`]: crate::NodeMut::into_subtree
+    /// ['Lazy']: crate::memory::Lazy
     ///
     /// # Examples
     ///
@@ -1753,7 +1767,7 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::new(0);
+    /// let mut a = DynTree::new(0).into_lazy_reclaim();
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
@@ -1776,7 +1790,7 @@ where
     /// // 10  11       9 10  11
     ///
     /// let x = b.node(b_id8).as_cloned_subtree();
-    /// let y = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
+    /// let (idx, y) = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
     ///
     /// // y: removed nodes from a in Dfs order
     /// let removed_values_dfs: Vec<_> = y.collect();
@@ -1789,6 +1803,9 @@ where
     /// // tree b is unchanged since we created subtree as a clone
     /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_b, [6, 7, 8, 9, 10, 11]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &8);
     /// ```
     ///
     /// ## II. Replace with Subtree moved out of another Tree
@@ -1811,7 +1828,7 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::<_>::new(0);
+    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
@@ -1834,7 +1851,7 @@ where
     /// // 10  11       9
     ///
     /// let x = b.node_mut(b_id8).into_subtree();
-    /// let y = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
+    /// let (idx, y) = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
     ///
     /// // y: removed nodes from a in Dfs order
     /// let removed_values_dfs: Vec<_> = y.collect();
@@ -1847,6 +1864,9 @@ where
     /// // tree b after subtree is moved out
     /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_b, [6, 7, 9]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &8);
     /// ```
     ///
     /// ## III. Replace with another Tree
@@ -1868,7 +1888,7 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::<_>::new(0);
+    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
@@ -1891,7 +1911,7 @@ where
     /// // |  ╱ ╲
     /// // 9 10  11
     ///
-    /// let y = a.node_mut(a_id1).replace_with::<Dfs, _>(b);
+    /// let (idx, y) = a.node_mut(a_id1).replace_with::<Dfs, _>(b);
     ///
     /// // y: removed nodes from a in Dfs order
     /// let removed_values_dfs: Vec<_> = y.collect();
@@ -1900,8 +1920,14 @@ where
     /// // tree a with subtree from node 1 replaced with subtree b
     /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_a, [0, 6, 2, 7, 8, 9, 10, 11]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &6);
     /// ```
-    pub fn replace_with<T, Vs>(mut self, subtree: impl SubTree<Vs>) -> impl Iterator<Item = V::Item>
+    pub fn replace_with<T, Vs>(
+        mut self,
+        subtree: impl SubTree<Vs>,
+    ) -> (NodeIdx<V>, impl Iterator<Item = V::Item>)
     where
         T: Traverser<OverData>,
         Vs: TreeVariant<Item = V::Item>,
@@ -1933,7 +1959,7 @@ where
         }
 
         let node_old = NodeMut::<_, M, P, MO>::new(self.col, ptr_out);
-        node_old.into_walk::<T>()
+        (idx_in, node_old.into_walk::<T>())
     }
 
     // traversal
