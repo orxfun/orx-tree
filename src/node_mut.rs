@@ -1776,7 +1776,7 @@ where
     /// // 10  11       9 10  11
     ///
     /// let x = b.node(b_id8).as_cloned_subtree();
-    /// let y = a.node_mut(a_id1).replace::<Dfs, _>(x);
+    /// let y = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
     ///
     /// // y: removed nodes from a in Dfs order
     /// let removed_values_dfs: Vec<_> = y.collect();
@@ -1834,7 +1834,7 @@ where
     /// // 10  11       9
     ///
     /// let x = b.node_mut(b_id8).into_subtree();
-    /// let y = a.node_mut(a_id1).replace::<Dfs, _>(x);
+    /// let y = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
     ///
     /// // y: removed nodes from a in Dfs order
     /// let removed_values_dfs: Vec<_> = y.collect();
@@ -1891,7 +1891,7 @@ where
     /// // |  ╱ ╲
     /// // 9 10  11
     ///
-    /// let y = a.node_mut(a_id1).replace::<Dfs, _>(b);
+    /// let y = a.node_mut(a_id1).replace_with::<Dfs, _>(b);
     ///
     /// // y: removed nodes from a in Dfs order
     /// let removed_values_dfs: Vec<_> = y.collect();
@@ -1901,7 +1901,7 @@ where
     /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
     /// assert_eq!(bfs_a, [0, 6, 2, 7, 8, 9, 10, 11]);
     /// ```
-    pub fn replace<T, Vs>(mut self, subtree: impl SubTree<Vs>) -> impl Iterator<Item = V::Item>
+    pub fn replace_with<T, Vs>(mut self, subtree: impl SubTree<Vs>) -> impl Iterator<Item = V::Item>
     where
         T: Traverser<OverData>,
         Vs: TreeVariant<Item = V::Item>,

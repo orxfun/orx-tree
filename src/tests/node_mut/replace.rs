@@ -41,7 +41,7 @@ fn replace_with_cloned() {
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
             let subtree = other.node(id_src).as_cloned_subtree();
-            let removed = tree.node_mut(id_dst).replace::<Bfs, _>(subtree);
+            let removed = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
             let removed: Vec<_> = removed.collect();
 
             let nodes = collect_sorted_subtree(tree.root());
@@ -71,7 +71,7 @@ fn replace_with_copied() {
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
             let subtree = other.node(id_src).as_copied_subtree();
-            let removed = tree.node_mut(id_dst).replace::<Bfs, _>(subtree);
+            let removed = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
             let removed: Vec<_> = removed.collect();
 
             let nodes = collect_sorted_subtree(tree.root());
@@ -102,7 +102,7 @@ fn replace_with_moved() {
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
             let subtree = other.node_mut(id_src).into_subtree();
-            let removed = tree.node_mut(id_dst).replace::<Bfs, _>(subtree);
+            let removed = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
             let removed: Vec<_> = removed.collect();
 
             let nodes = collect_sorted_subtree(tree.root());
