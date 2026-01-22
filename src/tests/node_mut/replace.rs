@@ -72,7 +72,7 @@ fn replace_copied() {
             let expected_nodes =
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
-            let root_value = other.node(id_src).data().clone();
+            let root_value = *other.node(id_src).data();
             let subtree = other.node(id_src).as_copied_subtree();
             let idx = tree.node_mut(id_dst).replace(subtree);
 
@@ -167,7 +167,7 @@ fn replace_with_copied() {
             let expected_nodes =
                 expected_nodes(&initial_nodes, &expected_removed, &expected_inserted);
 
-            let root_value = other.node(id_src).data().clone();
+            let root_value = *other.node(id_src).data();
             let subtree = other.node(id_src).as_copied_subtree();
             let (idx, removed) = tree.node_mut(id_dst).replace_with::<Bfs, _>(subtree);
             let removed: Vec<_> = removed.collect();
