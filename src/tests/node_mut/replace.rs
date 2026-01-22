@@ -84,10 +84,10 @@ fn replace_with_copied() {
 
 #[test]
 fn replace_with_moved() {
-    let tree = get_main_tree_copy();
+    let tree = get_main_tree();
     let initial_nodes = collect_sorted_subtree(tree.root());
 
-    let other = get_other_tree_copy();
+    let other = get_other_tree();
 
     for i in 0..tree.len() {
         for j in 0..other.len() {
