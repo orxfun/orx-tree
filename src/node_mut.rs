@@ -1880,7 +1880,13 @@ where
         Vs: TreeVariant<Item = V::Item>,
     {
         match self.parent_ptr() {
-            None => todo!(),
+            None => {
+                let col_ptr = self.col as *mut Col<V, M, P>;
+                let _ = self.replace_with::<Dfs, _>(subtree);
+                let col = unsafe { &*col_ptr };
+                let root_ptr = col.ends().get().expect("tree is not empty");
+                NodeIdx(orx_selfref_col::NodeIdx::new(col.memory_state(), root_ptr))
+            }
             Some(parent_ptr) => {
                 let target_pos = self.sibling_idx();
 

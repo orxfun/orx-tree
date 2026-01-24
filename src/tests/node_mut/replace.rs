@@ -22,8 +22,6 @@ fn expected_nodes<T: Clone + Eq + Ord>(
     expected_nodes
 }
 
-// replace
-
 #[test]
 fn replace_cloned() {
     let tree = get_main_tree().into_lazy_reclaim();
