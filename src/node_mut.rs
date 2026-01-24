@@ -8,7 +8,7 @@ use crate::{
     subtrees::{MovedSubTree, SubTreeCore},
     subtrees_within::SubTreeWithin,
     traversal::{
-        Dfs, Over, OverData, OverMut,
+        Over, OverData, OverMut,
         enumeration::Enumeration,
         enumerations::Val,
         over::OverPtr,
@@ -1877,7 +1877,7 @@ where
     {
         match self.parent_ptr() {
             None => {
-                let (_, node_old) = self.replace_with_destruct::<Dfs, _>(subtree);
+                let (_, node_old) = self.replace_with_destruct(subtree);
                 let (_, col) = node_old.prune_destruct();
                 let state = col.memory_state();
                 #[allow(clippy::missing_panics_doc)]
@@ -2132,7 +2132,7 @@ where
         T: Traverser<OverData>,
         Vs: TreeVariant<Item = V::Item>,
     {
-        let (idx_in, node_old) = self.replace_with_destruct::<T, _>(subtree);
+        let (idx_in, node_old) = self.replace_with_destruct(subtree);
         (idx_in, node_old.into_walk::<T>())
     }
 
@@ -3842,12 +3842,11 @@ where
     ///
     /// * the node index of root of the inserted `subtree`, and
     /// * the disconnected node.
-    fn replace_with_destruct<T, Vs>(
+    fn replace_with_destruct<Vs>(
         mut self,
         subtree: impl SubTree<Vs>,
     ) -> (NodeIdx<V>, NodeMut<'a, V, M, P, MO>)
     where
-        T: Traverser<OverData>,
         Vs: TreeVariant<Item = V::Item>,
     {
         let is_root = self.is_root();
