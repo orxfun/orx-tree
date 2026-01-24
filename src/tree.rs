@@ -829,7 +829,10 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if either of the node indices is invalid.
+    /// Panics:
+    ///
+    /// * if either of the node indices is invalid, or
+    /// * if either of the indices belong to the root since this automatically invalidates the Safety condition.
     ///
     /// # Safety
     ///
@@ -1082,6 +1085,27 @@ where
     }
 }
 
+/// ***O(1)*** Swaps the nodes together with their subtrees rooted at the given `first_idx` and `second_idx`.
+///
+/// The indices remain valid.
+///
+/// In order to have a valid swap operation, the two subtrees must be **independent** of each other without
+/// any shared node. Necessary and sufficient condition is then as follows:
+///
+/// * node with the `first_idx` is not an ancestor of the node with the `second_idx`,
+/// * and vice versa.
+///
+/// # Panics
+///
+/// Panics:
+///
+/// * if either of the node indices is invalid, or
+/// * if either of the indices belong to the root since this automatically invalidates the Safety condition.
+///
+/// # Safety
+///
+/// It is safe to use this method only when the swap operation is valid; i.e., abovementioned independence condition
+/// of the subtrees holds.
 pub(crate) fn swap_subtrees_unchecked<V, M, P>(
     col: &mut Col<V, M, P>,
     first_idx: NodeIdx<V>,
