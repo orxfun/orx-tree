@@ -3800,6 +3800,8 @@ where
         }
     }
 
+    /// Removes this node and all of its descendants from the tree; and returns the data of this node
+    /// together with the mutable reference to the collection.
     #[allow(clippy::missing_panics_doc)]
     fn prune_destruct(self) -> (V::Item, &'a mut Col<V, M, P>) {
         // TODO: we have the option to choose any traversal here; they are all safe

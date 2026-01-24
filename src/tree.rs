@@ -829,8 +829,6 @@ where
     ///
     /// # Panics
     ///
-    /// Panics:
-    ///
     /// * if either of the node indices is invalid, or
     /// * if either of the indices belong to the root since this automatically invalidates the Safety condition.
     ///
@@ -1096,8 +1094,6 @@ where
 /// * and vice versa.
 ///
 /// # Panics
-///
-/// Panics:
 ///
 /// * if either of the node indices is invalid, or
 /// * if either of the indices belong to the root since this automatically invalidates the Safety condition.
