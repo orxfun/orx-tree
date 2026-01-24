@@ -900,51 +900,7 @@ where
         first_idx: NodeIdx<V>,
         second_idx: NodeIdx<V>,
     ) {
-        assert!(self.is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
-        assert!(self.is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
-
-        let ptr_p = first_idx.0.node_ptr();
-        let ptr_q = second_idx.0.node_ptr();
-
-        if ptr_p == ptr_q {
-            return;
-        }
-
-        let p = unsafe { &mut *ptr_p.ptr_mut() };
-        let q = unsafe { &mut *ptr_q.ptr_mut() };
-
-        let parent_p = p.prev().get();
-        let parent_q = q.prev().get();
-
-        match parent_p {
-            Some(parent_ptr_p) => {
-                let parent_p = unsafe { &mut *parent_ptr_p.ptr_mut() };
-                parent_p.next_mut().replace_with(ptr_p, ptr_q);
-
-                q.prev_mut().set_some(parent_ptr_p);
-            }
-            None => {
-                q.prev_mut().set_none();
-            }
-        }
-
-        match parent_q {
-            Some(parent_ptr_q) => {
-                let parent_q = unsafe { &mut *parent_ptr_q.ptr_mut() };
-                parent_q.next_mut().replace_with(ptr_q, ptr_p);
-
-                p.prev_mut().set_some(parent_ptr_q);
-            }
-            None => {
-                p.prev_mut().set_none();
-            }
-        }
-
-        if p.prev().get().is_none() {
-            self.0.ends_mut().set_some(first_idx.0.node_ptr());
-        } else if q.prev().get().is_none() {
-            self.0.ends_mut().set_some(second_idx.0.node_ptr());
-        }
+        swap_subtrees_unchecked::<V, M, P>(&mut self.0, first_idx, second_idx)
     }
 
     // parallelization
@@ -1123,5 +1079,48 @@ where
     /// Returns the pointer to the root; None if empty.
     fn root_ptr(&self) -> Option<NodePtr<V>> {
         self.0.ends().get()
+    }
+}
+
+pub(crate) fn swap_subtrees_unchecked<V, M, P>(
+    col: &mut Col<V, M, P>,
+    first_idx: NodeIdx<V>,
+    second_idx: NodeIdx<V>,
+) where
+    V: TreeVariant,
+    M: MemoryPolicy,
+    P: PinnedStorage,
+{
+    let is_node_idx_valid = |node_idx: NodeIdx<V>| node_idx.0.is_valid_for(col);
+    assert!(is_node_idx_valid(first_idx), "{}", INVALID_IDX_ERROR);
+    assert!(is_node_idx_valid(second_idx), "{}", INVALID_IDX_ERROR);
+
+    let ptr_p = first_idx.0.node_ptr();
+    let ptr_q = second_idx.0.node_ptr();
+
+    if ptr_p == ptr_q {
+        return;
+    }
+
+    let p = unsafe { &mut *ptr_p.ptr_mut() };
+    let q = unsafe { &mut *ptr_q.ptr_mut() };
+
+    let parent_p = p.prev().get().expect("root cannot be swapped");
+    let parent_q = q.prev().get().expect("root cannot be swapped");
+
+    let node_mut = |p: NodePtr<V>| unsafe { &mut *p.ptr_mut() };
+    match parent_p == parent_q {
+        true => {
+            let common_parent = node_mut(parent_p);
+            let indices = common_parent.next_mut().swap(ptr_p, ptr_q);
+            debug_assert!(indices.is_some());
+        }
+        false => {
+            node_mut(parent_p).next_mut().replace_with(ptr_p, ptr_q);
+            q.prev_mut().set_some(parent_p);
+
+            node_mut(parent_q).next_mut().replace_with(ptr_q, ptr_p);
+            p.prev_mut().set_some(parent_q);
+        }
     }
 }
