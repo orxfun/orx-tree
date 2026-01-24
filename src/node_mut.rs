@@ -1880,7 +1880,8 @@ where
                 let col_ptr = self.col as *mut Col<V, M, P>;
                 let _ = self.replace_with::<Dfs, _>(subtree);
                 let col = unsafe { &*col_ptr };
-                let root_ptr = col.ends().get().expect("tree is not empty");
+                #[allow(clippy::missing_panics_doc)]
+                let root_ptr = col.ends().get().expect("tree is not empty"); // will always succeed as the tree has a root
                 NodeIdx(orx_selfref_col::NodeIdx::new(col.memory_state(), root_ptr))
             }
             Some(parent_ptr) => {
