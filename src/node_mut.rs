@@ -1879,7 +1879,6 @@ where
             None => {
                 let (_, node_old) = self.replace_with_destruct::<Dfs, _>(subtree);
                 let (_, col) = node_old.prune_destruct();
-                // let col = unsafe { &*col_ptr };
                 let state = col.memory_state();
                 #[allow(clippy::missing_panics_doc)]
                 let root_ptr = col.ends().get().expect("tree is not empty"); // will always succeed as the tree has a root
@@ -1890,16 +1889,14 @@ where
 
                 let (_, col) = self.prune_destruct();
 
-                let col_ptr = col as *mut Col<V, M, P>;
-
-                let mut parent = NodeMut::<'a, V, M, P>::new(unsafe { &mut *col_ptr }, parent_ptr);
+                let mut parent = NodeMut::<'a, V, M, P>::new(col, parent_ptr);
                 let idx = parent.push_child_tree(subtree);
                 let mut pos = parent.num_children() - 1;
 
                 while pos > target_pos {
                     let swap_idx = parent.child(pos - 1).idx();
                     pos -= 1;
-                    swap_subtrees_unchecked::<V, M, P>(col, idx, swap_idx);
+                    swap_subtrees_unchecked::<V, M, P>(parent.col, idx, swap_idx);
                 }
 
                 idx
@@ -2128,7 +2125,7 @@ where
     /// assert_eq!(a.node(idx).data(), &6);
     /// ```
     pub fn replace_with<T, Vs>(
-        mut self,
+        self,
         subtree: impl SubTree<Vs>,
     ) -> (NodeIdx<V>, impl Iterator<Item = V::Item>)
     where
