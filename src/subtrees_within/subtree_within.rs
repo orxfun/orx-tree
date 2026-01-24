@@ -1,6 +1,7 @@
 use crate::TreeVariant;
 
 pub(crate) mod sealed {
+
     use crate::{
         MemoryPolicy, NodeIdx, NodeMut, NodeMutOrientation, TreeVariant,
         pinned_storage::PinnedStorage,

@@ -43,6 +43,8 @@ pub trait RefsChildren<V: Variant> {
 
     fn replace_with(&mut self, old_node_ptr: NodePtr<V>, new_node_ptr: NodePtr<V>)
     -> Option<usize>;
+
+    fn swap(&mut self, ptr_a: NodePtr<V>, ptr_b: NodePtr<V>) -> Option<(usize, usize)>;
 }
 
 impl<V: Variant> RefsChildren<V> for RefsVec<V> {
@@ -92,6 +94,11 @@ impl<V: Variant> RefsChildren<V> for RefsVec<V> {
         new_node_ptr: NodePtr<V>,
     ) -> Option<usize> {
         RefsVec::replace_with(self, old_node_ptr, new_node_ptr)
+    }
+
+    #[inline(always)]
+    fn swap(&mut self, ptr_a: NodePtr<V>, ptr_b: NodePtr<V>) -> Option<(usize, usize)> {
+        RefsVec::swap(self, ptr_a, ptr_b)
     }
 }
 
@@ -148,5 +155,10 @@ impl<const D: usize, V: Variant> RefsChildren<V> for RefsArrayLeftMost<D, V> {
         new_node_ptr: NodePtr<V>,
     ) -> Option<usize> {
         RefsArrayLeftMost::replace_with(self, old_node_ptr, new_node_ptr)
+    }
+
+    #[inline(always)]
+    fn swap(&mut self, ptr_a: NodePtr<V>, ptr_b: NodePtr<V>) -> Option<(usize, usize)> {
+        RefsArrayLeftMost::swap(self, ptr_a, ptr_b)
     }
 }

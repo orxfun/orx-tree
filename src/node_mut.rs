@@ -16,6 +16,7 @@ use crate::{
         post_order::iter_ptr::PostOrderIterPtr,
         traverser_core::TraverserCore,
     },
+    tree::swap_subtrees_unchecked,
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
 };
@@ -646,6 +647,8 @@ where
     ///
     /// ## I. Append Subtree moved from another position of this tree
     ///
+    /// Runs in ***O(1)***.
+    ///
     /// ```
     /// use orx_tree::*;
     ///
@@ -685,8 +688,6 @@ where
     /// ```
     ///
     /// ## II. Append Subtree cloned-copied from another position of this tree
-    ///
-    /// Remains the source tree unchanged.
     ///
     /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
@@ -1045,7 +1046,7 @@ where
     /// b.node_mut(id6).push_child(8);
     /// b.node_mut(id7).push_children([9, 10]);
     ///
-    /// // clone b.subtree(n6) under a.n3
+    /// // clone b.subtree(n6) to the left of a.n4
     /// // clone b.subtree(n7) under a.n0
     /// //        a
     /// // -----------------------
@@ -1227,11 +1228,10 @@ where
     ///
     /// # Panics
     ///
-    /// * Panics if this node is the root; root node cannot have a sibling.
-    /// * Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
-    ///   the root of the subtree is an ancestor of this node.
-    ///   Notice that such a move would break structural properties of the tree.
-    ///   When we are not certain, we can test the relation using the the [`is_ancestor_of`] method.
+    /// Panics if the subtree is moved out of this tree created by [`into_subtree_within`] (**I.**) and
+    /// the root of the subtree is an ancestor of this node.
+    /// Notice that such a move would break structural properties of the tree.
+    /// When we are not certain, we can test the relation using the the [`is_ancestor_of`] method.
     ///
     /// [`as_cloned_subtree_within`]: crate::NodeIdx::as_cloned_subtree_within
     /// [`as_copied_subtree_within`]: crate::NodeIdx::as_copied_subtree_within
@@ -1241,6 +1241,8 @@ where
     /// # Examples
     ///
     /// ## I. Append Subtree moved from another position of this tree
+    ///
+    /// Runs in ***O(1)***.
     ///
     /// ```
     /// use orx_tree::*;
@@ -1283,8 +1285,6 @@ where
     /// ```
     ///
     /// ## II. Append Subtree cloned-copied from another position of this tree
-    ///
-    /// Remains the source tree unchanged.
     ///
     /// Runs in ***O(n)*** time where n is the number of source nodes.
     ///
@@ -1517,40 +1517,7 @@ where
     /// ```
     #[allow(clippy::missing_panics_doc)]
     pub fn prune(self) -> V::Item {
-        // TODO: we have the option to choose any traversal here; they are all safe
-        // with SelfRefCol. We can pick the fastest one after benchmarks.
-
-        // # SAFETY: We use this shared reference to iterate over the pointers of the
-        // descendent nodes. Using a mut reference to the collection, we will close
-        // each of the descendent nodes that we visit. Closing a node corresponds to
-        // taking its data out and emptying all of its previous and next links.
-        // Close operation is lazy and does not invalidate the pointers that we the
-        // shared reference to create.
-        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr));
-        for ptr in iter {
-            if ptr != self.node_ptr {
-                self.col.close(ptr);
-            }
-        }
-
-        let node = unsafe { &mut *self.node_ptr.ptr_mut() };
-        if let Some(parent) = node.prev_mut().get() {
-            let parent = unsafe { &mut *parent.ptr_mut() };
-            let sibling_idx = parent
-                .next_mut()
-                .remove(unsafe { self.node_ptr.ptr() as usize });
-            debug_assert!(sibling_idx.is_some());
-        }
-
-        let root_ptr = self.col.ends().get().expect("tree is not empty");
-        if root_ptr == self.node_ptr {
-            self.col.ends_mut().clear();
-        }
-
-        // # SAFETY: On the other hand, close_and_reclaim might trigger a reclaim
-        // operation which moves around the nodes, invalidating other pointers;
-        // however, only after 'self.node_ptr' is also closed.
-        self.col.close_and_reclaim(self.node_ptr)
+        self.prune_destruct().0
     }
 
     /// Removes this node and returns its data;
@@ -1701,6 +1668,472 @@ where
         for c in self.children_mut() {
             _ = c.prune();
         }
+    }
+
+    // grow-and-shrink
+
+    /// Replaces the subtree rooted at this node with the given `subtree`, and returns the node index of root of the
+    /// inserted `subtree`.
+    ///
+    /// See also [`replace_with`] which additionally returns the removed subtree.
+    ///
+    /// # Node Indices
+    ///
+    /// Importantly note that this method both pushes and removes nodes from the tree.
+    /// Just as any method removing nodes from the tree, this might lead to invalidating indices that are cached earlier.
+    ///
+    /// However, this method guarantees that the returned node index of root of inserted subtree is valid (unlike `replace_with`).
+    ///
+    /// # Subtree Variants
+    ///
+    /// * **I.** Cloned / copied subtree
+    ///   * A subtree cloned or copied from another tree.
+    ///   * The source tree remains unchanged.
+    ///   * Can be created by [`as_cloned_subtree`] and [`as_copied_subtree`] methods.
+    ///   * ***O(n)***
+    /// * **II.** Subtree moved out of another tree
+    ///   * The subtree will be moved from the source tree to this tree.
+    ///   * Can be created by [`into_subtree`] method.
+    ///   * ***O(n)***
+    /// * **III.** Another entire tree
+    ///   * The other tree will be consumed and moved into this tree.
+    ///   * ***O(1)***
+    ///
+    /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
+    /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
+    /// [`into_subtree`]: crate::NodeMut::into_subtree
+    /// [`Lazy`]: crate::memory::Lazy
+    /// [`replace_with`]: crate::NodeMut::replace_with
+    ///
+    /// # Examples
+    ///
+    /// ## I. Replace with Subtree cloned/copied from another Tree
+    ///
+    /// The source tree remains unchanged.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::new(0);
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DynTree::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // x: create subtree by cloning b.subtree(n8)
+    /// // y: subtree rooted at node 1 of tree a
+    /// // replace y with x
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   8   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 10  11       9 10  11
+    ///
+    /// let x = b.node(b_id8).as_cloned_subtree();
+    /// let idx = a.node_mut(a_id1).replace(x);
+    ///
+    /// // tree a with the inserted subtree x
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 8, 2, 10, 11]);
+    ///
+    /// // tree b is unchanged since we created subtree as a clone
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [6, 7, 8, 9, 10, 11]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &8);
+    /// ```
+    ///
+    /// ## II. Replace with Subtree moved out of another Tree
+    ///
+    /// The source subtree rooted at the given node will be removed from the source
+    /// tree.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::new(0);
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DynTree::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // x: create subtree by moving b.subtree(n8) out of b
+    /// // y: subtree rooted at node 1 of tree a
+    /// // replace y with x
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱
+    /// //   8   2      7
+    /// //  ╱ ╲         |
+    /// // 10  11       9
+    ///
+    /// let x = b.node_mut(b_id8).into_subtree();
+    /// let idx = a.node_mut(a_id1).replace(x);
+    ///
+    /// // tree a with the inserted subtree x
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 8, 2, 10, 11]);
+    ///
+    /// // tree b after subtree is moved out
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [6, 7, 9]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &8);
+    /// ```
+    ///
+    /// ## III. Replace with another Tree
+    ///
+    /// The source tree will be moved into the target tree.
+    ///
+    /// Runs in ***O(1)*** time.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::new(0);
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DynTree::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // y: subtree rooted at node 1 of tree a
+    /// // replace y with tree b
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0
+    /// //    ╱ ╲
+    /// //   6   2
+    /// //  ╱ ╲
+    /// // 7   8
+    /// // |  ╱ ╲
+    /// // 9 10  11
+    ///
+    /// let idx = a.node_mut(a_id1).replace(b);
+    ///
+    /// // tree a with subtree from node 1 replaced with subtree b
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 6, 2, 7, 8, 9, 10, 11]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &6);
+    /// ```
+    pub fn replace<Vs>(self, subtree: impl SubTree<Vs>) -> NodeIdx<V>
+    where
+        Vs: TreeVariant<Item = V::Item>,
+    {
+        match self.parent_ptr() {
+            None => {
+                let (_, node_old) = self.replace_with_destruct(subtree);
+                let (_, col) = node_old.prune_destruct();
+                let state = col.memory_state();
+                #[allow(clippy::missing_panics_doc)]
+                let root_ptr = col.ends().get().expect("tree is not empty"); // will always succeed as the tree has a root
+                NodeIdx(orx_selfref_col::NodeIdx::new(state, root_ptr))
+            }
+            Some(parent_ptr) => {
+                let target_pos = self.sibling_idx();
+
+                let (_, col) = self.prune_destruct();
+
+                let mut parent = NodeMut::<'a, V, M, P>::new(col, parent_ptr);
+                let idx = parent.push_child_tree(subtree);
+                let mut pos = parent.num_children() - 1;
+
+                while pos > target_pos {
+                    let swap_idx = parent.child(pos - 1).idx();
+                    pos -= 1;
+                    swap_subtrees_unchecked::<V, M, P>(parent.col, idx, swap_idx);
+                }
+
+                idx
+            }
+        }
+    }
+
+    /// Replaces the subtree rooted at this node with the given `subtree`, and returns the tuple of:
+    ///
+    /// * the node index of root of the inserted `subtree`, and
+    /// * elements of the removed subtree as an iterator.
+    ///
+    /// The order of the elements is determined by the generic [`Traverser`] parameter `T`.
+    /// Available implementations are:
+    /// * [`Bfs`] for breadth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search))
+    /// * [`Dfs`] for (pre-order) depth-first ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search))
+    /// * [`PostOrder`] for post-order ([wikipedia](https://en.wikipedia.org/wiki/Tree_traversal#Post-order,_LRN))
+    ///
+    /// # Node Indices
+    ///
+    /// Importantly note that this method both pushes and removes nodes from the tree.
+    /// Just as any method removing nodes from the tree, this might lead to invalidating indices that are cached earlier.
+    ///
+    /// Therefore, depending on the number of removed nodes and memory state of the tree,
+    /// **node index of inserted subtree might already be invalidated**.
+    ///
+    /// If we require the index to be valid with certainty, we can convert the memory management of the tree to [`Lazy`]
+    /// before the replacement, as demonstrated in the examples below.
+    ///
+    /// # Subtree Variants
+    ///
+    /// * **I.** Cloned / copied subtree
+    ///   * A subtree cloned or copied from another tree.
+    ///   * The source tree remains unchanged.
+    ///   * Can be created by [`as_cloned_subtree`] and [`as_copied_subtree`] methods.
+    ///   * ***O(n)***
+    /// * **II.** Subtree moved out of another tree
+    ///   * The subtree will be moved from the source tree to this tree.
+    ///   * Can be created by [`into_subtree`] method.
+    ///   * ***O(n)***
+    /// * **III.** Another entire tree
+    ///   * The other tree will be consumed and moved into this tree.
+    ///   * ***O(1)***
+    ///
+    /// [`as_cloned_subtree`]: crate::NodeRef::as_cloned_subtree
+    /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
+    /// [`into_subtree`]: crate::NodeMut::into_subtree
+    /// [`Lazy`]: crate::memory::Lazy
+    ///
+    /// # Examples
+    ///
+    /// ## I. Replace with Subtree cloned/copied from another Tree
+    ///
+    /// The source tree remains unchanged.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::new(0).into_lazy_reclaim();
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // x: create subtree by cloning b.subtree(n8)
+    /// // y: create a Dfs walk from node 1 of tree a
+    /// // replace y with x
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   8   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 10  11       9 10  11
+    ///
+    /// let x = b.node(b_id8).as_cloned_subtree();
+    /// let (idx, y) = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
+    ///
+    /// // y: removed nodes from a in Dfs order
+    /// let removed_values_dfs: Vec<_> = y.collect();
+    /// assert_eq!(removed_values_dfs, [1, 3, 5, 4]);
+    ///
+    /// // tree a with the inserted subtree x
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 8, 2, 10, 11]);
+    ///
+    /// // tree b is unchanged since we created subtree as a clone
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [6, 7, 8, 9, 10, 11]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &8);
+    /// ```
+    ///
+    /// ## II. Replace with Subtree moved out of another Tree
+    ///
+    /// The source subtree rooted at the given node will be removed from the source
+    /// tree.
+    ///
+    /// Runs in ***O(n)*** time where n is the number of source nodes.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // x: create subtree by moving b.subtree(n8) out of b
+    /// // y: create a Dfs walk from node 1 of tree a
+    /// // replace y with x
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱
+    /// //   8   2      7
+    /// //  ╱ ╲         |
+    /// // 10  11       9
+    ///
+    /// let x = b.node_mut(b_id8).into_subtree();
+    /// let (idx, y) = a.node_mut(a_id1).replace_with::<Dfs, _>(x);
+    ///
+    /// // y: removed nodes from a in Dfs order
+    /// let removed_values_dfs: Vec<_> = y.collect();
+    /// assert_eq!(removed_values_dfs, [1, 3, 5, 4]);
+    ///
+    /// // tree a with the inserted subtree x
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 8, 2, 10, 11]);
+    ///
+    /// // tree b after subtree is moved out
+    /// let bfs_b: Vec<_> = b.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_b, [6, 7, 9]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &8);
+    /// ```
+    ///
+    /// ## III. Replace with another Tree
+    ///
+    /// The source tree will be moved into the target tree.
+    ///
+    /// Runs in ***O(1)*** time.
+    ///
+    /// ```
+    /// use orx_tree::*;
+    ///
+    /// //     a          b
+    /// // -----------------------
+    /// //     0          6
+    /// //    ╱ ╲        ╱ ╲
+    /// //   1   2      7   8
+    /// //  ╱ ╲         |  ╱ ╲
+    /// // 3   4        9 10  11
+    /// // |
+    /// // 5
+    ///
+    /// let mut a = DynTree::<_>::new(0).into_lazy_reclaim();
+    /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
+    /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
+    /// a.node_mut(a_id3).push_children([5]);
+    ///
+    /// let mut b = DaryTree::<4, _>::new(6);
+    /// let [b_id7, b_id8] = b.root_mut().push_children([7, 8]);
+    /// b.node_mut(b_id7).push_child(9);
+    /// b.node_mut(b_id8).push_children([10, 11]);
+    ///
+    /// // y: create a Dfs walk from node 1 of tree a
+    /// // replace y with tree b
+    /// //
+    /// //     a          b
+    /// // -----------------------
+    /// //     0
+    /// //    ╱ ╲
+    /// //   6   2
+    /// //  ╱ ╲
+    /// // 7   8
+    /// // |  ╱ ╲
+    /// // 9 10  11
+    ///
+    /// let (idx, y) = a.node_mut(a_id1).replace_with::<Dfs, _>(b);
+    ///
+    /// // y: removed nodes from a in Dfs order
+    /// let removed_values_dfs: Vec<_> = y.collect();
+    /// assert_eq!(removed_values_dfs, [1, 3, 5, 4]);
+    ///
+    /// // tree a with subtree from node 1 replaced with subtree b
+    /// let bfs_a: Vec<_> = a.root().walk::<Bfs>().copied().collect();
+    /// assert_eq!(bfs_a, [0, 6, 2, 7, 8, 9, 10, 11]);
+    ///
+    /// // `idx` is valid sine tree `a` uses lazy reclaim policy
+    /// assert_eq!(a.node(idx).data(), &6);
+    /// ```
+    pub fn replace_with<T, Vs>(
+        self,
+        subtree: impl SubTree<Vs>,
+    ) -> (NodeIdx<V>, impl Iterator<Item = V::Item>)
+    where
+        T: Traverser<OverData>,
+        Vs: TreeVariant<Item = V::Item>,
+    {
+        let (idx_in, node_old) = self.replace_with_destruct(subtree);
+        (idx_in, node_old.into_walk::<T>())
     }
 
     // traversal
@@ -3365,6 +3798,87 @@ where
             node_ptr,
             phantom: PhantomData,
         }
+    }
+
+    /// Removes this node and all of its descendants from the tree; and returns the data of this node
+    /// together with the mutable reference to the collection.
+    #[allow(clippy::missing_panics_doc)]
+    fn prune_destruct(self) -> (V::Item, &'a mut Col<V, M, P>) {
+        // TODO: we have the option to choose any traversal here; they are all safe
+        // with SelfRefCol. We can pick the fastest one after benchmarks.
+
+        // # SAFETY: We use this shared reference to iterate over the pointers of the
+        // descendent nodes. Using a mut reference to the collection, we will close
+        // each of the descendent nodes that we visit. Closing a node corresponds to
+        // taking its data out and emptying all of its previous and next links.
+        // Close operation is lazy and does not invalidate the pointers that we the
+        // shared reference to create.
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr));
+        for ptr in iter {
+            if ptr != self.node_ptr {
+                self.col.close(ptr);
+            }
+        }
+
+        let node = unsafe { &mut *self.node_ptr.ptr_mut() };
+        if let Some(parent) = node.prev_mut().get() {
+            let parent = unsafe { &mut *parent.ptr_mut() };
+            let sibling_idx = parent
+                .next_mut()
+                .remove(unsafe { self.node_ptr.ptr() as usize });
+            debug_assert!(sibling_idx.is_some());
+        }
+
+        let root_ptr = self.col.ends().get().expect("tree is not empty");
+        if root_ptr == self.node_ptr {
+            self.col.ends_mut().clear();
+        }
+
+        // # SAFETY: On the other hand, close_and_reclaim might trigger a reclaim
+        // operation which moves around the nodes, invalidating other pointers;
+        // however, only after 'self.node_ptr' is also closed.
+        (self.col.close_and_reclaim(self.node_ptr), self.col)
+    }
+
+    /// Replaces the subtree rooted at this node with the given `subtree`, and returns the tuple of:
+    ///
+    /// * the node index of root of the inserted `subtree`, and
+    /// * the disconnected node.
+    fn replace_with_destruct<Vs>(
+        mut self,
+        subtree: impl SubTree<Vs>,
+    ) -> (NodeIdx<V>, NodeMut<'a, V, M, P, MO>)
+    where
+        Vs: TreeVariant<Item = V::Item>,
+    {
+        let is_root = self.is_root();
+
+        let ptr_out = self.node_ptr;
+        let child_num = self.num_children();
+
+        let idx_in = self.push_child_tree(subtree);
+        let ptr_in = idx_in.0.node_ptr();
+
+        let node_out = unsafe { ptr_out.node_mut() };
+        let ptr_parent_of_out = node_out.prev().get();
+        node_out.next_mut().remove_at(child_num);
+        node_out.prev_mut().set_some(ptr_in);
+
+        let node_in = unsafe { ptr_in.node_mut() };
+        node_in.prev_mut().set(ptr_parent_of_out);
+        node_in.next_mut().push(ptr_out);
+
+        if let Some(ptr_parent_of_out) = ptr_parent_of_out {
+            let parent_of_out = unsafe { ptr_parent_of_out.node_mut() };
+            parent_of_out.next_mut().replace_with(ptr_out, ptr_in);
+        }
+
+        if is_root {
+            self.col.ends_mut().set_some(ptr_in);
+        }
+
+        let node_old = NodeMut::<_, M, P, MO>::new(self.col, ptr_out);
+        (idx_in, node_old)
     }
 }
 
