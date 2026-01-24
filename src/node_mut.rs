@@ -1877,12 +1877,13 @@ where
     {
         match self.parent_ptr() {
             None => {
-                let col_ptr = self.col as *mut Col<V, M, P>;
-                let _ = self.replace_with::<Dfs, _>(subtree);
-                let col = unsafe { &*col_ptr };
+                let (_, node_old) = self.replace_with_destruct::<Dfs, _>(subtree);
+                let (_, col) = node_old.prune_destruct();
+                // let col = unsafe { &*col_ptr };
+                let state = col.memory_state();
                 #[allow(clippy::missing_panics_doc)]
                 let root_ptr = col.ends().get().expect("tree is not empty"); // will always succeed as the tree has a root
-                NodeIdx(orx_selfref_col::NodeIdx::new(col.memory_state(), root_ptr))
+                NodeIdx(orx_selfref_col::NodeIdx::new(state, root_ptr))
             }
             Some(parent_ptr) => {
                 let target_pos = self.sibling_idx();
@@ -2134,33 +2135,7 @@ where
         T: Traverser<OverData>,
         Vs: TreeVariant<Item = V::Item>,
     {
-        let is_root = self.is_root();
-
-        let ptr_out = self.node_ptr;
-        let child_num = self.num_children();
-
-        let idx_in = self.push_child_tree(subtree);
-        let ptr_in = idx_in.0.node_ptr();
-
-        let node_out = unsafe { ptr_out.node_mut() };
-        let ptr_parent_of_out = node_out.prev().get();
-        node_out.next_mut().remove_at(child_num);
-        node_out.prev_mut().set_some(ptr_in);
-
-        let node_in = unsafe { ptr_in.node_mut() };
-        node_in.prev_mut().set(ptr_parent_of_out);
-        node_in.next_mut().push(ptr_out);
-
-        if let Some(ptr_parent_of_out) = ptr_parent_of_out {
-            let parent_of_out = unsafe { ptr_parent_of_out.node_mut() };
-            parent_of_out.next_mut().replace_with(ptr_out, ptr_in);
-        }
-
-        if is_root {
-            self.col.ends_mut().set_some(ptr_in);
-        }
-
-        let node_old = NodeMut::<_, M, P, MO>::new(self.col, ptr_out);
+        let (idx_in, node_old) = self.replace_with_destruct::<T, _>(subtree);
         (idx_in, node_old.into_walk::<T>())
     }
 
@@ -3864,6 +3839,48 @@ where
         // operation which moves around the nodes, invalidating other pointers;
         // however, only after 'self.node_ptr' is also closed.
         (self.col.close_and_reclaim(self.node_ptr), self.col)
+    }
+
+    /// Replaces the subtree rooted at this node with the given `subtree`, and returns the tuple of:
+    ///
+    /// * the node index of root of the inserted `subtree`, and
+    /// * the disconnected node.
+    fn replace_with_destruct<T, Vs>(
+        mut self,
+        subtree: impl SubTree<Vs>,
+    ) -> (NodeIdx<V>, NodeMut<'a, V, M, P, MO>)
+    where
+        T: Traverser<OverData>,
+        Vs: TreeVariant<Item = V::Item>,
+    {
+        let is_root = self.is_root();
+
+        let ptr_out = self.node_ptr;
+        let child_num = self.num_children();
+
+        let idx_in = self.push_child_tree(subtree);
+        let ptr_in = idx_in.0.node_ptr();
+
+        let node_out = unsafe { ptr_out.node_mut() };
+        let ptr_parent_of_out = node_out.prev().get();
+        node_out.next_mut().remove_at(child_num);
+        node_out.prev_mut().set_some(ptr_in);
+
+        let node_in = unsafe { ptr_in.node_mut() };
+        node_in.prev_mut().set(ptr_parent_of_out);
+        node_in.next_mut().push(ptr_out);
+
+        if let Some(ptr_parent_of_out) = ptr_parent_of_out {
+            let parent_of_out = unsafe { ptr_parent_of_out.node_mut() };
+            parent_of_out.next_mut().replace_with(ptr_out, ptr_in);
+        }
+
+        if is_root {
+            self.col.ends_mut().set_some(ptr_in);
+        }
+
+        let node_old = NodeMut::<_, M, P, MO>::new(self.col, ptr_out);
+        (idx_in, node_old)
     }
 }
 
