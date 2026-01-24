@@ -24,7 +24,7 @@ fn expected_nodes<T: Clone + Eq + Ord>(
 
 #[test]
 fn replace_cloned() {
-    let tree = get_main_tree().into_lazy_reclaim();
+    let tree = get_main_tree();
     let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree();
@@ -54,7 +54,7 @@ fn replace_cloned() {
 
 #[test]
 fn replace_copied() {
-    let tree = get_main_tree_copy().into_lazy_reclaim();
+    let tree = get_main_tree_copy();
     let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree_copy();
@@ -84,7 +84,7 @@ fn replace_copied() {
 
 #[test]
 fn replace_moved() {
-    let tree = get_main_tree().into_lazy_reclaim();
+    let tree = get_main_tree();
     let initial_nodes = collect_sorted_subtree(tree.root());
 
     let other = get_other_tree();

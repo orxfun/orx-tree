@@ -1682,11 +1682,7 @@ where
     /// Importantly note that this method both pushes and removes nodes from the tree.
     /// Just as any method removing nodes from the tree, this might lead to invalidating indices that are cached earlier.
     ///
-    /// Therefore, depending on the number of removed nodes and memory state of the tree,
-    /// **node index of inserted subtree might already be invalidated**.
-    ///
-    /// If we require the index to be valid with certainty, we can convert the memory management of the tree to [`Lazy`]
-    /// before the replacement, as demonstrated in the examples below.
+    /// However, this method guarantees that the returned node index of root of inserted subtree is valid (unlike `replace_with`).
     ///
     /// # Subtree Variants
     ///
@@ -1730,7 +1726,7 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::new(0).into_lazy_reclaim();
+    /// let mut a = DynTree::new(0);
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
@@ -1787,7 +1783,7 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::new(0).into_lazy_reclaim();
+    /// let mut a = DynTree::new(0);
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);
@@ -1843,7 +1839,7 @@ where
     /// // |
     /// // 5
     ///
-    /// let mut a = DynTree::new(0).into_lazy_reclaim();
+    /// let mut a = DynTree::new(0);
     /// let [a_id1, _] = a.root_mut().push_children([1, 2]);
     /// let [a_id3, _] = a.node_mut(a_id1).push_children([3, 4]);
     /// a.node_mut(a_id3).push_children([5]);

@@ -1,8 +1,5 @@
-use crate::tests::node_mut::utils::{
-    collect_sorted_subtree, get_main_tree, get_main_tree_copy, get_other_tree, get_other_tree_copy,
-};
+use crate::tests::node_mut::utils::{collect_sorted_subtree, get_main_tree};
 use crate::*;
-use std::vec::Vec;
 
 #[test]
 fn swap_subtrees() {
