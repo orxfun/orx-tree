@@ -1737,7 +1737,7 @@ where
     /// b.node_mut(b_id8).push_children([10, 11]);
     ///
     /// // x: create subtree by cloning b.subtree(n8)
-    /// // y: create a Dfs walk from node 1 of tree a
+    /// // y: subtree rooted at node 1 of tree a
     /// // replace y with x
     /// //
     /// //     a          b
@@ -1794,7 +1794,7 @@ where
     /// b.node_mut(b_id8).push_children([10, 11]);
     ///
     /// // x: create subtree by moving b.subtree(n8) out of b
-    /// // y: create a Dfs walk from node 1 of tree a
+    /// // y: subtree rooted at node 1 of tree a
     /// // replace y with x
     /// //
     /// //     a          b
@@ -1849,7 +1849,7 @@ where
     /// b.node_mut(b_id7).push_child(9);
     /// b.node_mut(b_id8).push_children([10, 11]);
     ///
-    /// // y: create a Dfs walk from node 1 of tree a
+    /// // y: subtree rooted at node 1 of tree a
     /// // replace y with tree b
     /// //
     /// //     a          b
