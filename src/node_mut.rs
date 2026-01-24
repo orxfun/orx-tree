@@ -16,6 +16,7 @@ use crate::{
         post_order::iter_ptr::PostOrderIterPtr,
         traverser_core::TraverserCore,
     },
+    tree::swap_subtrees_unchecked,
     tree_node_idx::INVALID_IDX_ERROR,
     tree_variant::RefsChildren,
 };
@@ -1516,40 +1517,7 @@ where
     /// ```
     #[allow(clippy::missing_panics_doc)]
     pub fn prune(self) -> V::Item {
-        // TODO: we have the option to choose any traversal here; they are all safe
-        // with SelfRefCol. We can pick the fastest one after benchmarks.
-
-        // # SAFETY: We use this shared reference to iterate over the pointers of the
-        // descendent nodes. Using a mut reference to the collection, we will close
-        // each of the descendent nodes that we visit. Closing a node corresponds to
-        // taking its data out and emptying all of its previous and next links.
-        // Close operation is lazy and does not invalidate the pointers that we the
-        // shared reference to create.
-        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr));
-        for ptr in iter {
-            if ptr != self.node_ptr {
-                self.col.close(ptr);
-            }
-        }
-
-        let node = unsafe { &mut *self.node_ptr.ptr_mut() };
-        if let Some(parent) = node.prev_mut().get() {
-            let parent = unsafe { &mut *parent.ptr_mut() };
-            let sibling_idx = parent
-                .next_mut()
-                .remove(unsafe { self.node_ptr.ptr() as usize });
-            debug_assert!(sibling_idx.is_some());
-        }
-
-        let root_ptr = self.col.ends().get().expect("tree is not empty");
-        if root_ptr == self.node_ptr {
-            self.col.ends_mut().clear();
-        }
-
-        // # SAFETY: On the other hand, close_and_reclaim might trigger a reclaim
-        // operation which moves around the nodes, invalidating other pointers;
-        // however, only after 'self.node_ptr' is also closed.
-        self.col.close_and_reclaim(self.node_ptr)
+        self.prune_destruct().0
     }
 
     /// Removes this node and returns its data;
@@ -1911,7 +1879,28 @@ where
     where
         Vs: TreeVariant<Item = V::Item>,
     {
-        self.replace_with::<Dfs, _>(subtree).0
+        match self.parent_ptr() {
+            None => todo!(),
+            Some(parent_ptr) => {
+                let target_pos = self.sibling_idx();
+
+                let (_, col) = self.prune_destruct();
+
+                let col_ptr = col as *mut Col<V, M, P>;
+
+                let mut parent = NodeMut::<'a, V, M, P>::new(unsafe { &mut *col_ptr }, parent_ptr);
+                let idx = parent.push_child_tree(subtree);
+                let mut pos = parent.num_children() - 1;
+
+                while pos > target_pos {
+                    let swap_idx = parent.child(pos - 1).idx();
+                    pos -= 1;
+                    swap_subtrees_unchecked::<V, M, P>(col, idx, swap_idx);
+                }
+
+                idx
+            }
+        }
     }
 
     /// Replaces the subtree rooted at this node with the given `subtree`, and returns the tuple of:
@@ -3834,6 +3823,44 @@ where
             node_ptr,
             phantom: PhantomData,
         }
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    fn prune_destruct(self) -> (V::Item, &'a mut Col<V, M, P>) {
+        // TODO: we have the option to choose any traversal here; they are all safe
+        // with SelfRefCol. We can pick the fastest one after benchmarks.
+
+        // # SAFETY: We use this shared reference to iterate over the pointers of the
+        // descendent nodes. Using a mut reference to the collection, we will close
+        // each of the descendent nodes that we visit. Closing a node corresponds to
+        // taking its data out and emptying all of its previous and next links.
+        // Close operation is lazy and does not invalidate the pointers that we the
+        // shared reference to create.
+        let iter = PostOrderIterPtr::<_, Val>::from((Default::default(), self.node_ptr));
+        for ptr in iter {
+            if ptr != self.node_ptr {
+                self.col.close(ptr);
+            }
+        }
+
+        let node = unsafe { &mut *self.node_ptr.ptr_mut() };
+        if let Some(parent) = node.prev_mut().get() {
+            let parent = unsafe { &mut *parent.ptr_mut() };
+            let sibling_idx = parent
+                .next_mut()
+                .remove(unsafe { self.node_ptr.ptr() as usize });
+            debug_assert!(sibling_idx.is_some());
+        }
+
+        let root_ptr = self.col.ends().get().expect("tree is not empty");
+        if root_ptr == self.node_ptr {
+            self.col.ends_mut().clear();
+        }
+
+        // # SAFETY: On the other hand, close_and_reclaim might trigger a reclaim
+        // operation which moves around the nodes, invalidating other pointers;
+        // however, only after 'self.node_ptr' is also closed.
+        (self.col.close_and_reclaim(self.node_ptr), self.col)
     }
 }
 
