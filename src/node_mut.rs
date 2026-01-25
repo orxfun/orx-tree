@@ -1945,6 +1945,8 @@ where
     /// [`as_copied_subtree`]: crate::NodeRef::as_copied_subtree
     /// [`into_subtree`]: crate::NodeMut::into_subtree
     /// [`Lazy`]: crate::memory::Lazy
+    /// [`Bfs`]: crate::Bfs
+    /// [`Dfs`]: crate::Dfs
     ///
     /// # Examples
     ///
